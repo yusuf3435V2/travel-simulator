@@ -1,31 +1,14 @@
 """Create a network of stations from the TFL API."""
 
 import logging
-import os
 import time
+import os
 import pandas as pd
 import networkx as nx
 from get_sequenced_stops import get_sequenced_stops, get_line_stops_data
 from get_travel_times import get_duration_data
 from get_lines import get_lines
 from api_utils import setup_logger
-
-
-def create_colour_scheme():
-    """Create a colour scheme for the different lines."""
-    return {
-        "bakerloo": "brown",
-        "central": "red",
-        "circle": "yellow",
-        "district": "green",
-        "hammersmith-city": "pink",
-        "jubilee": "grey",
-        "metropolitan": "purple",
-        "northern": "black",
-        "piccadilly": "darkblue",
-        "victoria": "lightblue",
-        "waterloo-city": "cyan",
-    }
 
 
 def add_edge_between_stations(
@@ -35,20 +18,20 @@ def add_edge_between_stations(
     G.add_edge(station1, station2, line_id=line_id, duration=duration)
 
 
-def get_stops_from_line_2(line_data: dict, line_id: str) -> list[dict]:
-    """Extracts the stops from the line data."""
-    stations = []
-    if isinstance(line_data, dict) and "stations" in line_data:
-        for station in line_data["stations"]:
-            if station.get("stationId"):
-                stations.append({
-                    "UniqueId": station.get("stationId"),
-                    "Name": station["name"],
-                    "Latitude": station["lat"],
-                    "Longitude": station["lon"],
-                    "Line_id": line_id
-                })
-    return stations
+# def get_stops_from_line_2(line_data: dict, line_id: str) -> list[dict]:
+#     """Extracts the stops from the line data."""
+#     stations = []
+#     if isinstance(line_data, dict) and "stations" in line_data:
+#         for station in line_data["stations"]:
+#             if station.get("stationId"):
+#                 stations.append({
+#                     "UniqueId": station.get("stationId"),
+#                     "Name": station["name"],
+#                     "Latitude": station["lat"],
+#                     "Longitude": station["lon"],
+#                     "Line_id": line_id
+#                 })
+#     return stations
 
 
 def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
@@ -130,24 +113,7 @@ def load_station_data(file_path: str = "stations/Stations.csv") -> pd.DataFrame:
     return pd.read_csv(file_path)
 
 
-def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> None:
-    """Plot the station network using matplotlib."""
-    import matplotlib.pyplot as plt
-    pos = {node: (float(data['Longitude']), float(data['Latitude']))
-           for node, data in station_data.set_index('UniqueId').to_dict('index').items()}
-    color_scheme = create_colour_scheme()
-    possible_lines = get_lines(mode="tube")
-    draw_edge_colours(network, pos, possible_lines, color_scheme)
-    nx.draw_networkx_nodes(network, pos, node_size=10, node_color='black')
-    plt.title("Tube Station Network")
-    plt.xlabel("Longitude")
-    plt.ylabel("Latitude")
-    plt.show()
-
 
 if __name__ == "__main__":
     setup_logger()
-    # track_network_creation_time()
-    network = load_station_network()
-    station_data = load_station_data()
-    plot_station_network(network, station_data)
+    track_network_creation_time()
