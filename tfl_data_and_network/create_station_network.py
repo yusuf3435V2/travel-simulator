@@ -3,6 +3,7 @@
 import networkx as nx
 import json
 from get_sequenced_stops import get_sequenced_stops
+from get_travel_times import get_duration_data
 from get_lines import get_lines
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -46,9 +47,12 @@ def draw_edge_colours(
 ) -> None:
     """Draw edges with colors based on the line."""
     for line_id in possible_lines:
-        line_color = color_scheme.get(line_id, "black")  # Default to black if not found
-        edges = [(u, v) for u, v, d in G.edges(data=True) if d.get("line") == line_id]
-        nx.draw_networkx_edges(G, pos, edgelist=edges, edge_color=line_color, width=1.5)
+        # Default to black if not found
+        line_color = color_scheme.get(line_id, "black")
+        edges = [(u, v) for u, v, d in G.edges(
+            data=True) if d.get("line") == line_id]
+        nx.draw_networkx_edges(G, pos, edgelist=edges,
+                               edge_color=line_color, width=1.5)
 
 
 def create_station_network(station_data: pd.DataFrame) -> None:
@@ -57,7 +61,7 @@ def create_station_network(station_data: pd.DataFrame) -> None:
     labels = {}
     color_scheme = create_colour_scheme()
     possible_lines = get_lines()
-    direction = "inbound"
+    direction = "all"
     for line_id in possible_lines:
         line_color = color_scheme.get(line_id, "black")
         print(f"Processing line: {line_id} with color: {line_color}")
@@ -77,9 +81,11 @@ def create_station_network(station_data: pd.DataFrame) -> None:
                     corresponding_station_name = get_station_name(
                         stops[i], station_data
                     )
-                    labels[stops[i]] = labels.get(stops[i], corresponding_station_name)
+                    labels[stops[i]] = labels.get(
+                        stops[i], corresponding_station_name)
                     labels[stops[i + 1]] = labels.get(
-                        stops[i + 1], get_station_name(stops[i + 1], station_data)
+                        stops[i +
+                              1], get_station_name(stops[i + 1], station_data)
                     )
                 except ValueError:
                     print(
@@ -107,7 +113,8 @@ def load_separate_station_data() -> pd.DataFrame:
 
 def get_station_name(station_id: str, station_data: pd.DataFrame) -> str:
     """Get the name of a station given its ID."""
-    station_name = station_data[station_data["UniqueId"] == station_id]["Name"].values
+    station_name = station_data[station_data["UniqueId"]
+                                == station_id]["Name"].values
     if len(station_name) == 0:
         raise ValueError("Could not find station name for ID: " + station_id)
     if len(station_name) > 1:
