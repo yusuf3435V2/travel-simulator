@@ -1,6 +1,7 @@
 """Create a network of stations from the TFL API."""
 
 import logging
+import time
 import pandas as pd
 import networkx as nx
 from get_sequenced_stops import get_sequenced_stops, get_line_stops_data
@@ -86,10 +87,14 @@ def create_station_network() -> pd.DataFrame:
                         logging.info(
                             f"Edge already exists between {branch[i]} and {branch[i + 1]} for line {line_id}, skipping")
                         continue
-                duration = get_duration_data(branch[i], branch[i + 1])
+                    duration = edge_data.get('duration')
+                    logging.info(
+                        f"""Edge already exists between {branch[i]} and {branch[i + 1]} for a different line, 
+                        using existing duration: {duration} seconds""")
+                else:
+                    duration = get_duration_data(branch[i], branch[i + 1])
                 add_edge_between_stations(
-                    network, branch[i], branch[i +
-                                               1], line_id=line_id, duration=duration)
+                    network, branch[i], branch[i + 1], line_id=line_id, duration=duration)
     nx.write_graphml(network, "stations/tube_network.graphml")
     stops_df = pd.DataFrame(stops)
     stops_df.to_csv("stations/Stations.csv", index=False)
@@ -98,4 +103,7 @@ def create_station_network() -> pd.DataFrame:
 
 if __name__ == "__main__":
     setup_logger()
+    start = time.time()
     create_station_network()
+    duration = time.time() - start
+    logging.info(f"create_station_network took {duration:.2f} seconds")

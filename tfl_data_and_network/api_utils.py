@@ -15,7 +15,7 @@ def setup_logger(log_level: str = "INFO") -> None:
     )
 
 
-def make_api_call_with_retry(url: str, max_retries: int = 5) -> dict | list | Any:
+def make_api_call_with_retry(url: str, max_retries: int = 7) -> dict | list | Any:
     """Make an API call with exponential backoff retry logic for rate limits."""
     for attempt in range(max_retries):
         try:
@@ -24,7 +24,7 @@ def make_api_call_with_retry(url: str, max_retries: int = 5) -> dict | list | An
             if response.status_code == 200:
                 return response.json()
             elif response.status_code == 429:  # Rate limited
-                wait_time = min(2 ** attempt, 32)
+                wait_time = min(2 ** attempt, 64)
                 logging.warning(
                     f"Rate limited (429). Waiting {wait_time} seconds before retry "
                     f"(attempt {attempt + 1}/{max_retries})"
@@ -37,7 +37,7 @@ def make_api_call_with_retry(url: str, max_retries: int = 5) -> dict | list | An
         except requests.exceptions.RequestException as e:
             logging.error(f"API request failed: {e}")
             if attempt < max_retries - 1:
-                wait_time = min(2 ** attempt, 32)
+                wait_time = min(2 ** attempt, 64)
                 logging.warning(f"Retrying in {wait_time} seconds...")
                 time.sleep(wait_time)
             else:
