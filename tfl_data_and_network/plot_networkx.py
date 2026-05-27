@@ -43,11 +43,11 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
     m = folium.Map(location=[center_lat, center_lon], zoom_start=12)
 
     # Add stations as markers
-    logging.info(f"Adding {len(station_data)} station markers to map")
+    logging.info("Adding %s station markers to map", len(station_data))
     for _, row in station_data.iterrows():
         if pd.isna(row['Latitude']) or pd.isna(row['Longitude']):
             logging.warning(
-                f"Station {row['Name']} has missing coordinates, skipping")
+                "Station %s has missing coordinates, skipping", row['Name'])
             continue
         folium.CircleMarker(
             location=[row['Latitude'], row['Longitude']],
@@ -60,7 +60,7 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
         ).add_to(m)
 
     # Add edges colored by line
-    logging.info(f"Adding {network.number_of_edges()} edges to map")
+    logging.info("Adding %s edges to map", network.number_of_edges())
     for source, target, data in network.edges(data=True):
         line_id = data.get('line_id', 'unknown')
         line_color = color_scheme.get(line_id, 'black')
@@ -71,7 +71,7 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
         if not source_row.empty and not target_row.empty:
             if pd.isna(source_row.iloc[0]['Latitude']) or pd.isna(target_row.iloc[0]['Latitude']):
                 logging.debug(
-                    f"Skipping edge {source}-{target}, missing coordinates")
+                    "Skipping edge %s-%s, missing coordinates", source, target)
                 continue
             coords = [
                 [source_row.iloc[0]['Latitude'], source_row.iloc[0]['Longitude']],
@@ -98,8 +98,8 @@ if __name__ == "__main__":
         m.save("stations/tube_network_map.html")
         logging.info("Map saved to stations/tube_network_map.html")
     except ValueError as e:
-        logging.error(f"Failed to plot map: {e}")
+        logging.error("Failed to plot map: %s", e)
     except IOError as e:
-        logging.error(f"Failed to save map to file: {e}")
+        logging.error("Failed to save map to file: %s", e)
     except Exception as e:
-        logging.error(f"Unexpected error while plotting: {e}")
+        logging.error("Unexpected error while plotting: %s", e)

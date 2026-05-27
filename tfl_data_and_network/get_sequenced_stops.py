@@ -15,7 +15,7 @@ def get_line_stops_data(line_id: str, direction: str) -> dict:
     """Fetch line stops data with retry logic for rate limits."""
     url = BASE_URL.format(id=line_id, direction=direction)
     logging.info(
-        f"Fetching sequenced stops for line {line_id} in {direction} direction")
+        "Fetching sequenced stops for line %s in %s direction", line_id, direction)
     return make_api_call_with_retry(url)
 
 
@@ -25,9 +25,9 @@ def get_sequenced_stops(data: dict) -> list[list[str]]:
         stops_list = [stops["naptanIds"]
                       for stops in data["orderedLineRoutes"]]
         logging.info(
-            f"Successfully fetched {len(stops_list)} route(s) with {sum(len(s) for s in stops_list)} total stops")
+            "Successfully fetched %s route(s) with %s total stops", len(stops_list), sum(len(s) for s in stops_list))
         return stops_list
-    logging.warning(f"No orderedLineRoutes found in data")
+    logging.warning("No orderedLineRoutes found in data")
     return []
 
 
