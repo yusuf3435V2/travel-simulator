@@ -1,6 +1,7 @@
 """Create a network of stations from the TFL API."""
 
 import logging
+import os
 import time
 import pandas as pd
 import networkx as nx
@@ -68,7 +69,8 @@ def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
     return stations
 
 
-def create_station_network() -> pd.DataFrame:
+def create_station_network(network_file_path: str = "stations/tube_network.graphml",
+                           station_file_path: str = "stations/Stations.csv") -> dict[str, pd.DataFrame | nx.Graph]:
     """Create a station network from the TFL API and save it as a .graphml file."""
     network = nx.Graph()
     possible_lines = get_lines(mode="tube")
@@ -95,15 +97,57 @@ def create_station_network() -> pd.DataFrame:
                     duration = get_duration_data(branch[i], branch[i + 1])
                 add_edge_between_stations(
                     network, branch[i], branch[i + 1], line_id=line_id, duration=duration)
-    nx.write_graphml(network, "stations/tube_network.graphml")
+    nx.write_graphml(network, network_file_path)
     stops_df = pd.DataFrame(stops)
-    stops_df.to_csv("stations/Stations.csv", index=False)
-    return stops_df
+    stops_df.to_csv(station_file_path, index=False)
+    return {'stops_df': stops_df, 'network': network}
+
+
+def track_network_creation_time() -> None:
+    """Track the time taken to create the station network."""
+    start_time = time.time()
+    create_station_network()
+    end_time = time.time()
+    logging.info(
+        f"Time taken to create station network: {end_time - start_time:.2f} seconds")
+
+
+def load_station_network(file_path: str = "stations/tube_network.graphml") -> nx.Graph:
+    """Load the station network from a .graphml file."""
+    if not os.path.exists(file_path):
+        logging.error(
+            f"Network file not found at {file_path}. Please run create_station_network() to create the network file.")
+        create_station_network(network_file_path=file_path)
+    return nx.read_graphml(file_path)
+
+
+def load_station_data(file_path: str = "stations/Stations.csv") -> pd.DataFrame:
+    """Load the station data from a .csv file."""
+    if not os.path.exists(file_path):
+        logging.error(
+            f"Station data file not found at {file_path}. Please run create_station_network() to create the station data file.")
+        create_station_network(station_file_path=file_path)
+    return pd.read_csv(file_path)
+
+
+def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> None:
+    """Plot the station network using matplotlib."""
+    import matplotlib.pyplot as plt
+    pos = {node: (float(data['Longitude']), float(data['Latitude']))
+           for node, data in station_data.set_index('UniqueId').to_dict('index').items()}
+    color_scheme = create_colour_scheme()
+    possible_lines = get_lines(mode="tube")
+    draw_edge_colours(network, pos, possible_lines, color_scheme)
+    nx.draw_networkx_nodes(network, pos, node_size=10, node_color='black')
+    plt.title("Tube Station Network")
+    plt.xlabel("Longitude")
+    plt.ylabel("Latitude")
+    plt.show()
 
 
 if __name__ == "__main__":
     setup_logger()
-    start = time.time()
-    create_station_network()
-    duration = time.time() - start
-    logging.info(f"create_station_network took {duration:.2f} seconds")
+    # track_network_creation_time()
+    network = load_station_network()
+    station_data = load_station_data()
+    plot_station_network(network, station_data)
