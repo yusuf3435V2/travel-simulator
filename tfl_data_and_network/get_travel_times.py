@@ -15,6 +15,9 @@ def get_duration_data_from_api_data(travel_time_data: dict) -> int:
     if "journeys" in travel_time_data and len(travel_time_data["journeys"]) > 0:
         duration = travel_time_data["journeys"][0]["duration"]
         logging.info(f"Successfully extracted duration: {duration} minutes")
+        if duration >= 10:
+            logging.warning(
+                f"Duration of {duration} minutes seems unusually long for adjacent stations.")
         return duration
     else:
         logging.error("No journeys found in the travel time data.")

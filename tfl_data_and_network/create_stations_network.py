@@ -1,7 +1,7 @@
 """Create a network of stations from the TFL API."""
 
 import logging
-
+import pandas as pd
 import networkx as nx
 from get_sequenced_stops import get_sequenced_stops, get_line_stops_data
 from get_travel_times import get_duration_data
@@ -30,7 +30,7 @@ def add_edge_between_stations(
     G: nx.Graph, station1: str, station2: str, line_id: str, duration: int
 ) -> None:
     """Add an edge between two stations in the graph G with the line_id and duration as attributes."""
-    G.add_edge(station1, station2, line=line_id, duration=duration)
+    G.add_edge(station1, station2, line_id=line_id, duration=duration)
 
 
 def get_stops_from_line_2(line_data: dict, line_id: str) -> list[dict]:
@@ -67,23 +67,22 @@ def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
     return stations
 
 
-def create_station_network() -> None:
-    """Create a station network from the TFL API and save it as a JSON file."""
+def create_station_network() -> pd.DataFrame:
+    """Create a station network from the TFL API and save it as a .graphml file."""
     network = nx.Graph()
-    possible_lines = get_lines()
-    # color_scheme = create_colour_scheme()
+    possible_lines = get_lines(mode="tube")
     direction = "all"
     stops = []
     for line_id in possible_lines:
         line_data = get_line_stops_data(line_id, direction)
         stops_line = get_stops_from_line(line_data, line_id)
-        stops.append(stops_line)
+        stops.extend(stops_line)
         line_branches = get_sequenced_stops(line_data)
         for branch in line_branches:
             for i in range(len(branch) - 1):
                 if network.has_edge(branch[i], branch[i + 1]):
                     edge_data = network.get_edge_data(branch[i], branch[i + 1])
-                    if edge_data.get('line') == line_id:
+                    if edge_data.get('line_id') == line_id:
                         logging.info(
                             f"Edge already exists between {branch[i]} and {branch[i + 1]} for line {line_id}, skipping")
                         continue
@@ -91,8 +90,10 @@ def create_station_network() -> None:
                 add_edge_between_stations(
                     network, branch[i], branch[i +
                                                1], line_id=line_id, duration=duration)
-    network.nodes()
-    return stops
+    nx.write_graphml(network, "stations/tube_network.graphml")
+    stops_df = pd.DataFrame(stops)
+    stops_df.to_csv("stations/Stations.csv", index=False)
+    return stops_df
 
 
 if __name__ == "__main__":

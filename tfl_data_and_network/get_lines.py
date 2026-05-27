@@ -10,10 +10,11 @@ BASE_URL = "https://api.tfl.gov.uk/Line/Mode/tube"
 # From https://api-portal.tfl.gov.uk/api-details#api=Line&operation=Line_MetaModes
 
 
-def get_lines() -> list[str]:
+def get_lines(mode: str = "tube") -> list[str]:
     """Get all tube lines from the TFL API."""
-    logging.debug(f"Fetching lines from {BASE_URL}")
-    data = make_api_call_with_retry(BASE_URL)
+    url = f"https://api.tfl.gov.uk/Line/Mode/{mode}"
+    logging.debug(f"Fetching lines from {url}")
+    data = make_api_call_with_retry(url)
     if isinstance(data, list):
         lines = [line["id"] for line in data]
         logging.info(f"Successfully fetched {len(lines)} lines")

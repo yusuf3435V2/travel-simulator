@@ -13,7 +13,8 @@ def download_and_extract_station_data() -> dict:
     if response.status_code == 200:
         return response.json()
     else:
-        raise Exception(f"Failed to fetch station data: {response.status_code}")
+        raise Exception(
+            f"Failed to fetch station data: {response.status_code}")
 
 
 def get_relevant_station_data(station_data: dict) -> list[dict]:
@@ -35,7 +36,9 @@ def get_relevant_station_data(station_data: dict) -> list[dict]:
 
 
 if __name__ == "__main__":
-    station_data = get_relevant_station_data(download_and_extract_station_data())
+    station_data = get_relevant_station_data(
+        download_and_extract_station_data())
     os.makedirs("stations", exist_ok=True)
+    print(station_data[0])
     station_df = pd.DataFrame(station_data)
     station_df.to_csv("stations/Stations.csv", index=False)
