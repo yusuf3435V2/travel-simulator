@@ -15,15 +15,40 @@ def setup_logger(log_level: str = "INFO") -> None:
     )
 
 
-def extract_travel_time_data(start_station: str, end_station: str) -> dict:
+def normalize_station_name(station_name: str) -> str:
+    """Normalize station names to have 'underground station' format."""
+    lower = station_name.lower()
+
+    # Already has correct format
+    if "underground station" in lower:
+        return station_name
+
+    # Has "station" but missing "underground"
+    if "station" in lower:
+        index = lower.find("station")
+        return station_name[:index] + "underground " + station_name[index:]
+
+    # Missing both - append " underground station"
+    return station_name + " underground station"
+
+
+def make_travel_time_url(start_station: str, end_station: str) -> str:
+    """Construct the URL for fetching travel time data between two stations."""
+    start_station = normalize_station_name(start_station)
+    end_station = normalize_station_name(end_station)
+    logging.debug(f"Formatted stations: {start_station} -> {end_station}")
+    return f"https://api.tfl.gov.uk/Journey/JourneyResults/{start_station}/to/{end_station}"
+
+
+def extract_travel_time_data(start_station_id: str, end_station_id: str) -> dict:
     """Download the station data zip file and extract it into the 'stations' directory."""
-    url = f"https://api.tfl.gov.uk/Journey/JourneyResults/{start_station}/to/{end_station}"
+    url = f"https://api.tfl.gov.uk/Journey/JourneyResults/{start_station_id}/to/{end_station_id}"
     response = requests.get(url)
     if response.status_code == 200:
         return response.json()
     else:
         logging.error(
-            f"Failed to fetch station data: {response.status_code}")
+            f"Failed to fetch station data: {response.status_code} \nURL: {url}")
         return {}
 
 

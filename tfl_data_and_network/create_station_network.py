@@ -36,10 +36,10 @@ def check_station_data_available():
 
 
 def add_edge_between_stations(
-    G: nx.Graph, station1: str, station2: str, line_id: str
+    G: nx.Graph, station1: str, station2: str, line_id: str, duration: int
 ) -> None:
-    """Add an edge between two stations in the graph G with the line_id as an attribute."""
-    G.add_edge(station1, station2, line=line_id)
+    """Add an edge between two stations in the graph G with the line_id and duration as attributes."""
+    G.add_edge(station1, station2, line=line_id, duration=duration)
 
 
 def draw_edge_colours(
@@ -78,21 +78,25 @@ def create_station_network(station_data: pd.DataFrame) -> None:
                     )
                     continue
                 try:
-                    corresponding_station_name = get_station_name(
+                    corresponding_start_station_name = get_station_name(
                         stops[i], station_data
                     )
+                    corresponding_end_station_name = get_station_name(
+                        stops[i + 1], station_data
+                    )
                     labels[stops[i]] = labels.get(
-                        stops[i], corresponding_station_name)
+                        stops[i], corresponding_start_station_name)
                     labels[stops[i + 1]] = labels.get(
                         stops[i +
-                              1], get_station_name(stops[i + 1], station_data)
-                    )
+                              1], corresponding_end_station_name)
+                    duration = get_duration_data(
+                        stops[i], stops[i + 1])
                 except ValueError:
                     print(
                         f"Could not find station name for ID: {stops[i]}, using ID as name."
                     )
-                corresponding_station_name = stops[i]
-                add_edge_between_stations(G, stops[i], stops[i + 1], line_id)
+                add_edge_between_stations(
+                    G, stops[i], stops[i + 1], line_id, duration)
     pos = nx.spring_layout(G, k=0.5, iterations=50)
     nx.draw_networkx_nodes(G, pos, node_size=20, node_color="lightblue")
 
