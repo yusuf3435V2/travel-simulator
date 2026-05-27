@@ -26,6 +26,13 @@ def create_colour_scheme():
 
 def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> folium.Map:
     """Plot the station network using Folium with colored edges."""
+    if len(station_data) == 0:
+        logging.error("Station data is empty, cannot plot map")
+        raise ValueError("Cannot plot map with empty station data")
+
+    if network.number_of_nodes() == 0:
+        logging.warning("Network has no nodes, plotting station markers only")
+
     color_scheme = create_colour_scheme()
 
     # Calculate center of map
@@ -36,7 +43,12 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
     m = folium.Map(location=[center_lat, center_lon], zoom_start=12)
 
     # Add stations as markers
+    logging.info(f"Adding {len(station_data)} station markers to map")
     for _, row in station_data.iterrows():
+        if pd.isna(row['Latitude']) or pd.isna(row['Longitude']):
+            logging.warning(
+                f"Station {row['Name']} has missing coordinates, skipping")
+            continue
         folium.CircleMarker(
             location=[row['Latitude'], row['Longitude']],
             radius=1,
@@ -48,6 +60,7 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
         ).add_to(m)
 
     # Add edges colored by line
+    logging.info(f"Adding {network.number_of_edges()} edges to map")
     for source, target, data in network.edges(data=True):
         line_id = data.get('line_id', 'unknown')
         line_color = color_scheme.get(line_id, 'black')
@@ -56,6 +69,10 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
         target_row = station_data[station_data['UniqueId'] == target]
 
         if not source_row.empty and not target_row.empty:
+            if pd.isna(source_row.iloc[0]['Latitude']) or pd.isna(target_row.iloc[0]['Latitude']):
+                logging.debug(
+                    f"Skipping edge {source}-{target}, missing coordinates")
+                continue
             coords = [
                 [source_row.iloc[0]['Latitude'], source_row.iloc[0]['Longitude']],
                 [target_row.iloc[0]['Latitude'], target_row.iloc[0]['Longitude']]
@@ -76,6 +93,13 @@ if __name__ == "__main__":
     station_data = load_station_data()
 
     logging.info("Plotting station network")
-    m = plot_station_network(network, station_data)
-    m.save("stations/tube_network_map.html")
-    logging.info("Map saved to stations/tube_network_map.html")
+    try:
+        m = plot_station_network(network, station_data)
+        m.save("stations/tube_network_map.html")
+        logging.info("Map saved to stations/tube_network_map.html")
+    except ValueError as e:
+        logging.error(f"Failed to plot map: {e}")
+    except IOError as e:
+        logging.error(f"Failed to save map to file: {e}")
+    except Exception as e:
+        logging.error(f"Unexpected error while plotting: {e}")

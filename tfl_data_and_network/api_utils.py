@@ -17,6 +17,7 @@ def setup_logger(log_level: str = "INFO") -> None:
 
 def make_api_call_with_retry(url: str, max_retries: int = 7) -> dict | list | Any:
     """Make an API call with exponential backoff retry logic for rate limits."""
+    logging.debug(f"Starting API call to: {url}")
     for attempt in range(max_retries):
         try:
             response = requests.get(url, timeout=10)

@@ -13,7 +13,7 @@ BASE_URL = "https://api.tfl.gov.uk/Line/Mode/tube"
 def get_lines(mode: str = "tube") -> list[str]:
     """Get all tube lines from the TFL API."""
     url = f"https://api.tfl.gov.uk/Line/Mode/{mode}"
-    logging.debug(f"Fetching lines from {url}")
+    logging.info(f"Fetching {mode} lines from TFL API")
     data = make_api_call_with_retry(url)
     if isinstance(data, list):
         lines = [line["id"] for line in data]
