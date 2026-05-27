@@ -2,24 +2,27 @@
 
 
 import logging
-from api_utils import make_api_call_with_retry
+from api_utils import make_api_call_with_retry, setup_logger
 
 BASE_URL = "https://api.tfl.gov.uk/Line/Mode/tube"
 
+# "https://api.tfl.gov.uk/Line/Mode/tube,elizabeth-line,dlr"
 # From https://api-portal.tfl.gov.uk/api-details#api=Line&operation=Line_MetaModes
 
 
 def get_lines() -> list[str]:
     """Get all tube lines from the TFL API."""
-    logging.info(f"Fetching lines from {BASE_URL}")
+    logging.debug(f"Fetching lines from {BASE_URL}")
     data = make_api_call_with_retry(BASE_URL)
     if isinstance(data, list):
-        return [line["id"] for line in data]
-    elif isinstance(data, dict) and "id" in data:
-        return [data["id"]]
+        lines = [line["id"] for line in data]
+        logging.info(f"Successfully fetched {len(lines)} lines")
+        return lines
+    logging.warning("No lines found or data in unexpected format")
     return []
 
 
 if __name__ == "__main__":
+    setup_logger()
     lines = get_lines()
     print(lines)
