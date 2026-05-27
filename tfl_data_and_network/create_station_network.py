@@ -9,18 +9,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import logging
-
-
-def setup_logger(log_level: str = "INFO") -> None:
-    """
-    Configure logging with the specified log_level: 
-    (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-    """
-    logging.basicConfig(
-        level=getattr(logging, log_level),
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        encoding="utf-8"
-    )
+from api_utils import setup_logger
 
 
 def create_colour_scheme():

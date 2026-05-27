@@ -1,18 +1,6 @@
 """Gets travel times between connected nodes in the graph."""
 import logging
-from api_utils import make_api_call_with_retry
-
-
-def setup_logger(log_level: str = "INFO") -> None:
-    """
-    Configure logging with the specified log_level: 
-    (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-    """
-    logging.basicConfig(
-        level=getattr(logging, log_level),
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        encoding="utf-8"
-    )
+from api_utils import make_api_call_with_retry, setup_logger
 
 
 def extract_travel_time_data(start_station_id: str, end_station_id: str) -> dict:
