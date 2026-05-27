@@ -8,6 +8,19 @@ from get_lines import get_lines
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
+import logging
+
+
+def setup_logger(log_level: str = "INFO") -> None:
+    """
+    Configure logging with the specified log_level: 
+    (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    """
+    logging.basicConfig(
+        level=getattr(logging, log_level),
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        encoding="utf-8"
+    )
 
 
 def create_colour_scheme():
@@ -127,6 +140,7 @@ def get_station_name(station_id: str, station_data: pd.DataFrame) -> str:
 
 
 if __name__ == "__main__":
+    setup_logger()
     check_station_data_available()
     station_data = load_separate_station_data()
     print(station_data.head())

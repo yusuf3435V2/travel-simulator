@@ -1,6 +1,8 @@
 """Obtain tube line information from the TFL API."""
 
-import requests as req
+
+import logging
+from api_utils import make_api_call_with_retry
 
 BASE_URL = "https://api.tfl.gov.uk/Line/Mode/tube"
 
@@ -9,11 +11,13 @@ BASE_URL = "https://api.tfl.gov.uk/Line/Mode/tube"
 
 def get_lines() -> list[str]:
     """Get all tube lines from the TFL API."""
-    response = req.get(BASE_URL)
-    if response.status_code == 200:
-        return [line["id"] for line in response.json()]
-    else:
-        raise Exception(f"Failed to fetch lines: {response.status_code}")
+    logging.info(f"Fetching lines from {BASE_URL}")
+    data = make_api_call_with_retry(BASE_URL)
+    if isinstance(data, list):
+        return [line["id"] for line in data]
+    elif isinstance(data, dict) and "id" in data:
+        return [data["id"]]
+    return []
 
 
 if __name__ == "__main__":
