@@ -2,7 +2,7 @@
 
 import networkx as nx
 import json
-from get_sequenced_stops import get_sequenced_stops
+from get_sequenced_stops import get_sequenced_stops, get_line_stops_data
 from get_travel_times import get_duration_data
 from get_lines import get_lines
 import matplotlib.pyplot as plt
@@ -67,7 +67,8 @@ def create_station_network(station_data: pd.DataFrame) -> None:
     for line_id in possible_lines:
         line_color = color_scheme.get(line_id, "black")
         print(f"Processing line: {line_id} with color: {line_color}")
-        stops_branches = get_sequenced_stops(line_id, direction)
+        line_data = get_line_stops_data(line_id, direction)
+        stops_branches = get_sequenced_stops(line_data)
         for stops in stops_branches:
             for i in range(len(stops) - 1):
                 # check if the edge has already been made

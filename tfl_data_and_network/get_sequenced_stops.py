@@ -11,20 +11,23 @@ possible_directions = ["inbound"]
 BASE_URL = "https://api.tfl.gov.uk/Line/{id}/Route/Sequence/{direction}"
 
 
-def get_sequenced_stops(line_id: str, direction: str) -> list[list[str]]:
-    """Get a sequence of stops (stationIDs) for a given line and direction."""
+def get_line_stops_data(line_id: str, direction: str) -> dict:
+    """Fetch line stops data with retry logic for rate limits."""
     url = BASE_URL.format(id=line_id, direction=direction)
     logging.info(
         f"Fetching sequenced stops for line {line_id} in {direction} direction")
-    data = make_api_call_with_retry(url)
+    return make_api_call_with_retry(url)
 
+
+def get_sequenced_stops(data: dict) -> list[list[str]]:
+    """Get a sequence of stops (stationIDs) for a given line and direction."""
     if isinstance(data, dict) and "orderedLineRoutes" in data:
         stops_list = [stops["naptanIds"]
                       for stops in data["orderedLineRoutes"]]
         logging.info(
             f"Successfully fetched {len(stops_list)} route(s) with {sum(len(s) for s in stops_list)} total stops")
         return stops_list
-    logging.warning(f"No orderedLineRoutes found in data for line {line_id}")
+    logging.warning(f"No orderedLineRoutes found in data")
     return []
 
 
@@ -32,7 +35,8 @@ if __name__ == "__main__":
     setup_logger()
     possible_lines = get_lines()
     if possible_lines:
-        print(get_sequenced_stops(possible_lines[0], "all"))
+        print(get_sequenced_stops(
+            get_line_stops_data(possible_lines[0], "all")))
     # for line_id in possible_lines:
     #     direction = "inbound"
     #     stops = get_sequenced_stops(line_id, direction)
