@@ -1,10 +1,11 @@
-import os
+"""Plot the stations network using NetworkX and Folium."""
+
 import logging
 import pandas as pd
 import networkx as nx
 import folium
 from api_utils import setup_logger
-from create_stations_network import create_station_network, load_station_network, load_station_data
+from create_stations_network import load_station_network, load_station_data
 
 
 def create_colour_scheme():
@@ -82,24 +83,22 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
                             weight=2, opacity=0.7).add_to(m)
 
     logging.info(
-        f"Plotted {len(station_data)} stations and {network.number_of_edges()} edges")
+        "Plotted %s stations and %s edges", len(station_data), network.number_of_edges())
     return m
 
 
 if __name__ == "__main__":
     setup_logger()
     logging.info("Loading station network and data")
-    network = load_station_network()
-    station_data = load_station_data()
+    network_graph = load_station_network()
+    station_dataframe = load_station_data()
 
     logging.info("Plotting station network")
     try:
-        m = plot_station_network(network, station_data)
-        m.save("stations/tube_network_map.html")
+        station_map = plot_station_network(network_graph, station_dataframe)
+        station_map.save("stations/tube_network_map.html")
         logging.info("Map saved to stations/tube_network_map.html")
     except ValueError as e:
         logging.error("Failed to plot map: %s", e)
     except IOError as e:
         logging.error("Failed to save map to file: %s", e)
-    except Exception as e:
-        logging.error("Unexpected error while plotting: %s", e)

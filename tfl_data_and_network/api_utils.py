@@ -1,9 +1,8 @@
 """Utility functions for API calls with retry logic and rate limit handling."""
-
-import requests
 import logging
 import time
 from typing import Any
+import requests
 
 
 def setup_logger(log_level: str = "INFO") -> None:
@@ -24,7 +23,7 @@ def make_api_call_with_retry(url: str, max_retries: int = 7) -> dict | list | An
 
             if response.status_code == 200:
                 return response.json()
-            elif response.status_code == 429:  # Rate limited
+            if response.status_code == 429:  # Rate limited
                 wait_time = min(2 ** attempt, 64)
                 logging.warning(
                     "Rate limited (429). Waiting %s seconds before retry (attempt %s/%s)",

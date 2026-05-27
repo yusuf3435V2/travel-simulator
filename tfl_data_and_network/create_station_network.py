@@ -1,14 +1,13 @@
 """Creates a station network from the TFL API and saves it as a JSON file."""
 
-import networkx as nx
+import os
 import json
+import pandas as pd
+import networkx as nx
+import matplotlib.pyplot as plt
 from get_sequenced_stops import get_sequenced_stops, get_line_stops_data
 from get_travel_times import get_duration_data
 from get_lines import get_lines
-import matplotlib.pyplot as plt
-import pandas as pd
-import os
-import logging
 from api_utils import setup_logger
 
 
@@ -33,14 +32,15 @@ def check_station_data_available():
     """Check if there is a station data file available in the 'stations' directory."""
     if not os.path.exists("stations/Stations.csv"):
         raise FileNotFoundError(
-            "Station data file not found. Please run separate_station_data.py to create the station data file."
+            """Station data file not found. 
+            Please run separate_station_data.py to create the station data file."""
         )
 
 
 def add_edge_between_stations(
-    G: nx.Graph, station1: str, station2: str, line_id: str, duration: int
-) -> None:
-    """Add an edge between two stations in the graph G with the line_id and duration as attributes."""
+        G: nx.Graph, station1: str, station2: str, line_id: str, duration: int) -> None:
+    """Add an edge between two stations in the graph G 
+    with the line_id and duration as attributes."""
     G.add_edge(station1, station2, line=line_id, duration=duration)
 
 
@@ -114,8 +114,9 @@ def create_station_network(station_data: pd.DataFrame) -> None:
 
 def load_separate_station_data() -> pd.DataFrame:
     """Load the separate station data from the 'stations' directory."""
-    # This is a placeholder function. You would need to implement this to load the station data from the files created by separate_station_data.py.
-    return pd.read_csv("stations/Stations.csv")
+    # This is a placeholder function. You would need to implement this to
+    # load the station data from the files created by separate_station_data.py.
+    return pd.read_csv("stations/Stations.csv", encoding="utf-8")
 
 
 def get_station_name(station_id: str, station_data: pd.DataFrame) -> str:
@@ -132,6 +133,6 @@ def get_station_name(station_id: str, station_data: pd.DataFrame) -> str:
 if __name__ == "__main__":
     setup_logger()
     check_station_data_available()
-    station_data = load_separate_station_data()
-    print(station_data.head())
-    create_station_network(station_data)
+    stations = load_separate_station_data()
+    print(stations.head())
+    create_station_network(stations)

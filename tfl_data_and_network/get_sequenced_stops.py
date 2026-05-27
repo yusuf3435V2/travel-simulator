@@ -5,7 +5,8 @@ import logging
 from api_utils import make_api_call_with_retry, setup_logger
 from get_lines import get_lines
 
-# From https://api-portal.tfl.gov.uk/api-details#api=Line&operation=Line_RouteSequenceByPathIdPathDirectionQueryServiceTypesQueryExcludeCrowding
+# From https://api-portal.tfl.gov.uk/api-details#api=Line&operation=
+# Line_RouteSequenceByPathIdPathDirectionQueryServiceTypesQueryExcludeCrowding
 
 possible_directions = ["inbound"]
 BASE_URL = "https://api.tfl.gov.uk/Line/{id}/Route/Sequence/{direction}"
@@ -25,7 +26,8 @@ def get_sequenced_stops(data: dict) -> list[list[str]]:
         stops_list = [stops["naptanIds"]
                       for stops in data["orderedLineRoutes"]]
         logging.info(
-            "Successfully fetched %s route(s) with %s total stops", len(stops_list), sum(len(s) for s in stops_list))
+            "Successfully fetched %s route(s) with %s total stops",
+            len(stops_list), sum(len(s) for s in stops_list))
         return stops_list
     logging.warning("No orderedLineRoutes found in data")
     return []

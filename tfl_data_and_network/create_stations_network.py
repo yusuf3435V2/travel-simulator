@@ -14,7 +14,9 @@ from api_utils import setup_logger
 def add_edge_between_stations(
     G: nx.Graph, station1: str, station2: str, line_id: str, duration: int
 ) -> None:
-    """Add an edge between two stations in the graph G with the line_id and duration as attributes."""
+    """
+    Add an edge between two stations in the graph G 
+    with the line_id and duration as attributes."""
     G.add_edge(station1, station2, line_id=line_id, duration=duration)
 
 
@@ -53,7 +55,8 @@ def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
 
 
 def create_station_network(network_file_path: str = "stations/tube_network.graphml",
-                           station_file_path: str = "stations/Stations.csv") -> dict[str, pd.DataFrame | nx.Graph]:
+                           station_file_path: str = "stations/Stations.csv") -> \
+        dict[str, pd.DataFrame | nx.Graph]:
     """Create a station network from the TFL API and save it as a .graphml file."""
     network = nx.Graph()
     possible_lines = get_lines(mode="tube")
@@ -70,12 +73,14 @@ def create_station_network(network_file_path: str = "stations/tube_network.graph
                     edge_data = network.get_edge_data(branch[i], branch[i + 1])
                     if edge_data.get('line_id') == line_id:
                         logging.info(
-                            f"Edge already exists between {branch[i]} and {branch[i + 1]} for line {line_id}, skipping")
+                            "Edge already exists between %s and %s for line %s, skipping",
+                            branch[i], branch[i + 1], line_id)
                         continue
                     duration = edge_data.get('duration')
                     logging.info(
-                        f"""Edge already exists between {branch[i]} and {branch[i + 1]} for a different line, 
-                        using existing duration: {duration} seconds""")
+                        "Edge already exists between %s and %s for a different line, "
+                        "using existing duration: %s minutes",
+                        branch[i], branch[i + 1], duration)
                 else:
                     duration = get_duration_data(branch[i], branch[i + 1])
                 add_edge_between_stations(
@@ -92,14 +97,15 @@ def track_network_creation_time() -> None:
     create_station_network()
     end_time = time.time()
     logging.info(
-        f"Time taken to create station network: {end_time - start_time:.2f} seconds")
+        "Time taken to create station network: %.2f seconds", end_time - start_time)
 
 
 def load_station_network(file_path: str = "stations/tube_network.graphml") -> nx.Graph:
     """Load the station network from a .graphml file."""
     if not os.path.exists(file_path):
         logging.error(
-            f"Network file not found at {file_path}. Please run create_station_network() to create the network file.")
+            "Network file not found at %s. Please run create_station_network() to create the network file.",
+            file_path)
         create_station_network(network_file_path=file_path)
     return nx.read_graphml(file_path)
 
@@ -108,10 +114,10 @@ def load_station_data(file_path: str = "stations/Stations.csv") -> pd.DataFrame:
     """Load the station data from a .csv file."""
     if not os.path.exists(file_path):
         logging.error(
-            f"Station data file not found at {file_path}. Please run create_station_network() to create the station data file.")
+            "Station data file not found at %s. Please run create_station_network() to create the station data file.",
+            file_path)
         create_station_network(station_file_path=file_path)
     return pd.read_csv(file_path)
-
 
 
 if __name__ == "__main__":

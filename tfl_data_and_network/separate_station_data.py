@@ -1,4 +1,5 @@
-"""Script to separate station data into individual files for each station, saved into a directory called 'stations'."""
+"""Script to separate station data into individual files for each station, 
+saved into a directory called 'stations'."""
 
 import os
 import requests
@@ -9,12 +10,11 @@ BASE_URL = "https://api.tfl.gov.uk/StopPoint/Mode/tube"
 
 def download_and_extract_station_data() -> dict:
     """Download the station data zip file and extract it into the 'stations' directory."""
-    response = requests.get(BASE_URL)
+    response = requests.get(BASE_URL, timeout=10)
     if response.status_code == 200:
         return response.json()
-    else:
-        raise Exception(
-            f"Failed to fetch station data: {response.status_code}")
+    raise Exception(
+        f"Failed to fetch station data: {response.status_code}")
 
 
 def get_relevant_station_data(station_data: dict) -> list[dict]:

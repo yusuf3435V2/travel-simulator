@@ -19,12 +19,12 @@ def get_duration_data_from_api_data(travel_time_data: dict) -> int:
             logging.warning(
                 "Duration of %s minutes seems unusually long for adjacent stations.", duration)
         return duration
-    else:
-        logging.error("No journeys found in the travel time data.")
-        return 2  # Return a default value of 2 minutes if no journey data is found
+    logging.error("No journeys found in the travel time data.")
+    return 2  # Return a default value of 2 minutes if no journey data is found
 
 
 def get_duration_data(start_station_id: str, end_station_id: str) -> int:
+    """Get the duration data between two stations."""
     logging.info(
         "Getting duration data from %s to %s", start_station_id, end_station_id)
     travel_time_data = extract_travel_time_data(
@@ -35,7 +35,7 @@ def get_duration_data(start_station_id: str, end_station_id: str) -> int:
 if __name__ == "__main__":
     setup_logger()
     logging.info("Starting get_travel_times script")
-    duration = get_duration_data(
+    duration_time = get_duration_data(
         "940GZZLUHPK", "940GZZLUNHG")
-    logging.info("Travel time: %s minutes", duration)
-    print(duration)
+    logging.info("Travel time: %s minutes", duration_time)
+    print(duration_time)
