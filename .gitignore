@@ -4,4 +4,4 @@ __pycache__/
 *.pyc
 *.csv
 *.graphml
-•.html
+*.html
