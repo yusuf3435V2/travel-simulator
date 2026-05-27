@@ -57,24 +57,36 @@ def create_station_network(station_data: pd.DataFrame) -> None:
     labels = {}
     color_scheme = create_colour_scheme()
     possible_lines = get_lines()
+    direction = "inbound"
     for line_id in possible_lines:
-        direction = "inbound"
         line_color = color_scheme.get(line_id, "black")
         print(f"Processing line: {line_id} with color: {line_color}")
-        stops = get_sequenced_stops(line_id, direction)
-        for i in range(len(stops) - 1):
-            try:
-                corresponding_station_name = get_station_name(stops[i], station_data)
-                labels[stops[i]] = corresponding_station_name
-                print(
-                    f"Found station name for ID: {stops[i]}: {corresponding_station_name}"
-                )
-            except ValueError:
-                print(
-                    f"Could not find station name for ID: {stops[i]}, using ID as name."
-                )
+        stops_branches = get_sequenced_stops(line_id, direction)
+        for stops in stops_branches:
+            for i in range(len(stops) - 1):
+                # check if the edge has already been made
+                if G.has_edge(stops[i], stops[i + 1]):
+                    print(
+                        "found existing edge between: "
+                        + stops[i]
+                        + " and "
+                        + stops[i + 1]
+                    )
+                    continue
+                try:
+                    corresponding_station_name = get_station_name(
+                        stops[i], station_data
+                    )
+                    labels[stops[i]] = labels.get(stops[i], corresponding_station_name)
+                    labels[stops[i + 1]] = labels.get(
+                        stops[i + 1], get_station_name(stops[i + 1], station_data)
+                    )
+                except ValueError:
+                    print(
+                        f"Could not find station name for ID: {stops[i]}, using ID as name."
+                    )
                 corresponding_station_name = stops[i]
-            add_edge_between_stations(G, stops[i], stops[i + 1], line_id)
+                add_edge_between_stations(G, stops[i], stops[i + 1], line_id)
     pos = nx.spring_layout(G, k=0.5, iterations=50)
     nx.draw_networkx_nodes(G, pos, node_size=20, node_color="lightblue")
 
@@ -99,7 +111,7 @@ def get_station_name(station_id: str, station_data: pd.DataFrame) -> str:
     if len(station_name) == 0:
         raise ValueError("Could not find station name for ID: " + station_id)
     if len(station_name) > 1:
-        print("Multiple station names found for ID: " + station_id)
+        pass
     return station_name[0]
 
 

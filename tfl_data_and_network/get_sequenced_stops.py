@@ -5,17 +5,21 @@ from get_lines import get_lines
 
 # From https://api-portal.tfl.gov.uk/api-details#api=Line&operation=Line_RouteSequenceByPathIdPathDirectionQueryServiceTypesQueryExcludeCrowding
 
+possible_directions = ["inbound"]
 BASE_URL = "https://api.tfl.gov.uk/Line/{id}/Route/Sequence/{direction}"
 
 
-def get_sequenced_stops(line_id: str, direction: str) -> list[str]:
+def get_sequenced_stops(line_id: str, direction: str) -> list[list[str]]:
     """Get a sequence of stops (stationIDs) for a given line and direction."""
 
     url = BASE_URL.format(id=line_id, direction=direction)
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        return data["orderedLineRoutes"][0]["naptanIds"]
+        return [
+            data["orderedLineRoutes"][i]["naptanIds"]
+            for i in range(len(data["orderedLineRoutes"]))
+        ]
     else:
         raise Exception(f"Failed to fetch sequenced stops: {response.status_code}")
 
