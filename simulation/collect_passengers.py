@@ -2,9 +2,9 @@
 
 import networkx as nx
 import mesa
-import matplotlib.pyplot as plt
 import json
 import pandas as pd
+from distance_maths import haversine_distance
 
 
 def load_sample_demand() -> list[dict]:
@@ -54,11 +54,23 @@ def get_nearest_station(
     lat: float, lng: float, station_data: pd.DataFrame
 ) -> str | None:
     """Get the nearest station to a given latitude and longitude."""
-    station_data["Distance"] = (
-        (station_data["Latitude"] - lat) ** 2 + (station_data["Longitude"] - lng) ** 2
-    ) ** 0.5
+    station_data["Distance"] = station_data.apply(
+        lambda row: haversine_distance(lat, lng, row["Latitude"], row["Longitude"]),
+        axis=1,
+    )
     nearest_station = station_data.loc[station_data["Distance"].idxmin()]
     return nearest_station["UniqueId"] if not nearest_station.empty else None
+
+
+def get_station_distance(
+    station_id1: str, lat: float, lng: float, station_data: pd.DataFrame
+) -> float | None:
+    """Get the distance between a station and a given latitude and longitude."""
+    station_latlong = get_station_latlong(station_id1, station_data)
+    if station_latlong is None:
+        return None
+    station_lat, station_lng = station_latlong
+    return ((station_lat - lat) ** 2 + (station_lng - lng) ** 2) ** 0.5
 
 
 def total_switch_time(
@@ -154,15 +166,26 @@ class PassengerAgent(mesa.Agent):
         self.destination_lat = destination_lat
         self.destination_lng = destination_lng
         self.day_type = day_type
+        self.nearest_station = None
+        self.alighting_station = None
         self.time_spent = 0
 
-    def look_for_nearest_stop(self):
+    def look_for_nearest_stop(self) -> None:
         """Look for the nearest stop to the passenger's origin."""
-        pass
+        nearest_station = get_nearest_station(
+            self.origin_lat, self.origin_lng, self.model.station_data
+        )
+        self.nearest_station = nearest_station
 
-    def walk_to_station(self):
+    def walk_to_nearest_station(self):
         """Simulate the passenger walking to the nearest station."""
-        pass
+        distance_to_station = get_station_distance(
+            self.nearest_station,
+            self.origin_lat,
+            self.origin_lng,
+            self.model.station_data,
+        )
+        self.time_spent += distance_to_station / 5  # Assuming walking speed of 5 km/h
 
     def wait_for_transport(self):
         """Simulate the passenger waiting for transport at the station. cool but gonna ignore for now"""
@@ -184,15 +207,26 @@ class PassengerAgent(mesa.Agent):
             self.model.G,
         )
         self.time_spent += duration + total_switch_time(all_switches)
-        pass
+        self.alighting_station = alighting_stop_id
 
     def walk_to_destination(self):
         """Simulate the passenger walking from the station to their final destination."""
-        pass
+        alighting_latlong = get_station_latlong(
+            self.alighting_station, self.model.station_data
+        )
+        if alighting_latlong is None:
+            return
+        alighting_lat, alighting_lng = alighting_latlong
+        distance_to_destination = haversine_distance(
+            self.destination_lat, self.destination_lng, alighting_lat, alighting_lng
+        )
+        self.time_spent += (
+            distance_to_destination / 5
+        )  # Assuming walking speed of 5 km/h
 
     def travel(self):
         """Simulate the passenger's travel from origin to destination."""
-        self.walk_to_station()
+        self.walk_to_nearest_station()
         self.wait_for_transport()
         self.travel_on_transport()
         self.walk_to_destination()
@@ -208,7 +242,7 @@ class TravelModel(mesa.Model):
 
     def __init__(self):
         super().__init__()
-        self.num_agents = 10
+        self.num_agents = 100
         self.G = nx.read_graphml("stations/tube_network.graphml")
         self.station_data = pd.read_csv("stations/station_data.csv")
 

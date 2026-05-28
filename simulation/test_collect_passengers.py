@@ -9,6 +9,7 @@ from collect_passengers import (
     get_station_latlong,
     get_nearest_station,
 )
+from distance_maths import haversine_distance
 import pytest
 import pandas as pd
 import networkx as nx
@@ -117,3 +118,23 @@ def test_sample_data_valid_columns(sample_data):
     }
     for column in expected_columns:
         assert column in sample_data.columns, f"Missing expected column: {column}"
+
+
+def test_haversine_distance_same():
+    """Test that the Haversine distance is calculated correctly."""
+    lat1, lon1 = 51.513356, -0.088899  # Bank station
+    lat2, lon2 = lat1, lon1  # Same location
+    distance = haversine_distance(lat1, lon1, lat2, lon2)
+    expected_distance = 0.0  # Distance should be zero for the same location
+    assert abs(distance - expected_distance) == 0
+
+
+def test_haversine_distance_different():
+    """Test that the Haversine distance is calculated correctly between London and Paris."""
+    lat1, lon1 = 51.5074, -0.1278  # London
+    lat2, lon2 = 48.8566, 2.3522  # Paris
+    distance = haversine_distance(lat1, lon1, lat2, lon2)
+    expected_distance = 343.5  # Approximate distance in kilometers
+    assert abs(distance - expected_distance) < 1.0, (
+        f"Expected approximately {expected_distance} km, got {distance} km"
+    )
