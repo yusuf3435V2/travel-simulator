@@ -8,3 +8,4 @@ pytest
 streamlit 
 streamlit-folium 
 folium
+folium
