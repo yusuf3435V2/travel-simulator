@@ -1,0 +1,7 @@
+pandas
+geopandas
+matplotlib
+folium
+mapclassify
+pylint
+pytest

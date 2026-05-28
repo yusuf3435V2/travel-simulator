@@ -2,6 +2,7 @@
 *.env
 __pycache__/
 *.pyc
+boundaryData.*
 *.csv
 *.graphml
 *.html
