@@ -72,15 +72,49 @@ def shortest_path_between_stations(
     graph: nx.Graph,
     origin: str,
     destination: str,
+    line_change_penalty: float = 5.0,
 ) -> list[str]:
-    """Calculate the shortest path between two nodes in the graph."""
-    try:
-        path = nx.shortest_path(
-            graph, source=origin, target=destination, weight="duration"
-        )
-        return path
-    except nx.NetworkXNoPath:
-        return []
+    """Calculate the shortest path considering line changes as a cost, using
+    a modified Dijkstra's algorithm that tracks both the current station
+    and the line you're currently on, so line changes incur a penalty.
+    """
+    import heapq
+
+    # State: (total_cost, current_station, current_line, path)
+    # We track the line so we can detect and penalize changes
+    initial_state = (0, origin, None, [origin])
+    priority_queue = [initial_state]
+    visited = set()
+
+    while priority_queue:
+        cost, station, current_line, path = heapq.heappop(priority_queue)
+
+        if station == destination:
+            return path
+
+        # Avoid revisiting same state (station + line combination)
+        state_key = (station, current_line)
+        if state_key in visited:
+            continue
+        visited.add(state_key)
+
+        # Explore all neighboring stations
+        for neighbor in graph.neighbors(station):
+            edge_data = graph[station][neighbor]
+            edge_line = edge_data.get("line", "")
+            duration = float(edge_data.get("duration", 0))
+
+            # Cost is duration + penalty if we're changing lines
+            edge_cost = duration
+            if current_line is not None and current_line != edge_line:
+                edge_cost += line_change_penalty
+
+            new_cost = cost + edge_cost
+            new_state = (new_cost, neighbor, edge_line, path + [neighbor])
+
+            heapq.heappush(priority_queue, new_state)
+
+    return []  # No path found
 
 
 def shortest_path_length_between_stations(

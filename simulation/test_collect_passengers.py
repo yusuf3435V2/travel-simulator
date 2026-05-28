@@ -57,8 +57,8 @@ def test_get_station_latlong_invalid_id(sample_station_data):
 def test_shortest_path(sample_stations):
     """Test that the shortest path between two stations is calculated correctly."""
     path = shortest_path_between_stations(sample_stations, "StationA", "StationD")
-    assert path == ["StationA", "StationC", "StationD"], (
-        f"Expected ['StationA', 'StationC', 'StationD'], got {path}"
+    assert path == ["StationA", "StationB", "StationC", "StationD"], (
+        f"Expected ['StationA', 'StationB', 'StationC', 'StationD'], got {path}"
     )
 
 
