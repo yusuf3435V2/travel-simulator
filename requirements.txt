@@ -2,3 +2,6 @@ requests
 networkx
 matplotlib
 pandas
+folium
+pylint 
+pytest
