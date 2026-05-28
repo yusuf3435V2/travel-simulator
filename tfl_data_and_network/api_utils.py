@@ -1,0 +1,47 @@
+"""Utility functions for API calls with retry logic and rate limit handling."""
+import logging
+import time
+from typing import Any
+import requests
+
+
+def setup_logger(log_level: str = "INFO") -> None:
+    """Configure logging with the specified log_level: (DEBUG, INFO, WARNING, ERROR, CRITICAL)"""
+    logging.basicConfig(
+        level=getattr(logging, log_level),
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        encoding="utf-8"
+    )
+
+
+def make_api_call_with_retry(url: str, max_retries: int = 7) -> dict | list | Any:
+    """Make an API call with exponential backoff retry logic for rate limits."""
+    logging.debug("Starting API call to: %s", url)
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(url, timeout=10)
+
+            if response.status_code == 200:
+                return response.json()
+            if response.status_code == 429:  # Rate limited
+                wait_time = min(2 ** attempt, 64)
+                logging.warning(
+                    "Rate limited (429). Waiting %s seconds before retry (attempt %s/%s)",
+                    wait_time, attempt + 1, max_retries
+                )
+                time.sleep(wait_time)
+            else:
+                logging.error(
+                    "API request failed with status code: %s", response.status_code)
+                return {}
+        except requests.exceptions.RequestException as e:
+            logging.error("API request failed: %s", e)
+            if attempt < max_retries - 1:
+                wait_time = min(2 ** attempt, 64)
+                logging.warning("Retrying in %s seconds...", wait_time)
+                time.sleep(wait_time)
+            else:
+                return {}
+
+    logging.error("Failed to complete API call after %s attempts", max_retries)
+    return {}
