@@ -1,3 +1,4 @@
+import logging
 import requests
 import pandas as pd
 import geopandas as gpd
@@ -6,11 +7,16 @@ import pickle
 import folium
 
 
+logger = logging.getLogger(__name__)
+STOPS_URL = "https://api.tfl.gov.uk/StopPoint/Mode/tube"
+
+
 def load_boundary_data() -> gpd.GeoDataFrame:
     """Load boundary data from cache or geojson file."""
     cache_file = "./boundaryData.pkl"
     if os.path.exists(cache_file):
-        gdf = pickle.load(open(cache_file, "rb"))
+        with open(cache_file, "rb") as f:
+            gdf = pickle.load(f)
     elif os.path.exists("./boundaryData.geojson"):
         gdf = gpd.read_file("./boundaryData.geojson")
         with open(cache_file, "wb") as f:
@@ -24,23 +30,19 @@ def load_boundary_data() -> gpd.GeoDataFrame:
     return gdf
 
 
-def get_stop_locations(stops_url: str) -> pd.DataFrame:
-    """Fetch tube stop locations from TFL API and return a cleaned DataFrame."""
-    response = requests.get(stops_url)
-    data = response.json()
-    stops_df = pd.DataFrame(data["stopPoints"])
-    clean_stops = stops_df[['lat', 'lon', 'commonName', 'id']]
-    return clean_stops
-
-
 def get_normalised_stops(stops_url: str) -> pd.DataFrame:
-    """Fetch tube stop locations and return a DataFrame with averaged coordinates per station."""
-    clean_stops = get_stop_locations(stops_url)
+    """Fetch tube stops and return averaged coordinates per station."""
+    try:
+        response = requests.get(stops_url)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        logger.info(f"Error: {e}")
+        return pd.DataFrame()
 
-    # GROUP BY STATION NAME AND AVERAGE COORDINATES
+    stops_df = pd.DataFrame(response.json()["stopPoints"])
+    clean_stops = stops_df[['lat', 'lon', 'commonName', 'id']]
     stations = clean_stops.groupby('commonName')[
         ['lat', 'lon']].mean().reset_index()
-
     return stations
 
 
@@ -71,13 +73,12 @@ def create_choropleth(gdf: gpd.GeoDataFrame, stations: pd.DataFrame) -> folium.M
 
 
 if __name__ == "__main__":
-    stops_url = "https://api.tfl.gov.uk/StopPoint/Mode/tube"
     # STEP 1: Load boundary data
     # This data is manually downloaded once from ONS website.
     gdf = load_boundary_data()
 
     # STEP 2: Load tube stops
-    stations = get_normalised_stops(stops_url)
+    stations = get_normalised_stops(STOPS_URL)
 
     # STEP 3: Convert stations to GeoDataFrame
     stations_gdf = gpd.GeoDataFrame(
