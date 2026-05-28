@@ -5,7 +5,8 @@ from create_stations_network import (
     get_stops_from_line,
     create_station_network,
     load_station_network_local,
-    track_network_creation_time
+    track_network_creation_time,
+    pipeline
 )
 import unittest
 from unittest.mock import patch, MagicMock, mock_open
@@ -265,6 +266,74 @@ class TestTrackNetworkCreationTime(unittest.TestCase):
         track_network_creation_time()
 
         mock_create.assert_called_once_with()
+
+
+class TestPipeline(unittest.TestCase):
+    """Test pipeline function."""
+
+    @patch.dict(os.environ, {
+        'AWS_DEFAULT_REGION': 'eu-west-2',
+        'AWS_ACCESS_KEY_ID': 'test-key',
+        'AWS_SECRET_ACCESS_KEY': 'test-secret'
+    })
+    @patch('create_stations_network.boto3.Session')
+    @patch('create_stations_network.create_station_network')
+    def test_pipeline_uploads_to_s3(self, mock_create, mock_session):
+        """Test that pipeline uploads network and data to S3."""
+        mock_network = nx.Graph()
+        mock_df = pd.DataFrame({'id': [1, 2]})
+        mock_create.return_value = {'network': mock_network, 'stops_df': mock_df}
+
+        mock_s3_client = MagicMock()
+        mock_session_instance = MagicMock()
+        mock_session.return_value = mock_session_instance
+        mock_session_instance.client.return_value = mock_s3_client
+
+        result = pipeline()
+
+        self.assertTrue(result)
+        self.assertEqual(mock_s3_client.put_object.call_count, 2)
+
+    @patch.dict(os.environ, {
+        'AWS_DEFAULT_REGION': 'eu-west-2',
+        'AWS_ACCESS_KEY_ID': 'test-key',
+        'AWS_SECRET_ACCESS_KEY': 'test-secret'
+    })
+    @patch('create_stations_network.boto3.Session')
+    @patch('create_stations_network.create_station_network')
+    def test_pipeline_uses_processed_prefix(self, mock_create, mock_session):
+        """Test that pipeline uploads to processed/ prefix in bucket."""
+        mock_network = nx.Graph()
+        mock_df = pd.DataFrame({'id': [1, 2]})
+        mock_create.return_value = {'network': mock_network, 'stops_df': mock_df}
+
+        mock_s3_client = MagicMock()
+        mock_session_instance = MagicMock()
+        mock_session.return_value = mock_session_instance
+        mock_session_instance.client.return_value = mock_s3_client
+
+        pipeline()
+
+        calls = mock_s3_client.put_object.call_args_list
+        self.assertEqual(calls[0][1]['Key'], 'processed/tube_network.graphml')
+        self.assertEqual(calls[1][1]['Key'], 'processed/stations.csv')
+
+    @patch.dict(os.environ, {
+        'AWS_DEFAULT_REGION': 'eu-west-2',
+        'AWS_ACCESS_KEY_ID': 'test-key',
+        'AWS_SECRET_ACCESS_KEY': 'test-secret'
+    })
+    @patch('create_stations_network.boto3.Session')
+    @patch('create_stations_network.create_station_network')
+    def test_pipeline_returns_false_on_exception(self, mock_create, mock_session):
+        """Test that pipeline returns False on exception."""
+        mock_create.side_effect = Exception("API error")
+        mock_session_instance = MagicMock()
+        mock_session.return_value = mock_session_instance
+
+        result = pipeline()
+
+        self.assertFalse(result)
 
 
 if __name__ == '__main__':
