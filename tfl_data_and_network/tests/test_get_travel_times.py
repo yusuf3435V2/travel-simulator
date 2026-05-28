@@ -5,8 +5,6 @@ import sys
 import unittest
 from unittest.mock import patch
 
-sys.path.insert(0, os.path.dirname(__file__))
-
 from get_travel_times import (
     extract_travel_time_data,
     get_duration_data_from_api_data,

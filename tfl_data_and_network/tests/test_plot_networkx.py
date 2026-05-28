@@ -1,5 +1,11 @@
 """Tests for plot_networkx.py"""
 
+from plot_networkx import (
+    create_colour_scheme,
+    plot_station_network,
+    extract_station_network_local,
+    extract_station_data_local
+)
 import os
 import sys
 import unittest
@@ -10,13 +16,6 @@ import numpy as np
 import networkx as nx
 
 sys.path.insert(0, os.path.dirname(__file__))
-
-from plot_networkx import (
-    create_colour_scheme,
-    plot_station_network,
-    extract_station_network_local,
-    extract_station_data_local
-)
 
 
 class TestExtractStationNetworkLocal(unittest.TestCase):

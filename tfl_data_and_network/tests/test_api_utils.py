@@ -7,9 +7,6 @@ from unittest.mock import patch, MagicMock
 
 import requests
 
-# Add parent directory to path to import api_utils
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
 from api_utils import setup_logger, make_api_call_with_retry
 
 

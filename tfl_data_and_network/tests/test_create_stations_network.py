@@ -1,5 +1,12 @@
 """Tests for create_stations_network.py"""
 
+from create_stations_network import (
+    add_edge_between_stations,
+    get_stops_from_line,
+    create_station_network,
+    track_network_creation_time,
+    pipeline
+)
 import os
 import sys
 import unittest
@@ -9,14 +16,6 @@ import pandas as pd
 import networkx as nx
 
 sys.path.insert(0, os.path.dirname(__file__))
-
-from create_stations_network import (
-    add_edge_between_stations,
-    get_stops_from_line,
-    create_station_network,
-    track_network_creation_time,
-    pipeline
-)
 
 
 class TestAddEdgeBetweenStations(unittest.TestCase):
