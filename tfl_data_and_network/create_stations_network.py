@@ -2,7 +2,10 @@
 
 import logging
 import time
-import os
+from io import BytesIO
+from os import environ
+import boto3
+from dotenv import load_dotenv
 import pandas as pd
 import networkx as nx
 from get_sequenced_stops import get_sequenced_stops, get_line_stops_data
@@ -18,22 +21,6 @@ def add_edge_between_stations(
     Add an edge between two stations in the graph G 
     with the line_id and duration as attributes."""
     G.add_edge(station1, station2, line_id=line_id, duration=duration)
-
-
-# def get_stops_from_line_2(line_data: dict, line_id: str) -> list[dict]:
-#     """Extracts the stops from the line data."""
-#     stations = []
-#     if isinstance(line_data, dict) and "stations" in line_data:
-#         for station in line_data["stations"]:
-#             if station.get("stationId"):
-#                 stations.append({
-#                     "UniqueId": station.get("stationId"),
-#                     "Name": station["name"],
-#                     "Latitude": station["lat"],
-#                     "Longitude": station["lon"],
-#                     "Line_id": line_id
-#                 })
-#     return stations
 
 
 def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
@@ -113,6 +100,46 @@ def track_network_creation_time() -> None:
     end_time = time.time()
     logging.info(
         "Time taken to create station network: %.2f seconds", end_time - start_time)
+
+
+def pipeline() -> bool:
+    """Run the full pipeline and save it in a S3 bucket."""
+    try:
+        stations_network_data = create_station_network()
+        network = stations_network_data.get(
+            'network', nx.Graph())
+        stops_df = stations_network_data.get('stops_df', pd.DataFrame())
+        session = boto3.Session(
+            region_name=environ['AWS_DEFAULT_REGION'],
+            aws_access_key_id=environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=environ['AWS_SECRET_ACCESS_KEY']
+        )
+        s3_client = session.client('s3')
+        bucket_name = 'c23-travel-simulation-bucket'
+
+        graphml_bytes = BytesIO()
+        nx.write_graphml(network, graphml_bytes)
+        s3_client.put_object(
+            Bucket=bucket_name,
+            Key='processed/tube_network.graphml',
+            Body=graphml_bytes.getvalue()
+        )
+        logging.info(
+            "Successfully uploaded network to S3 bucket %s", bucket_name)
+
+        csv_bytes = stops_df.to_csv(index=False).encode()
+        s3_client.put_object(
+            Bucket=bucket_name,
+            Key='processed/Stations.csv',
+            Body=csv_bytes
+        )
+        logging.info(
+            "Successfully uploaded station data to S3 bucket %s", bucket_name)
+        return True
+    except Exception as e:
+        logging.error(
+            "Failed to run pipeline and save to S3: %s", e)
+        return False
 
 
 if __name__ == "__main__":
