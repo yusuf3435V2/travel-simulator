@@ -3,3 +3,8 @@ networkx
 matplotlib
 pandas
 mesa
+folium
+pylint 
+pytest
+streamlit 
+streamlit-folium 

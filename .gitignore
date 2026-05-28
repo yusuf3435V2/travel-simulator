@@ -2,6 +2,16 @@
 *.env
 __pycache__/
 *.pyc
+boundaryData.*
 *.csv
 *.graphml
 *.html
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Terraform variable files
+*.tfvars
+*.tfvars.json
