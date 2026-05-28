@@ -1,21 +1,22 @@
 """Tests for create_stations_network.py"""
 
-import unittest
-from unittest.mock import patch, MagicMock, mock_open
-import sys
-import os
-import pandas as pd
-import networkx as nx
-
-sys.path.insert(0, os.path.dirname(__file__))
-
 from create_stations_network import (
     add_edge_between_stations,
     get_stops_from_line,
     create_station_network,
     load_station_network,
-    load_station_data
+    load_station_data,
+    track_network_creation_time
 )
+import unittest
+from unittest.mock import patch, MagicMock, mock_open
+import sys
+import os
+import time
+import pandas as pd
+import networkx as nx
+
+sys.path.insert(0, os.path.dirname(__file__))
 
 
 class TestAddEdgeBetweenStations(unittest.TestCase):
@@ -210,11 +211,13 @@ class TestLoadStationNetwork(unittest.TestCase):
         mock_exists.return_value = False
         mock_network = MagicMock()
         mock_read.return_value = mock_network
-        mock_create.return_value = {'network': mock_network, 'stops_df': pd.DataFrame()}
+        mock_create.return_value = {
+            'network': mock_network, 'stops_df': pd.DataFrame()}
 
         result = load_station_network("missing/path.graphml")
 
-        mock_create.assert_called_once_with(network_file_path="missing/path.graphml")
+        mock_create.assert_called_once_with(
+            network_file_path="missing/path.graphml")
 
     @patch('os.path.exists')
     @patch('networkx.read_graphml')
@@ -253,11 +256,13 @@ class TestLoadStationData(unittest.TestCase):
         mock_exists.return_value = False
         mock_df = pd.DataFrame()
         mock_read_csv.return_value = mock_df
-        mock_create.return_value = {'stops_df': mock_df, 'network': MagicMock()}
+        mock_create.return_value = {
+            'stops_df': mock_df, 'network': MagicMock()}
 
         result = load_station_data("missing/stations.csv")
 
-        mock_create.assert_called_once_with(station_file_path="missing/stations.csv")
+        mock_create.assert_called_once_with(
+            station_file_path="missing/stations.csv")
 
     @patch('os.path.exists')
     @patch('pandas.read_csv')
@@ -323,6 +328,48 @@ class TestCreateStationNetwork(unittest.TestCase):
 
                 self.assertEqual(result['network'].number_of_nodes(), 0)
                 self.assertEqual(len(result['stops_df']), 0)
+
+
+class TestTrackNetworkCreationTime(unittest.TestCase):
+    """Test track_network_creation_time function."""
+
+    @patch('create_stations_network.create_station_network')
+    @patch('time.time')
+    def test_track_network_creation_time(self, mock_time, mock_create):
+        """Test timing of network creation."""
+        mock_time.side_effect = [100.0, 105.5]  # 5.5 seconds
+        mock_create.return_value = {
+            'network': nx.Graph(), 'stops_df': pd.DataFrame()}
+
+        track_network_creation_time()
+
+        mock_create.assert_called_once()
+        mock_time.assert_called()
+
+    @patch('create_stations_network.create_station_network')
+    @patch('time.time')
+    def test_track_network_creation_time_measures_duration(self, mock_time, mock_create):
+        """Test that timing measures the duration correctly."""
+        mock_time.side_effect = [1000.0, 1010.5]  # 10.5 seconds
+        mock_create.return_value = {
+            'network': nx.Graph(), 'stops_df': pd.DataFrame()}
+
+        track_network_creation_time()
+
+        # Verify time.time was called twice (start and end)
+        self.assertEqual(mock_time.call_count, 2)
+
+    @patch('create_stations_network.create_station_network')
+    @patch('time.time')
+    def test_track_network_creation_time_calls_create(self, mock_time, mock_create):
+        """Test that create_station_network is called."""
+        mock_time.side_effect = [100.0, 101.0]
+        mock_create.return_value = {
+            'network': nx.Graph(), 'stops_df': pd.DataFrame()}
+
+        track_network_creation_time()
+
+        mock_create.assert_called_once_with()
 
 
 if __name__ == '__main__':
