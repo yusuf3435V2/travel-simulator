@@ -4,3 +4,4 @@ matplotlib
 pandas
 folium
 boto3
+dotenv

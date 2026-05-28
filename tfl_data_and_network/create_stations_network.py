@@ -45,7 +45,7 @@ def create_station_network() -> \
         dict[str, pd.DataFrame | nx.Graph]:
     """Create a station network from the TFL API and save it as a .graphml file."""
     network = nx.Graph()
-    possible_lines = get_lines(mode="tube")
+    possible_lines = get_lines(mode="tube,dlr,elizabeth-line")
     direction = "all"
     stops = []
     for line_id in possible_lines:
@@ -109,6 +109,7 @@ def pipeline() -> bool:
         network = stations_network_data.get(
             'network', nx.Graph())
         stops_df = stations_network_data.get('stops_df', pd.DataFrame())
+        load_dotenv()
         session = boto3.Session(
             region_name=environ['AWS_DEFAULT_REGION'],
             aws_access_key_id=environ['AWS_ACCESS_KEY_ID'],
@@ -130,7 +131,7 @@ def pipeline() -> bool:
         csv_bytes = stops_df.to_csv(index=False).encode()
         s3_client.put_object(
             Bucket=bucket_name,
-            Key='processed/Stations.csv',
+            Key='processed/stations.csv',
             Body=csv_bytes
         )
         logging.info(
@@ -144,4 +145,4 @@ def pipeline() -> bool:
 
 if __name__ == "__main__":
     setup_logger()
-    track_network_creation_time()
+    pipeline()
