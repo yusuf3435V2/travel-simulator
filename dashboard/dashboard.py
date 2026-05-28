@@ -1,3 +1,4 @@
+"""The main dashboard for the travel simulation app"""
 import time
 
 import folium
@@ -47,7 +48,7 @@ if "simulation_finished" not in st.session_state:
     st.session_state.simulation_finished = False
 
 
-inputs_disabled = st.session_state.simulation_running
+INPUT_DISABLED = st.session_state.simulation_running
 
 
 st.subheader("1. Choose proposed station location")
@@ -55,7 +56,7 @@ st.subheader("1. Choose proposed station location")
 input_method = st.radio(
     "How would you like to choose the location?",
     ["Type latitude/longitude", "Click on map"],
-    disabled=inputs_disabled,
+    disabled=INPUT_DISABLED,
 )
 
 if input_method == "Type latitude/longitude":
@@ -66,7 +67,7 @@ if input_method == "Type latitude/longitude":
             "Latitude",
             value=51.5072,
             format="%.6f",
-            disabled=inputs_disabled,
+            disabled=INPUT_DISABLED,
         )
 
     with col2:
@@ -74,10 +75,10 @@ if input_method == "Type latitude/longitude":
             "Longitude",
             value=-0.1276,
             format="%.6f",
-            disabled=inputs_disabled,
+            disabled=INPUT_DISABLED,
         )
 
-    if st.button("Use typed coordinates", disabled=inputs_disabled):
+    if st.button("Use typed coordinates", disabled=INPUT_DISABLED):
         st.session_state.proposed_lat = typed_lat
         st.session_state.proposed_lon = typed_lon
         st.session_state.simulation_finished = False
@@ -108,7 +109,7 @@ else:
     )
 
     if (
-        not inputs_disabled
+        not INPUT_DISABLED
         and map_data
         and map_data.get("last_clicked")
     ):
@@ -123,10 +124,10 @@ selected_line = st.selectbox(
     "Which line would the proposed station be on?",
     TUBE_AND_RAIL_LINES,
     index=TUBE_AND_RAIL_LINES.index(st.session_state.selected_line),
-    disabled=inputs_disabled,
+    disabled=INPUT_DISABLED,
 )
 
-if not inputs_disabled:
+if not INPUT_DISABLED:
     st.session_state.selected_line = selected_line
 
 
@@ -143,7 +144,7 @@ else:
 
     st.info(f"Selected line: {st.session_state.selected_line}")
 
-    if st.button("Confirm and run simulation", disabled=inputs_disabled):
+    if st.button("Confirm and run simulation", disabled=INPUT_DISABLED):
         st.session_state.simulation_running = True
         st.session_state.simulation_finished = False
 
