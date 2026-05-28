@@ -1,9 +1,8 @@
-requests
-networkx
-matplotlib
-pandas
-folium
 pylint 
 pytest
+requests
+networkx
+pandas
+folium
 boto3
 dotenv

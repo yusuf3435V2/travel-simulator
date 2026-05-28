@@ -1,6 +1,5 @@
 requests
 networkx
-matplotlib
 pandas
 folium
 boto3

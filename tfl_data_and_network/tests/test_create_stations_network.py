@@ -282,7 +282,8 @@ class TestPipeline(unittest.TestCase):
         """Test that pipeline uploads network and data to S3."""
         mock_network = nx.Graph()
         mock_df = pd.DataFrame({'id': [1, 2]})
-        mock_create.return_value = {'network': mock_network, 'stops_df': mock_df}
+        mock_create.return_value = {
+            'network': mock_network, 'stops_df': mock_df}
 
         mock_s3_client = MagicMock()
         mock_session_instance = MagicMock()
@@ -305,7 +306,8 @@ class TestPipeline(unittest.TestCase):
         """Test that pipeline uploads to processed/ prefix in bucket."""
         mock_network = nx.Graph()
         mock_df = pd.DataFrame({'id': [1, 2]})
-        mock_create.return_value = {'network': mock_network, 'stops_df': mock_df}
+        mock_create.return_value = {
+            'network': mock_network, 'stops_df': mock_df}
 
         mock_s3_client = MagicMock()
         mock_session_instance = MagicMock()
