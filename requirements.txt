@@ -5,3 +5,6 @@ pandas
 folium
 pylint 
 pytest
+streamlit 
+streamlit-folium 
+folium
