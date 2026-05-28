@@ -90,8 +90,8 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
 if __name__ == "__main__":
     setup_logger()
     logging.info("Loading station network and data")
-    network_graph = load_station_network()
-    station_dataframe = load_station_data()
+    network_graph = load_station_network_local()
+    station_dataframe = load_station_data_local()
 
     logging.info("Plotting station network")
     try:
