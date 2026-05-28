@@ -5,7 +5,7 @@ import pandas as pd
 import networkx as nx
 import folium
 from api_utils import setup_logger
-from create_stations_network import load_station_network, load_station_data
+from create_stations_network import load_station_network_local, load_station_data_local
 
 
 def create_colour_scheme():

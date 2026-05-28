@@ -100,7 +100,7 @@ def track_network_creation_time() -> None:
         "Time taken to create station network: %.2f seconds", end_time - start_time)
 
 
-def load_station_network(file_path: str = "stations/tube_network.graphml") -> nx.Graph:
+def load_station_network_local(file_path: str = "stations/tube_network.graphml") -> nx.Graph:
     """Load the station network from a .graphml file."""
     if not os.path.exists(file_path):
         logging.error(
@@ -110,7 +110,7 @@ def load_station_network(file_path: str = "stations/tube_network.graphml") -> nx
     return nx.read_graphml(file_path)
 
 
-def load_station_data(file_path: str = "stations/Stations.csv") -> pd.DataFrame:
+def load_station_data_local(file_path: str = "stations/Stations.csv") -> pd.DataFrame:
     """Load the station data from a .csv file."""
     if not os.path.exists(file_path):
         logging.error(
