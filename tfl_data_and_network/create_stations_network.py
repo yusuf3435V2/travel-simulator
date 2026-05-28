@@ -43,7 +43,7 @@ def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
 
 def create_station_network() -> \
         dict[str, pd.DataFrame | nx.Graph]:
-    """Create a station network from the TFL API and save it as a .graphml file."""
+    """Create a station network from the TFL API and return network + stops data."""
     network = nx.Graph()
     possible_lines = get_lines(mode="tube,dlr,elizabeth-line")
     direction = "all"
