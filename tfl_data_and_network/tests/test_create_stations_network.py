@@ -1,20 +1,20 @@
 """Tests for create_stations_network.py"""
 
+import os
+import sys
+import unittest
+from unittest.mock import patch, MagicMock
+
+import pandas as pd
+import networkx as nx
+
 from create_stations_network import (
     add_edge_between_stations,
     get_stops_from_line,
     create_station_network,
-    load_station_network_local,
     track_network_creation_time,
     pipeline
 )
-import unittest
-from unittest.mock import patch, MagicMock, mock_open
-import sys
-import os
-import time
-import pandas as pd
-import networkx as nx
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -24,33 +24,33 @@ class TestAddEdgeBetweenStations(unittest.TestCase):
 
     def test_adds_edge_with_attributes(self):
         """Test that edge is added with correct attributes."""
-        G = nx.Graph()
+        network = nx.Graph()
 
-        add_edge_between_stations(G, "A", "B", "line1", 5)
+        add_edge_between_stations(network, "A", "B", "line1", 5)
 
-        self.assertTrue(G.has_edge("A", "B"))
-        edge_data = G.get_edge_data("A", "B")
+        self.assertTrue(network.has_edge("A", "B"))
+        edge_data = network.get_edge_data("A", "B")
         self.assertEqual(edge_data['line_id'], "line1")
         self.assertEqual(edge_data['duration'], 5)
 
     def test_adds_multiple_edges(self):
         """Test adding multiple edges."""
-        G = nx.Graph()
+        network = nx.Graph()
 
-        add_edge_between_stations(G, "A", "B", "line1", 5)
-        add_edge_between_stations(G, "B", "C", "line1", 3)
-        add_edge_between_stations(G, "C", "D", "line2", 4)
+        add_edge_between_stations(network, "A", "B", "line1", 5)
+        add_edge_between_stations(network, "B", "C", "line1", 3)
+        add_edge_between_stations(network, "C", "D", "line2", 4)
 
-        self.assertEqual(G.number_of_edges(), 3)
+        self.assertEqual(network.number_of_edges(), 3)
 
     def test_overwrites_existing_edge(self):
         """Test that adding edge twice overwrites attributes."""
-        G = nx.Graph()
+        network = nx.Graph()
 
-        add_edge_between_stations(G, "A", "B", "line1", 5)
-        add_edge_between_stations(G, "A", "B", "line2", 10)
+        add_edge_between_stations(network, "A", "B", "line1", 5)
+        add_edge_between_stations(network, "A", "B", "line2", 10)
 
-        edge_data = G.get_edge_data("A", "B")
+        edge_data = network.get_edge_data("A", "B")
         self.assertEqual(edge_data['line_id'], "line2")
         self.assertEqual(edge_data['duration'], 10)
 
@@ -197,7 +197,7 @@ class TestCreateStationNetwork(unittest.TestCase):
     @patch('networkx.write_graphml')
     @patch.object(pd.DataFrame, 'to_csv')
     def test_returns_dict_with_network_and_stops(
-            self, mock_to_csv, mock_write, mock_duration, mock_seq, mock_stops_data, mock_lines):
+            self, _mock_to_csv, _mock_write, mock_duration, mock_seq, mock_stops_data, mock_lines):
         """Test that create_station_network returns dict with network and stops_df."""
         mock_lines.return_value = ["line1"]
         mock_stops_data.return_value = {

@@ -1,15 +1,15 @@
 """Tests for api_utils.py"""
 
+from api_utils import setup_logger, make_api_call_with_retry
+import os
+import sys
 import unittest
 from unittest.mock import patch, MagicMock
+
 import requests
-import sys
-import os
 
 # Add parent directory to path to import api_utils
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from api_utils import setup_logger, make_api_call_with_retry
 
 
 class TestSetupLogger(unittest.TestCase):
@@ -105,7 +105,8 @@ class TestMakeApiCallWithRetry(unittest.TestCase):
         mock_response.status_code = 429
         mock_get.return_value = mock_response
 
-        result = make_api_call_with_retry("http://example.com/api", max_retries=3)
+        result = make_api_call_with_retry(
+            "http://example.com/api", max_retries=3)
 
         self.assertEqual(result, {})
         self.assertEqual(mock_get.call_count, 3)
@@ -118,7 +119,8 @@ class TestMakeApiCallWithRetry(unittest.TestCase):
         """Test RequestException on first attempt, success on retry."""
         mock_get.side_effect = [
             requests.exceptions.Timeout("timeout"),
-            MagicMock(status_code=200, json=MagicMock(return_value={"data": "ok"}))
+            MagicMock(status_code=200, json=MagicMock(
+                return_value={"data": "ok"}))
         ]
 
         result = make_api_call_with_retry("http://example.com/api")
@@ -131,9 +133,11 @@ class TestMakeApiCallWithRetry(unittest.TestCase):
     @patch('requests.get')
     def test_request_exception_exhausted(self, mock_get, mock_sleep):
         """Test RequestException on all retry attempts returns empty dict."""
-        mock_get.side_effect = requests.exceptions.ConnectionError("connection failed")
+        mock_get.side_effect = requests.exceptions.ConnectionError(
+            "connection failed")
 
-        result = make_api_call_with_retry("http://example.com/api", max_retries=2)
+        result = make_api_call_with_retry(
+            "http://example.com/api", max_retries=2)
 
         self.assertEqual(result, {})
         self.assertEqual(mock_get.call_count, 2)
@@ -171,13 +175,14 @@ class TestMakeApiCallWithRetry(unittest.TestCase):
 
     @patch('time.sleep')
     @patch('requests.get')
-    def test_custom_max_retries(self, mock_get, mock_sleep):
+    def test_custom_max_retries(self, mock_get, _mock_sleep):
         """Test custom max_retries parameter."""
         mock_response = MagicMock()
         mock_response.status_code = 429
         mock_get.return_value = mock_response
 
-        result = make_api_call_with_retry("http://example.com/api", max_retries=3)
+        result = make_api_call_with_retry(
+            "http://example.com/api", max_retries=3)
 
         self.assertEqual(result, {})
         self.assertEqual(mock_get.call_count, 3)
@@ -196,12 +201,13 @@ class TestMakeApiCallWithRetry(unittest.TestCase):
 
     @patch('time.sleep')
     @patch('requests.get')
-    def test_mixed_failures_429_then_exception(self, mock_get, mock_sleep):
+    def test_mixed_failures_429_then_exception(self, mock_get, _mock_sleep):
         """Test mixed failure types: 429 then RequestException."""
         mock_get.side_effect = [
             MagicMock(status_code=429),
             requests.exceptions.Timeout("timeout"),
-            MagicMock(status_code=200, json=MagicMock(return_value={"success": True}))
+            MagicMock(status_code=200, json=MagicMock(
+                return_value={"success": True}))
         ]
 
         result = make_api_call_with_retry("http://example.com/api")
