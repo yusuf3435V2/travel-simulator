@@ -1,11 +1,10 @@
 import logging
+from pathlib import Path
 import requests
 import pandas as pd
 import geopandas as gpd
-import os
 import pickle
 import folium
-
 
 logger = logging.getLogger(__name__)
 STOPS_URL = "https://api.tfl.gov.uk/StopPoint/Mode/tube"
@@ -13,12 +12,15 @@ STOPS_URL = "https://api.tfl.gov.uk/StopPoint/Mode/tube"
 
 def load_boundary_data() -> gpd.GeoDataFrame:
     """Load boundary data from cache or geojson file."""
-    cache_file = "./boundaryData.pkl"
-    if os.path.exists(cache_file):
+    script_dir = Path(__file__).parent
+    cache_file = script_dir / "boundaryData.pkl"
+    geojson_file = script_dir / "boundaryData.geojson"
+
+    if cache_file.exists():
         with open(cache_file, "rb") as f:
             gdf = pickle.load(f)
-    elif os.path.exists("./boundaryData.geojson"):
-        gdf = gpd.read_file("./boundaryData.geojson")
+    elif geojson_file.exists():
+        gdf = gpd.read_file(geojson_file)
         with open(cache_file, "wb") as f:
             pickle.dump(gdf, f)
     else:
