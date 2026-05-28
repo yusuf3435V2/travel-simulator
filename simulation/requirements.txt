@@ -1,3 +1,4 @@
 networkx
-mesa[rec]
+mesa
 pytest
+pytest-cov
