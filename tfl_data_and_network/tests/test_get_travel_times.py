@@ -1,7 +1,5 @@
 """Tests for get_travel_times.py"""
 
-import os
-import sys
 import unittest
 from unittest.mock import patch
 

@@ -1,7 +1,5 @@
 """Tests for get_lines.py"""
 
-import os
-import sys
 import unittest
 from unittest.mock import patch
 

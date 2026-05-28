@@ -1,7 +1,5 @@
 """Tests for get_sequenced_stops.py"""
 
-import os
-import sys
 import unittest
 from unittest.mock import patch
 

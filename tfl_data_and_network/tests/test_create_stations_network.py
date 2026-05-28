@@ -1,5 +1,12 @@
 """Tests for create_stations_network.py"""
 
+import os
+import unittest
+from unittest.mock import patch, MagicMock
+
+import pandas as pd
+import networkx as nx
+
 from create_stations_network import (
     add_edge_between_stations,
     get_stops_from_line,
@@ -7,15 +14,6 @@ from create_stations_network import (
     track_network_creation_time,
     pipeline
 )
-import os
-import sys
-import unittest
-from unittest.mock import patch, MagicMock
-
-import pandas as pd
-import networkx as nx
-
-sys.path.insert(0, os.path.dirname(__file__))
 
 
 class TestAddEdgeBetweenStations(unittest.TestCase):
