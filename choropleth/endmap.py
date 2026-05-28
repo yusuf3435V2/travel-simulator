@@ -4,7 +4,7 @@ import boto3
 import pandas as pd
 import geopandas as gpd
 import folium
-from data_retrieval import load_boundary_data, get_normalised_stops
+from choropleth.data_functions import load_boundary_data, get_normalised_stops
 
 logger = logging.getLogger(__name__)
 
