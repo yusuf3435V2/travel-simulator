@@ -1,12 +1,13 @@
 """Tests for get_sequenced_stops.py"""
 
-from get_sequenced_stops import get_line_stops_data, get_sequenced_stops
 import os
 import sys
 import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(__file__))
+
+from get_sequenced_stops import get_line_stops_data, get_sequenced_stops
 
 
 class TestGetLineStopsData(unittest.TestCase):

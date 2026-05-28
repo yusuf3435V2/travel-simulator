@@ -1,6 +1,5 @@
 """Tests for api_utils.py"""
 
-from api_utils import setup_logger, make_api_call_with_retry
 import os
 import sys
 import unittest
@@ -10,6 +9,8 @@ import requests
 
 # Add parent directory to path to import api_utils
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from api_utils import setup_logger, make_api_call_with_retry
 
 
 class TestSetupLogger(unittest.TestCase):

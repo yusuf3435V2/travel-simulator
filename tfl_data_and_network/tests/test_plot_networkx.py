@@ -9,14 +9,14 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 
+sys.path.insert(0, os.path.dirname(__file__))
+
 from plot_networkx import (
     create_colour_scheme,
     plot_station_network,
     extract_station_network_local,
     extract_station_data_local
 )
-
-sys.path.insert(0, os.path.dirname(__file__))
 
 
 class TestExtractStationNetworkLocal(unittest.TestCase):

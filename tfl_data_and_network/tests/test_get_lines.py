@@ -1,12 +1,13 @@
 """Tests for get_lines.py"""
 
-from get_lines import get_lines
 import os
 import sys
 import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(__file__))
+
+from get_lines import get_lines
 
 
 class TestGetLines(unittest.TestCase):
