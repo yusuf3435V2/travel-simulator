@@ -1,0 +1,1 @@
+Each function should have typehints where reasonable, and a docstring. Additionally, variables should be named to describe their purpose.
