@@ -1,10 +1,11 @@
-requests
-networkx
-matplotlib
-pandas
-folium
 pylint 
 pytest
+requests
+networkx
+pandas
+folium
 streamlit 
 streamlit-folium 
-folium
+boto3
+dotenv
+
