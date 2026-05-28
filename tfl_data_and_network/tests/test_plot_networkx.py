@@ -1,15 +1,56 @@
 """Tests for plot_networkx.py"""
 
-from plot_networkx import create_colour_scheme, plot_station_network
 import unittest
-from unittest.mock import patch, MagicMock, call
-import sys
-import os
+from unittest.mock import patch, MagicMock
+
 import pandas as pd
 import numpy as np
 import networkx as nx
 
-sys.path.insert(0, os.path.dirname(__file__))
+from plot_networkx import (
+    create_colour_scheme,
+    plot_station_network,
+    extract_station_network_local,
+    extract_station_data_local
+)
+
+
+class TestExtractStationNetworkLocal(unittest.TestCase):
+    """Test extract_station_network_local function."""
+
+    @patch('plot_networkx.load_station_network_local')
+    @patch('plot_networkx.ensure_files_exist')
+    @patch('networkx.read_graphml')
+    def test_ensures_files_and_reads_network(self, mock_read, mock_ensure, _mock_load):
+        """Test that files are ensured before reading network."""
+        mock_ensure.return_value = True
+        mock_graph = MagicMock()
+        mock_read.return_value = mock_graph
+
+        result = extract_station_network_local("test_path.graphml")
+
+        mock_ensure.assert_called_once()
+        mock_read.assert_called_once_with("test_path.graphml")
+        self.assertEqual(result, mock_graph)
+
+
+class TestExtractStationDataLocal(unittest.TestCase):
+    """Test extract_station_data_local function."""
+
+    @patch('plot_networkx.load_station_network_local')
+    @patch('plot_networkx.ensure_files_exist')
+    @patch('pandas.read_csv')
+    def test_ensures_files_and_reads_csv(self, mock_read_csv, mock_ensure, _mock_load):
+        """Test that files are ensured before reading CSV."""
+        mock_ensure.return_value = True
+        mock_df = pd.DataFrame({'id': [1, 2]})
+        mock_read_csv.return_value = mock_df
+
+        result = extract_station_data_local("test_path.csv")
+
+        mock_ensure.assert_called_once()
+        mock_read_csv.assert_called_once_with("test_path.csv")
+        pd.testing.assert_frame_equal(result, mock_df)
 
 
 class TestCreateColourScheme(unittest.TestCase):
@@ -62,7 +103,7 @@ class TestPlotStationNetwork(unittest.TestCase):
 
     @patch('plot_networkx.folium.Map')
     @patch('plot_networkx.folium.CircleMarker')
-    def test_empty_station_data_raises_error(self, mock_marker, mock_map):
+    def test_empty_station_data_raises_error(self, _mock_marker, _mock_map):
         """Test that empty station data raises ValueError."""
         empty_df = pd.DataFrame({'Latitude': [], 'Longitude': []})
         network = nx.Graph()
@@ -74,11 +115,10 @@ class TestPlotStationNetwork(unittest.TestCase):
 
     @patch('plot_networkx.folium.Map')
     @patch('plot_networkx.folium.CircleMarker')
-    def test_valid_data_returns_folium_map(self, mock_marker, mock_map):
+    def test_valid_data_returns_folium_map(self, _mock_marker, mock_map):
         """Test that valid data returns Folium map."""
         mock_map_instance = MagicMock()
         mock_map.return_value = mock_map_instance
-        mock_marker.return_value.add_to = MagicMock()
 
         network = nx.Graph()
         network.add_node('A')
@@ -90,11 +130,10 @@ class TestPlotStationNetwork(unittest.TestCase):
 
     @patch('plot_networkx.folium.Map')
     @patch('plot_networkx.folium.CircleMarker')
-    def test_empty_network_with_valid_stations(self, mock_marker, mock_map):
+    def test_empty_network_with_valid_stations(self, _mock_marker, mock_map):
         """Test that empty network with valid stations still works."""
         mock_map_instance = MagicMock()
         mock_map.return_value = mock_map_instance
-        mock_marker.return_value.add_to = MagicMock()
 
         network = nx.Graph()  # Empty network
         result = plot_station_network(network, self.valid_station_data)
@@ -104,14 +143,13 @@ class TestPlotStationNetwork(unittest.TestCase):
 
     @patch('plot_networkx.folium.Map')
     @patch('plot_networkx.folium.CircleMarker')
-    def test_calculates_map_center(self, mock_marker, mock_map):
+    def test_calculates_map_center(self, _mock_marker, mock_map):
         """Test that map center is calculated from station data."""
         mock_map_instance = MagicMock()
         mock_map.return_value = mock_map_instance
-        mock_marker.return_value.add_to = MagicMock()
 
         network = nx.Graph()
-        result = plot_station_network(network, self.valid_station_data)
+        plot_station_network(network, self.valid_station_data)
 
         # Should call Map with center location (mean of lat/lon)
         expected_lat = self.valid_station_data['Latitude'].mean()

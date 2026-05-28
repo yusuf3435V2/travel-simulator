@@ -1,11 +1,7 @@
 """Tests for get_sequenced_stops.py"""
 
 import unittest
-from unittest.mock import patch, MagicMock
-import sys
-import os
-
-sys.path.insert(0, os.path.dirname(__file__))
+from unittest.mock import patch
 
 from get_sequenced_stops import get_line_stops_data, get_sequenced_stops
 
@@ -62,7 +58,8 @@ class TestGetSequencedStops(unittest.TestCase):
 
         result = get_sequenced_stops(data)
 
-        self.assertEqual(result, [["940GZZLUHPK", "940GZZLUNHG", "940GZZLULVT"]])
+        self.assertEqual(
+            result, [["940GZZLUHPK", "940GZZLUNHG", "940GZZLULVT"]])
 
     def test_success_multiple_routes(self):
         """Test extraction of multiple route stops."""

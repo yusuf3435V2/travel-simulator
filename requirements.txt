@@ -1,10 +1,12 @@
+pylint 
+pytest
 requests
 networkx
-matplotlib
 pandas
 mesa
 folium
-pylint 
-pytest
 streamlit 
 streamlit-folium 
+boto3
+dotenv
+
