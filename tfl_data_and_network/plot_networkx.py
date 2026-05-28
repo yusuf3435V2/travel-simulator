@@ -1,14 +1,15 @@
 """Plot the stations network using NetworkX and Folium."""
 
 import logging
+import os
 import pandas as pd
 import networkx as nx
 import folium
 from api_utils import setup_logger
-from create_stations_network import load_station_network_local, load_station_data_local
+from create_stations_network import load_station_network_local, create_station_network
 
 
-def create_colour_scheme():
+def create_colour_scheme() -> dict:
     """Create a colour scheme for the different lines."""
     return {
         "bakerloo": "brown",
@@ -23,6 +24,56 @@ def create_colour_scheme():
         "victoria": "lightblue",
         "waterloo-city": "cyan",
     }
+
+
+def ensure_files_exist(network_file_path: str = "stations/tube_network.graphml",
+                        station_file_path: str = "stations/Stations.csv") -> bool:
+    """Ensure network and station files exist, creating them if necessary."""
+    network_exists = os.path.exists(network_file_path)
+    station_exists = os.path.exists(station_file_path)
+
+    if network_exists and station_exists:
+        logging.debug("Both network and station files exist")
+        return True
+
+    if not network_exists or not station_exists:
+        logging.info("Missing files detected. Extracting from API...")
+        return load_station_network_local(
+            network_file_path=network_file_path,
+            station_file_path=station_file_path
+        )
+
+    return False
+
+
+def extract_station_network_local(file_path: str = "stations/tube_network.graphml") -> nx.Graph:
+    """Load the station network from a .graphml file, extracting from API if missing."""
+    # Ensure file exists by extracting from API if necessary
+    if not ensure_files_exist(network_file_path=file_path):
+        logging.error("Failed to ensure network file exists at %s", file_path)
+        return nx.Graph()
+
+    try:
+        return nx.read_graphml(file_path)
+    except Exception as e:
+        logging.error("Failed to read network file at %s: %s", file_path, e)
+        return nx.Graph()
+
+
+def extract_station_data_local(file_path: str = "stations/Stations.csv") -> pd.DataFrame:
+    """Load the station data from a .csv file, extracting from API if missing."""
+    # Ensure file exists by extracting from API if necessary
+    if not ensure_files_exist(station_file_path=file_path):
+        logging.error(
+            "Failed to ensure station data file exists at %s", file_path)
+        return pd.DataFrame()
+
+    try:
+        return pd.read_csv(file_path)
+    except Exception as e:
+        logging.error(
+            "Failed to read station data file at %s: %s", file_path, e)
+        return pd.DataFrame()
 
 
 def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> folium.Map:
@@ -89,9 +140,12 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
 
 if __name__ == "__main__":
     setup_logger()
+    logging.info("Ensuring database files exist")
+    ensure_files_exist()
+    
     logging.info("Loading station network and data")
-    network_graph = load_station_network_local()
-    station_dataframe = load_station_data_local()
+    network_graph = extract_station_network_local()
+    station_dataframe = extract_station_data_local()
 
     logging.info("Plotting station network")
     try:

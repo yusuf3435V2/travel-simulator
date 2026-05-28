@@ -1,6 +1,11 @@
 """Tests for plot_networkx.py"""
 
-from plot_networkx import create_colour_scheme, plot_station_network
+from plot_networkx import (
+    create_colour_scheme,
+    plot_station_network,
+    extract_station_network_local,
+    extract_station_data_local
+)
 import unittest
 from unittest.mock import patch, MagicMock, call
 import sys
@@ -10,6 +15,44 @@ import numpy as np
 import networkx as nx
 
 sys.path.insert(0, os.path.dirname(__file__))
+
+
+class TestExtractStationNetworkLocal(unittest.TestCase):
+    """Test extract_station_network_local function."""
+
+    @patch('plot_networkx.load_station_network_local')
+    @patch('plot_networkx.ensure_files_exist')
+    @patch('networkx.read_graphml')
+    def test_ensures_files_and_reads_network(self, mock_read, mock_ensure, mock_load):
+        """Test that files are ensured before reading network."""
+        mock_ensure.return_value = True
+        mock_graph = MagicMock()
+        mock_read.return_value = mock_graph
+
+        result = extract_station_network_local("test_path.graphml")
+
+        mock_ensure.assert_called_once()
+        mock_read.assert_called_once_with("test_path.graphml")
+        self.assertEqual(result, mock_graph)
+
+
+class TestExtractStationDataLocal(unittest.TestCase):
+    """Test extract_station_data_local function."""
+
+    @patch('plot_networkx.load_station_network_local')
+    @patch('plot_networkx.ensure_files_exist')
+    @patch('pandas.read_csv')
+    def test_ensures_files_and_reads_csv(self, mock_read_csv, mock_ensure, mock_load):
+        """Test that files are ensured before reading CSV."""
+        mock_ensure.return_value = True
+        mock_df = pd.DataFrame({'id': [1, 2]})
+        mock_read_csv.return_value = mock_df
+
+        result = extract_station_data_local("test_path.csv")
+
+        mock_ensure.assert_called_once()
+        mock_read_csv.assert_called_once_with("test_path.csv")
+        pd.testing.assert_frame_equal(result, mock_df)
 
 
 class TestCreateColourScheme(unittest.TestCase):

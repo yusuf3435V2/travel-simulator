@@ -54,8 +54,7 @@ def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
     return stations
 
 
-def create_station_network(network_file_path: str = "stations/tube_network.graphml",
-                           station_file_path: str = "stations/Stations.csv") -> \
+def create_station_network() -> \
         dict[str, pd.DataFrame | nx.Graph]:
     """Create a station network from the TFL API and save it as a .graphml file."""
     network = nx.Graph()
@@ -85,10 +84,26 @@ def create_station_network(network_file_path: str = "stations/tube_network.graph
                     duration = get_duration_data(branch[i], branch[i + 1])
                 add_edge_between_stations(
                     network, branch[i], branch[i + 1], line_id=line_id, duration=duration)
-    nx.write_graphml(network, network_file_path)
     stops_df = pd.DataFrame(stops)
-    stops_df.to_csv(station_file_path, index=False)
     return {'stops_df': stops_df, 'network': network}
+
+
+def load_station_network_local(network_file_path: str = "stations/tube_network.graphml",
+                               station_file_path: str = "stations/Stations.csv") -> bool:
+    """Load the station network data to the local directory."""
+    try:
+        stations_network_data = create_station_network()
+        nx.write_graphml(stations_network_data.get(
+            'network', nx.Graph()), network_file_path)
+        stations_network_data.get('stops_df', pd.DataFrame()).to_csv(
+            station_file_path, index=False)
+        logging.info(
+            "Successfully loaded station network and data to local files")
+        return True
+    except Exception as e:
+        logging.error(
+            "Failed to load station network data to local files: %s", e)
+        return False
 
 
 def track_network_creation_time() -> None:
@@ -98,26 +113,6 @@ def track_network_creation_time() -> None:
     end_time = time.time()
     logging.info(
         "Time taken to create station network: %.2f seconds", end_time - start_time)
-
-
-def load_station_network_local(file_path: str = "stations/tube_network.graphml") -> nx.Graph:
-    """Load the station network from a .graphml file."""
-    if not os.path.exists(file_path):
-        logging.error(
-            "Network file not found at %s. Please run create_station_network() to create the network file.",
-            file_path)
-        create_station_network(network_file_path=file_path)
-    return nx.read_graphml(file_path)
-
-
-def load_station_data_local(file_path: str = "stations/Stations.csv") -> pd.DataFrame:
-    """Load the station data from a .csv file."""
-    if not os.path.exists(file_path):
-        logging.error(
-            "Station data file not found at %s. Please run create_station_network() to create the station data file.",
-            file_path)
-        create_station_network(station_file_path=file_path)
-    return pd.read_csv(file_path)
 
 
 if __name__ == "__main__":

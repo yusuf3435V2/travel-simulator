@@ -4,8 +4,7 @@ from create_stations_network import (
     add_edge_between_stations,
     get_stops_from_line,
     create_station_network,
-    load_station_network,
-    load_station_data,
+    load_station_network_local,
     track_network_creation_time
 )
 import unittest
@@ -187,96 +186,6 @@ class TestGetStopsFromLine(unittest.TestCase):
         self.assertEqual(len(result), 3)
 
 
-class TestLoadStationNetwork(unittest.TestCase):
-    """Test load_station_network function."""
-
-    @patch('os.path.exists')
-    @patch('networkx.read_graphml')
-    def test_loads_existing_file(self, mock_read, mock_exists):
-        """Test loading existing graphml file."""
-        mock_exists.return_value = True
-        mock_network = MagicMock()
-        mock_read.return_value = mock_network
-
-        result = load_station_network("test/path.graphml")
-
-        self.assertEqual(result, mock_network)
-        mock_read.assert_called_once_with("test/path.graphml")
-
-    @patch('create_stations_network.create_station_network')
-    @patch('os.path.exists')
-    @patch('networkx.read_graphml')
-    def test_creates_file_if_missing(self, mock_read, mock_exists, mock_create):
-        """Test that file is created if missing."""
-        mock_exists.return_value = False
-        mock_network = MagicMock()
-        mock_read.return_value = mock_network
-        mock_create.return_value = {
-            'network': mock_network, 'stops_df': pd.DataFrame()}
-
-        result = load_station_network("missing/path.graphml")
-
-        mock_create.assert_called_once_with(
-            network_file_path="missing/path.graphml")
-
-    @patch('os.path.exists')
-    @patch('networkx.read_graphml')
-    def test_default_file_path(self, mock_read, mock_exists):
-        """Test default file path is used."""
-        mock_exists.return_value = True
-        mock_network = MagicMock()
-        mock_read.return_value = mock_network
-
-        load_station_network()
-
-        mock_exists.assert_called_with("stations/tube_network.graphml")
-
-
-class TestLoadStationData(unittest.TestCase):
-    """Test load_station_data function."""
-
-    @patch('os.path.exists')
-    @patch('pandas.read_csv')
-    def test_loads_existing_csv(self, mock_read_csv, mock_exists):
-        """Test loading existing CSV file."""
-        mock_exists.return_value = True
-        mock_df = MagicMock()
-        mock_read_csv.return_value = mock_df
-
-        result = load_station_data("test/stations.csv")
-
-        self.assertEqual(result, mock_df)
-        mock_read_csv.assert_called_once_with("test/stations.csv")
-
-    @patch('create_stations_network.create_station_network')
-    @patch('os.path.exists')
-    @patch('pandas.read_csv')
-    def test_creates_file_if_missing(self, mock_read_csv, mock_exists, mock_create):
-        """Test that file is created if missing."""
-        mock_exists.return_value = False
-        mock_df = pd.DataFrame()
-        mock_read_csv.return_value = mock_df
-        mock_create.return_value = {
-            'stops_df': mock_df, 'network': MagicMock()}
-
-        result = load_station_data("missing/stations.csv")
-
-        mock_create.assert_called_once_with(
-            station_file_path="missing/stations.csv")
-
-    @patch('os.path.exists')
-    @patch('pandas.read_csv')
-    def test_default_file_path(self, mock_read_csv, mock_exists):
-        """Test default file path is used."""
-        mock_exists.return_value = True
-        mock_df = MagicMock()
-        mock_read_csv.return_value = mock_df
-
-        load_station_data()
-
-        mock_exists.assert_called_with("stations/Stations.csv")
-
-
 class TestCreateStationNetwork(unittest.TestCase):
     """Test create_station_network function."""
 
@@ -306,28 +215,14 @@ class TestCreateStationNetwork(unittest.TestCase):
         self.assertIsInstance(result['stops_df'], pd.DataFrame)
 
     @patch('create_stations_network.get_lines')
-    @patch('networkx.write_graphml')
-    @patch.object(pd.DataFrame, 'to_csv')
-    def test_saves_files(self, mock_to_csv, mock_write, mock_lines):
-        """Test that files are saved."""
-        mock_lines.return_value = []
-
-        create_station_network("custom_network.graphml", "custom_stations.csv")
-
-        mock_write.assert_called_once()
-        mock_to_csv.assert_called_once()
-
-    @patch('create_stations_network.get_lines')
     def test_handles_empty_lines_list(self, mock_lines):
         """Test handling when no lines are returned."""
         mock_lines.return_value = []
 
-        with patch('networkx.write_graphml'):
-            with patch.object(pd.DataFrame, 'to_csv'):
-                result = create_station_network()
+        result = create_station_network()
 
-                self.assertEqual(result['network'].number_of_nodes(), 0)
-                self.assertEqual(len(result['stops_df']), 0)
+        self.assertEqual(result['network'].number_of_nodes(), 0)
+        self.assertEqual(len(result['stops_df']), 0)
 
 
 class TestTrackNetworkCreationTime(unittest.TestCase):
