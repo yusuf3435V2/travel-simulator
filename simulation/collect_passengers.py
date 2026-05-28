@@ -7,16 +7,9 @@ import pandas as pd
 from distance_maths import haversine_distance
 
 
-def load_sample_demand() -> list[dict]:
-    """Load sample demand defined in the simulation directory."""
-    with open("simulation/sample_demand.json", "r") as f:
-        data = json.load(f)
-    return data
-
-
-def load_user_information(data: list[dict]) -> pd.DataFrame:
-    """Load user information from a JSON file."""
-    return pd.DataFrame(data)
+def load_user_information(file_path: str) -> pd.DataFrame:
+    """Load user information from a CSV file."""
+    return pd.read_csv(file_path)
 
 
 def get_line_switches(path: list[str], graph: nx.Graph) -> list[tuple[str, str, str]]:
@@ -70,7 +63,7 @@ def get_station_distance(
     if station_latlong is None:
         return None
     station_lat, station_lng = station_latlong
-    return ((station_lat - lat) ** 2 + (station_lng - lng) ** 2) ** 0.5
+    return haversine_distance(lat, lng, station_lat, station_lng)
 
 
 def total_switch_time(
@@ -151,6 +144,7 @@ class PassengerAgent(mesa.Agent):
         self,
         unique_id: int,
         model,
+        walking_speed: float,  # Walking speed in km/min (5 km/h)
         passenger_id: str,
         origin_lat: float,
         origin_lng: float,
@@ -159,23 +153,29 @@ class PassengerAgent(mesa.Agent):
         day_type: str,
     ):
         """Passenger agent in simulation. An agent wants to get from an origin to a stop at a certain time."""
-        super().__init__(unique_id, model)
+        super().__init__(model)
         self.origin_lat = origin_lat
         self.origin_lng = origin_lng
         self.passenger_id = passenger_id
         self.destination_lat = destination_lat
         self.destination_lng = destination_lng
         self.day_type = day_type
+        self.walking_speed = walking_speed
         self.nearest_station = None
         self.alighting_station = None
         self.time_spent = 0
+        self.walk_time = 0
 
     def look_for_nearest_stop(self) -> None:
         """Look for the nearest stop to the passenger's origin."""
         nearest_station = get_nearest_station(
             self.origin_lat, self.origin_lng, self.model.station_data
         )
+        nearest_destination_station = get_nearest_station(
+            self.destination_lat, self.destination_lng, self.model.station_data
+        )
         self.nearest_station = nearest_station
+        self.alighting_station = nearest_destination_station
 
     def walk_to_nearest_station(self):
         """Simulate the passenger walking to the nearest station."""
@@ -185,7 +185,14 @@ class PassengerAgent(mesa.Agent):
             self.origin_lng,
             self.model.station_data,
         )
-        self.time_spent += distance_to_station / 5  # Assuming walking speed of 5 km/h
+        if distance_to_station > 1.6:
+            print(
+                f"the station is {self.nearest_station} and the distance is {distance_to_station} km for {self.passenger_id}"
+            )
+        self.time_spent += (
+            distance_to_station / self.walking_speed
+        )  # Assuming walking speed of 5 km/h
+        self.walk_time += distance_to_station / self.walking_speed
 
     def wait_for_transport(self):
         """Simulate the passenger waiting for transport at the station. cool but gonna ignore for now"""
@@ -207,7 +214,6 @@ class PassengerAgent(mesa.Agent):
             self.model.G,
         )
         self.time_spent += duration + total_switch_time(all_switches)
-        self.alighting_station = alighting_stop_id
 
     def walk_to_destination(self):
         """Simulate the passenger walking from the station to their final destination."""
@@ -220,21 +226,28 @@ class PassengerAgent(mesa.Agent):
         distance_to_destination = haversine_distance(
             self.destination_lat, self.destination_lng, alighting_lat, alighting_lng
         )
+        self.walk_time += distance_to_destination / self.walking_speed
         self.time_spent += (
-            distance_to_destination / 5
+            distance_to_destination / self.walking_speed
         )  # Assuming walking speed of 5 km/h
 
     def travel(self):
         """Simulate the passenger's travel from origin to destination."""
         self.walk_to_nearest_station()
         self.wait_for_transport()
-        self.travel_on_transport()
+        self.travel_on_transport(self.nearest_station, self.alighting_station)
         self.walk_to_destination()
 
     def step(self):
         """Advance the agent's state by one step."""
         self.look_for_nearest_stop()
         self.travel()
+        if self.time_spent > 100:
+            print(
+                "Passenger {} has been traveling for a long time ({} minutes). Walk time: {} minutes.".format(
+                    self.passenger_id, self.time_spent, self.walk_time
+                )
+            )
 
 
 class TravelModel(mesa.Model):
@@ -242,16 +255,40 @@ class TravelModel(mesa.Model):
 
     def __init__(self):
         super().__init__()
-        self.num_agents = 100
+        self.num_agents = 1
         self.G = nx.read_graphml("stations/tube_network.graphml")
-        self.station_data = pd.read_csv("stations/station_data.csv")
+        self.station_data = pd.read_csv("stations/Stations.csv")
 
     def step(self):
         """Advance the model by one step."""
-        for agent in self.schedule.agents:
+        for agent in self.agents.shuffle():
             agent.step()
 
 
+def create_agents_from_passenger_data(passenger_data: pd.DataFrame, model: TravelModel):
+    """Create agents from passenger data and add them to the model."""
+
+    for index, row in passenger_data.iterrows():
+        agent = PassengerAgent(
+            unique_id=index,
+            model=model,
+            walking_speed=5 / 60,
+            passenger_id=row["passenger_id"],
+            origin_lat=row["origin_lat"],
+            origin_lng=row["origin_lng"],
+            destination_lat=row["destination_lat"],
+            destination_lng=row["destination_lng"],
+            day_type=row["day_type"],
+        )
+
+        # In modern Mesa, add the agent directly to the model's AgentSet container
+        model.agents.add(agent)
+
+
 if __name__ == "__main__":
-    df = load_user_information(load_sample_demand())
-    print(df.head())
+    passenger_data = load_user_information("simulation/passengers.csv")
+    travel_model = TravelModel()
+    create_agents_from_passenger_data(passenger_data, travel_model)
+    for _ in range(1):  # Run the model for 1 step
+        print(f"Step {_ + 1}")
+        travel_model.step()

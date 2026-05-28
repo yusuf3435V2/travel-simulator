@@ -6,7 +6,7 @@ RADIUS_OF_EARTH = 6371
 
 
 def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float):
-    """Determine Haversine distance from one pair of latitude longitude to another"""
+    """Determine Haversine distance from one pair of latitude longitude to another (in km)"""
 
     # distance between latitudes
     # and longitudes
