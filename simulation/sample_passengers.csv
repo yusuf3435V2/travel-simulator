@@ -1,0 +1,6 @@
+passenger_id,journey_sequence,origin_stop_id,origin_stop_name,origin_lat,origin_lng,boarding_stop_id,boarding_stop_name,alighting_stop_id,alighting_stop_name,destination_stop_id,destination_stop_name,destination_lat,destination_lng,route_id,line_name,transfer_count,distance_m,hour_of_day,departure_minute,journey_time_mins,direction,day_type
+C00000,0,910GCCWSX100,Stockwell,51.575,-0.195,910GCCWSX100,Stockwell,910GCCWSX30,Tower Gateway,910GCCWSX30,Tower Gateway,51.5036,-0.0934,route_Victoria,Victoria,2,22340.69337682257,7,9,45,inbound,weekday
+C00000,1,910GCCWSX30,Tower Gateway,51.5036,-0.0934,910GCCWSX30,Tower Gateway,910GCCWSX100,Stockwell,910GCCWSX100,Stockwell,51.575,-0.195,route_Circle,Circle,2,22340.69337682257,17,37,45,outbound,weekday
+C00001,0,910GCCWSX74,King's Cross,51.5186,-0.1279,910GCCWSX74,King's Cross,910GCCWSX51,Richmond,910GCCWSX51,Richmond,51.475,-0.15,route_Metropolitan,Metropolitan,1,55156.42138951231,7,26,45,inbound,weekday
+C00001,1,910GCCWSX51,Richmond,51.475,-0.15,910GCCWSX51,Richmond,910GCCWSX74,King's Cross,910GCCWSX74,King's Cross,51.5186,-0.1279,route_District,District,1,55156.42138951231,17,58,45,outbound,weekday
+C00002,0,910GCCWSX30,Tower Gateway,51.5036,-0.0934,910GCCWSX30,Tower Gateway,910GCCWSX60,West Ham,910GCCWSX60,West Ham,51.5567,-0.01,route_Circle,Circle,0,8255.047573462034,7,8,18,inbound,weekday
