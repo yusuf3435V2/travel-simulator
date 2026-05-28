@@ -102,7 +102,7 @@ def track_network_creation_time() -> None:
         "Time taken to create station network: %.2f seconds", end_time - start_time)
 
 
-def pipeline() -> bool:
+def lambda_handler(event: dict = None, context: dict = None) -> dict:
     """Run the full pipeline and save it in a S3 bucket."""
     try:
         stations_network_data = create_station_network()
@@ -136,13 +136,19 @@ def pipeline() -> bool:
         )
         logging.info(
             "Successfully uploaded station data to S3 bucket %s", bucket_name)
-        return True
+        return {
+            'statusCode': 200,
+            'body': 'Data processed and loaded successfully.'
+        }
     except Exception as e:
         logging.error(
             "Failed to run pipeline and save to S3: %s", e)
-        return False
+        return {
+            'statusCode': 500,
+            'body': 'Failed to run pipeline and save to S3: %s' % str(e)
+        }
 
 
 if __name__ == "__main__":
     setup_logger()
-    pipeline()
+    lambda_handler()

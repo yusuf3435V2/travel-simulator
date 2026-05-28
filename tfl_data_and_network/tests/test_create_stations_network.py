@@ -12,7 +12,7 @@ from create_stations_network import (
     get_stops_from_line,
     create_station_network,
     track_network_creation_time,
-    pipeline
+    lambda_handler
 )
 
 
@@ -265,8 +265,8 @@ class TestTrackNetworkCreationTime(unittest.TestCase):
         mock_create.assert_called_once_with()
 
 
-class TestPipeline(unittest.TestCase):
-    """Test pipeline function."""
+class TestLambdaHandler(unittest.TestCase):
+    """Test lambda_handler function."""
 
     @patch.dict(os.environ, {
         'AWS_DEFAULT_REGION': 'eu-west-2',
@@ -275,8 +275,8 @@ class TestPipeline(unittest.TestCase):
     })
     @patch('create_stations_network.boto3.Session')
     @patch('create_stations_network.create_station_network')
-    def test_pipeline_uploads_to_s3(self, mock_create, mock_session):
-        """Test that pipeline uploads network and data to S3."""
+    def test_lambda_handler_uploads_to_s3(self, mock_create, mock_session):
+        """Test that lambda_handler uploads network and data to S3."""
         mock_network = nx.Graph()
         mock_df = pd.DataFrame({'id': [1, 2]})
         mock_create.return_value = {
@@ -287,9 +287,10 @@ class TestPipeline(unittest.TestCase):
         mock_session.return_value = mock_session_instance
         mock_session_instance.client.return_value = mock_s3_client
 
-        result = pipeline()
+        result = lambda_handler()
 
-        self.assertTrue(result)
+        self.assertEqual(result['statusCode'], 200)
+        self.assertIn('processed', result['body'].lower())
         self.assertEqual(mock_s3_client.put_object.call_count, 2)
 
     @patch.dict(os.environ, {
@@ -299,8 +300,8 @@ class TestPipeline(unittest.TestCase):
     })
     @patch('create_stations_network.boto3.Session')
     @patch('create_stations_network.create_station_network')
-    def test_pipeline_uses_processed_prefix(self, mock_create, mock_session):
-        """Test that pipeline uploads to processed/ prefix in bucket."""
+    def test_lambda_handler_uses_processed_prefix(self, mock_create, mock_session):
+        """Test that lambda_handler uploads to processed/ prefix in bucket."""
         mock_network = nx.Graph()
         mock_df = pd.DataFrame({'id': [1, 2]})
         mock_create.return_value = {
@@ -311,7 +312,7 @@ class TestPipeline(unittest.TestCase):
         mock_session.return_value = mock_session_instance
         mock_session_instance.client.return_value = mock_s3_client
 
-        pipeline()
+        lambda_handler()
 
         calls = mock_s3_client.put_object.call_args_list
         self.assertEqual(calls[0][1]['Key'], 'processed/tube_network.graphml')
@@ -324,15 +325,16 @@ class TestPipeline(unittest.TestCase):
     })
     @patch('create_stations_network.boto3.Session')
     @patch('create_stations_network.create_station_network')
-    def test_pipeline_returns_false_on_exception(self, mock_create, mock_session):
-        """Test that pipeline returns False on exception."""
+    def test_lambda_handler_returns_error_dict_on_exception(self, mock_create, mock_session):
+        """Test that lambda_handler returns dict with error statusCode on exception."""
         mock_create.side_effect = Exception("API error")
         mock_session_instance = MagicMock()
         mock_session.return_value = mock_session_instance
 
-        result = pipeline()
+        result = lambda_handler()
 
-        self.assertFalse(result)
+        self.assertEqual(result['statusCode'], 500)
+        self.assertIn('failed', result['body'].lower())
 
 
 if __name__ == '__main__':
