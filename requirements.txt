@@ -5,3 +5,5 @@ pandas
 folium
 pylint 
 pytest
+boto3
+dotenv
