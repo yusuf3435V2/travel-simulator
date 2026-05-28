@@ -25,5 +25,5 @@ def get_lines(mode: str = "tube") -> list[str]:
 
 if __name__ == "__main__":
     setup_logger()
-    station_lines = get_lines()
+    station_lines = get_lines("tube,dlr,elizabeth-line")
     print(station_lines)

@@ -20,22 +20,6 @@ def add_edge_between_stations(
     G.add_edge(station1, station2, line_id=line_id, duration=duration)
 
 
-# def get_stops_from_line_2(line_data: dict, line_id: str) -> list[dict]:
-#     """Extracts the stops from the line data."""
-#     stations = []
-#     if isinstance(line_data, dict) and "stations" in line_data:
-#         for station in line_data["stations"]:
-#             if station.get("stationId"):
-#                 stations.append({
-#                     "UniqueId": station.get("stationId"),
-#                     "Name": station["name"],
-#                     "Latitude": station["lat"],
-#                     "Longitude": station["lon"],
-#                     "Line_id": line_id
-#                 })
-#     return stations
-
-
 def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
     """Extracts the stops from the line data."""
     stations = []
@@ -54,12 +38,12 @@ def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
     return stations
 
 
-def create_station_network(network_file_path: str = "stations/tube_network.graphml",
+def create_station_network(network_file_path: str = "stations/stations_network.graphml",
                            station_file_path: str = "stations/Stations.csv") -> \
         dict[str, pd.DataFrame | nx.Graph]:
     """Create a station network from the TFL API and save it as a .graphml file."""
     network = nx.Graph()
-    possible_lines = get_lines(mode="tube")
+    possible_lines = get_lines(mode="tube,dlr,elizabeth-line")
     direction = "all"
     stops = []
     for line_id in possible_lines:
