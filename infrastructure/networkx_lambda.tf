@@ -109,7 +109,7 @@ resource "aws_lambda_function" "c23_travel_simulator_networkx_pipeline" {
 resource "aws_cloudwatch_event_rule" "c23_travel_simulator_networkx_schedule" {
   name                = "c23-travel-simulator-networkx-schedule"
   description         = "Trigger networkx pipeline daily"
-  schedule_expression = "cron(0 2 * * ? *)"  # Daily at 2 AM UTC
+  schedule_expression = "cron(0 2 1 * ? *)"  # Daily at 2 AM UTC
 }
 
 resource "aws_cloudwatch_event_target" "c23_travel_simulator_networkx_lambda" {
