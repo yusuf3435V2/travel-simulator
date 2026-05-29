@@ -27,14 +27,14 @@ def create_choropleth(gdf: gpd.GeoDataFrame) -> folium.Map:
     return m
 
 
-def choropleth_creation(STOPS_URL: str):
+def choropleth_creation(stops_url: str):
     """A function that combines the local functionality into one."""
     # STEP 1: Load boundary data
     # This data is manually downloaded once from ONS website.
     gdf = load_boundaries_local(BOUNDARIES_FILE)
 
     # STEP 2: Load tube stops
-    stations_gdf = get_normalised_stops(STOPS_URL)
+    stations_gdf = get_normalised_stops(stops_url)
 
     # STEP 3: Spatial join - count stations in each boundary zone
     station_counts = get_stations_per_boundary(gdf, stations_gdf)
