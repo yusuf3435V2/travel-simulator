@@ -38,13 +38,13 @@ def sample_data() -> pd.DataFrame:
 @pytest.fixture
 def sample_stations() -> nx.Graph:
     """Fixture for sample station graph (5 stations). With duration weight on each edge."""
-    G = nx.Graph()
-    G.add_edge("StationA", "StationB", duration=5, line="piccadilly")
-    G.add_edge("StationB", "StationC", duration=10, line="piccadilly")
-    G.add_edge("StationC", "StationD", duration=15, line="piccadilly")
-    G.add_edge("StationD", "StationE", duration=20, line="piccadilly")
-    G.add_edge("StationA", "StationC", duration=12, line="district")
-    return G
+    graph = nx.Graph()
+    graph.add_edge("StationA", "StationB", duration=5, line="piccadilly")
+    graph.add_edge("StationB", "StationC", duration=10, line="piccadilly")
+    graph.add_edge("StationC", "StationD", duration=15, line="piccadilly")
+    graph.add_edge("StationD", "StationE", duration=20, line="piccadilly")
+    graph.add_edge("StationA", "StationC", duration=12, line="district")
+    return graph
 
 
 @pytest.fixture
