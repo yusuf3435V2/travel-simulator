@@ -1,15 +1,6 @@
 """Script for saving simulation results to S3."""
 
-import boto3
-import pandas as pd
-import os
-import dotenv
-import time
-from s3_utils import (
-    load_env_variables,
-    check_baseline_exists_in_s3,
-    load_results_from_s3,
-)
+from s3_utils import load_env_variables, load_results_from_s3
 
 
 if __name__ == "__main__":
