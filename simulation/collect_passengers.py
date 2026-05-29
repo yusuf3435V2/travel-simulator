@@ -134,7 +134,10 @@ def get_line_switches(path: list[str], graph: nx.Graph) -> list[tuple[str, str, 
             if i > 0:
                 previous_edge_data = graph.get_edge_data(path[i - 1], station1)
                 previous_line = (
-                    (previous_edge_data.get("line") or previous_edge_data.get("line_id"))
+                    (
+                        previous_edge_data.get("line")
+                        or previous_edge_data.get("line_id")
+                    )
                     if previous_edge_data
                     else None
                 )
@@ -254,34 +257,6 @@ def shortest_path_length_between_stations(
         return length
     except nx.NetworkXNoPath:
         return float("inf")
-
-
-def extract_agent_data(model: TravelModel) -> pd.DataFrame:
-    """Extract data from all agents in the model and return as a DataFrame."""
-    agent_data = []
-
-    for agent in model.agents:
-        agent_data.append(
-            {
-                "route_id": agent.unique_id,
-                "passenger_id": agent.passenger_id,
-                "origin_lat": agent.origin_lat,
-                "origin_lng": agent.origin_lng,
-                "destination_lat": agent.destination_lat,
-                "destination_lng": agent.destination_lng,
-                "day_type": agent.day_type,
-                "nearest_station": get_station_name_from_id(
-                    agent.nearest_station, model.station_data
-                ),
-                "alighting_station": get_station_name_from_id(
-                    agent.alighting_station, model.station_data
-                ),
-                "time_spent": agent.time_spent,
-                "walk_time": agent.transit_time,
-            }
-        )
-
-    return pd.DataFrame(agent_data)
 
 
 def choose_transport_speed(distance: float) -> float:
@@ -439,6 +414,34 @@ class TravelModel(mesa.Model):
         """Advance the model by one step."""
         for agent in self.agents.shuffle():
             agent.step()
+
+
+def extract_agent_data(model: TravelModel) -> pd.DataFrame:
+    """Extract data from all agents in the model and return as a DataFrame."""
+    agent_data = []
+
+    for agent in model.agents:
+        agent_data.append(
+            {
+                "route_id": agent.unique_id,
+                "passenger_id": agent.passenger_id,
+                "origin_lat": agent.origin_lat,
+                "origin_lng": agent.origin_lng,
+                "destination_lat": agent.destination_lat,
+                "destination_lng": agent.destination_lng,
+                "day_type": agent.day_type,
+                "nearest_station": get_station_name_from_id(
+                    agent.nearest_station, model.station_data
+                ),
+                "alighting_station": get_station_name_from_id(
+                    agent.alighting_station, model.station_data
+                ),
+                "time_spent": agent.time_spent,
+                "walk_time": agent.transit_time,
+            }
+        )
+
+    return pd.DataFrame(agent_data)
 
 
 def create_agents_from_passenger_data(passenger_data: pd.DataFrame, model: TravelModel):
