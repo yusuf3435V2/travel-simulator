@@ -151,7 +151,8 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
         # Get all lines at this station
         station_lines = station_data[station_data['UniqueId']
                                      == row['UniqueId']]['Line_id'].unique()
-        lines_text = ", ".join([str(l) for l in station_lines if pd.notna(l)])
+        lines_text = ", ".join([str(l).replace('-', ' ').capitalize()
+                               for l in station_lines if pd.notna(l)])
 
         popup_text = f"<b>{row['Name'].replace('-', ' ').capitalize()}</b><br>Lines: {lines_text}"
 
