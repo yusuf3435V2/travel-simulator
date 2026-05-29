@@ -1,15 +1,15 @@
 """The main choropleth functions to build the interactive map."""
 import logging
-import boto3
 import pandas as pd
 import geopandas as gpd
 import folium
-from choropleth.data_functions import load_boundary_data, get_normalised_stops
+from data_functions import load_boundaries_local, get_normalised_stops
 
 logger = logging.getLogger(__name__)
 
 
 STOPS_URL = "https://api.tfl.gov.uk/StopPoint/Mode/tube"
+BOUNDARIES_FILE = "boundaryData.pkl"
 
 
 def get_stations_per_boundary(gdf: gpd.GeoDataFrame, stations_gdf: gpd.GeoDataFrame) -> pd.Series:
@@ -27,26 +27,11 @@ def create_choropleth(gdf: gpd.GeoDataFrame) -> folium.Map:
     return m
 
 
-def add_tube_stations_to_map(stations: pd.DataFrame, m: folium.Map) -> folium.Map:
-    """Add tube station markers to the existing map."""
-    for idx, row in stations.iterrows():
-        folium.CircleMarker(
-            location=[row['lat'], row['lon']],
-            radius=3,
-            popup=row['commonName'],
-            color='blue',
-            fill=True,
-            fillColor='blue',
-            fillOpacity=0.7
-        ).add_to(m)
-    return m
-
-
-def everything_all_in_one(STOPS_URL: str):
+def choropleth_creation(STOPS_URL: str):
     """A function that combines the local functionality into one."""
     # STEP 1: Load boundary data
     # This data is manually downloaded once from ONS website.
-    gdf = load_boundary_data("s3.pkl")
+    gdf = load_boundaries_local(BOUNDARIES_FILE)
 
     # STEP 2: Load tube stops
     stations_gdf = get_normalised_stops(STOPS_URL)
@@ -59,10 +44,9 @@ def everything_all_in_one(STOPS_URL: str):
 
     # STEP 4: Create the map coloured by station count
     m = create_choropleth(gdf)
-    m = add_tube_stations_to_map(stations_gdf, m)
 
     # STEP 5: Save the map
-    m.save("combined_map.html")
+    m.save("choropleth.html")
     print(
         f"Map created with {len(stations_gdf)} tube stops across {gdf['station_count'].astype(bool).sum()} zones")
 
@@ -78,4 +62,4 @@ if __name__ == "__main__":
     # # save file to local disk
     # with open("s3.pkl", "wb") as f:
     #     f.write(file)
-    everything_all_in_one(STOPS_URL)
+    choropleth_creation(STOPS_URL)
