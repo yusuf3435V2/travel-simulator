@@ -12,22 +12,24 @@ from create_stations_network import load_station_network_local
 def create_colour_scheme() -> dict:
     """Create a colour scheme for the different lines."""
     return {
-        "bakerloo": "brown",
-        "central": "red",
-        "circle": "yellow",
-        "district": "green",
-        "hammersmith-city": "pink",
-        "jubilee": "grey",
-        "metropolitan": "purple",
-        "northern": "black",
-        "piccadilly": "darkblue",
-        "victoria": "lightblue",
-        "waterloo-city": "cyan",
+        "bakerloo": "#b26300",
+        "central": "#dc241f",
+        "circle": "#ffd329",
+        "district": "#007d32",
+        "dlr": "#00afad",
+        "elizabeth-line": "#773dbd",
+        "hammersmith-city": "#f4a9be",
+        "jubilee": "#a1a5a7",
+        "metropolitan": "#9b0058",
+        "northern": "#000000",
+        "piccadilly": "#0019a8",
+        "victoria": "#0098d8",
+        "waterloo-city": "#93ceba",
     }
 
 
 def ensure_files_exist(network_file_path: str = "stations/tube_network.graphml",
-                        station_file_path: str = "stations/Stations.csv") -> bool:
+                       station_file_path: str = "stations/Stations.csv") -> bool:
     """Ensure network and station files exist, creating them if necessary."""
     network_exists = os.path.exists(network_file_path)
     station_exists = os.path.exists(station_file_path)
@@ -142,7 +144,7 @@ if __name__ == "__main__":
     setup_logger()
     logging.info("Ensuring database files exist")
     ensure_files_exist()
-    
+
     logging.info("Loading station network and data")
     network_graph = extract_station_network_local()
     station_dataframe = extract_station_data_local()
