@@ -2,7 +2,8 @@
 
 import logging
 import time
-import os
+from io import BytesIO
+import boto3
 import pandas as pd
 import networkx as nx
 from get_sequenced_stops import get_sequenced_stops, get_line_stops_data
@@ -18,22 +19,6 @@ def add_edge_between_stations(
     Add an edge between two stations in the graph G 
     with the line_id and duration as attributes."""
     G.add_edge(station1, station2, line_id=line_id, duration=duration)
-
-
-# def get_stops_from_line_2(line_data: dict, line_id: str) -> list[dict]:
-#     """Extracts the stops from the line data."""
-#     stations = []
-#     if isinstance(line_data, dict) and "stations" in line_data:
-#         for station in line_data["stations"]:
-#             if station.get("stationId"):
-#                 stations.append({
-#                     "UniqueId": station.get("stationId"),
-#                     "Name": station["name"],
-#                     "Latitude": station["lat"],
-#                     "Longitude": station["lon"],
-#                     "Line_id": line_id
-#                 })
-#     return stations
 
 
 def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
@@ -54,12 +39,11 @@ def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
     return stations
 
 
-def create_station_network(network_file_path: str = "stations/tube_network.graphml",
-                           station_file_path: str = "stations/Stations.csv") -> \
+def create_station_network() -> \
         dict[str, pd.DataFrame | nx.Graph]:
-    """Create a station network from the TFL API and save it as a .graphml file."""
+    """Create a station network from the TFL API and return network + stops data."""
     network = nx.Graph()
-    possible_lines = get_lines(mode="tube")
+    possible_lines = get_lines(mode="tube,dlr,elizabeth-line")
     direction = "all"
     stops = []
     for line_id in possible_lines:
@@ -85,10 +69,26 @@ def create_station_network(network_file_path: str = "stations/tube_network.graph
                     duration = get_duration_data(branch[i], branch[i + 1])
                 add_edge_between_stations(
                     network, branch[i], branch[i + 1], line_id=line_id, duration=duration)
-    nx.write_graphml(network, network_file_path)
     stops_df = pd.DataFrame(stops)
-    stops_df.to_csv(station_file_path, index=False)
     return {'stops_df': stops_df, 'network': network}
+
+
+def load_station_network_local(network_file_path: str = "stations/tube_network.graphml",
+                               station_file_path: str = "stations/Stations.csv") -> bool:
+    """Load the station network data to the local directory."""
+    try:
+        stations_network_data = create_station_network()
+        nx.write_graphml(stations_network_data.get(
+            'network', nx.Graph()), network_file_path)
+        stations_network_data.get('stops_df', pd.DataFrame()).to_csv(
+            station_file_path, index=False)
+        logging.info(
+            "Successfully loaded station network and data to local files")
+        return True
+    except Exception as e:
+        logging.error(
+            "Failed to load station network data to local files: %s", e)
+        return False
 
 
 def track_network_creation_time() -> None:
@@ -100,26 +100,47 @@ def track_network_creation_time() -> None:
         "Time taken to create station network: %.2f seconds", end_time - start_time)
 
 
-def load_station_network(file_path: str = "stations/tube_network.graphml") -> nx.Graph:
-    """Load the station network from a .graphml file."""
-    if not os.path.exists(file_path):
-        logging.error(
-            "Network file not found at %s. Please run create_station_network() to create the network file.",
-            file_path)
-        create_station_network(network_file_path=file_path)
-    return nx.read_graphml(file_path)
+def lambda_handler(event: dict = None, context: dict = None) -> dict:
+    """Run the full pipeline and save it in a S3 bucket."""
+    try:
+        setup_logger()
+        stations_network_data = create_station_network()
+        network = stations_network_data.get(
+            'network', nx.Graph())
+        stops_df = stations_network_data.get('stops_df', pd.DataFrame())
+        s3_client = boto3.client('s3')
+        bucket_name = 'c23-travel-simulation-bucket'
 
+        graphml_bytes = BytesIO()
+        nx.write_graphml(network, graphml_bytes)
+        s3_client.put_object(
+            Bucket=bucket_name,
+            Key='processed/stations_network.graphml',
+            Body=graphml_bytes.getvalue()
+        )
+        logging.info(
+            "Successfully uploaded network to S3 bucket %s", bucket_name)
 
-def load_station_data(file_path: str = "stations/Stations.csv") -> pd.DataFrame:
-    """Load the station data from a .csv file."""
-    if not os.path.exists(file_path):
+        csv_bytes = stops_df.to_csv(index=False).encode()
+        s3_client.put_object(
+            Bucket=bucket_name,
+            Key='processed/stations.csv',
+            Body=csv_bytes
+        )
+        logging.info(
+            "Successfully uploaded station data to S3 bucket %s", bucket_name)
+        return {
+            'statusCode': 200,
+            'body': 'Data processed and loaded successfully.'
+        }
+    except Exception as e:
         logging.error(
-            "Station data file not found at %s. Please run create_station_network() to create the station data file.",
-            file_path)
-        create_station_network(station_file_path=file_path)
-    return pd.read_csv(file_path)
+            "Failed to run pipeline and save to S3: %s", e)
+        return {
+            'statusCode': 500,
+            'body': 'Failed to run pipeline and save to S3: %s' % str(e)
+        }
 
 
 if __name__ == "__main__":
-    setup_logger()
-    track_network_creation_time()
+    lambda_handler()

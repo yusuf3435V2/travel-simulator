@@ -1,0 +1,4 @@
+networkx
+mesa
+pytest
+pytest-cov
