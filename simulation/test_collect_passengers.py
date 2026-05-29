@@ -64,7 +64,7 @@ def test_get_station_latlong(sample_station_data):
     """Test that the latitude and longitude of a station are retrieved correctly."""
     latlong = get_station_latlong("940GZZLUBNK", sample_station_data)
     assert latlong == (51.513356, -0.088899), (
-        f"Expected (51.5072, -0.1276), got {latlong}"
+        f"Expected (51.513356, -0.088899), got {latlong}"
     )
 
 
