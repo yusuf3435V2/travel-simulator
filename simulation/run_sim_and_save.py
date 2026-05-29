@@ -18,11 +18,14 @@ import json
 if __name__ == "__main__":
     # Run the baseline simulation and save results
     running_time = time.time()
+    graph = fetch_graph_from_s3(load_env_variables())
+    station_data = fetch_station_data_from_s3(load_env_variables())
+    passenger_data = fetch_passenger_data_from_s3(load_env_variables())
     if not check_baseline_exists_in_s3():
         logging.info(
             "Baseline simulation results not found in S3. Running baseline simulation..."
         )
-        run_simulation_baseline()
+        run_simulation_baseline(graph, station_data, passenger_data)
         save_results_to_s3(
             "simulation/simulation_results.csv",
             load_env_variables(),
@@ -46,9 +49,6 @@ if __name__ == "__main__":
     simulation_metadata = example_station.copy()
     simulation_metadata["number_of_passengers"] = len(baseline_results)
     # Run the altered simulation with user station and save results
-    graph = fetch_graph_from_s3(load_env_variables())
-    station_data = fetch_station_data_from_s3(load_env_variables())
-    passenger_data = fetch_passenger_data_from_s3(load_env_variables())
     simulated_output = run_simulation_with_user_station(
         graph, station_data, [example_station], passenger_data
     )
