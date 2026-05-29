@@ -515,7 +515,6 @@ def run_simulation_baseline(
 
 if __name__ == "__main__":
     bucket_name = load_env_variables()
-    local = True
     graph = fetch_graph_from_s3(bucket_name)
     input_passenger_data = fetch_passenger_data_from_s3(bucket_name)
     base_station_data = fetch_station_data_from_s3(bucket_name)
