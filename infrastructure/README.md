@@ -24,7 +24,7 @@ This Terraform configuration creates an AWS Lambda function that runs your Docke
 ```bash
 cd infrastructure
 terraform init
-terraform apply -target aws_ecr_repository.networkx_pipeline
+terraform apply -target aws_ecr_repository.c23_travel_simulator_networkx_pipeline
 ```
 
 This creates the ECR repository where the Docker image will be stored.

@@ -3,9 +3,7 @@
 import logging
 import time
 from io import BytesIO
-from os import environ
 import boto3
-from dotenv import load_dotenv
 import pandas as pd
 import networkx as nx
 from get_sequenced_stops import get_sequenced_stops, get_line_stops_data
@@ -46,6 +44,8 @@ def create_station_network() -> \
     """Create a station network from the TFL API and return network + stops data."""
     network = nx.Graph()
     possible_lines = get_lines(mode="tube,dlr,elizabeth-line")
+    # For testing, limit to one line to speed up execution
+    possible_lines = ['bakerloo']
     direction = "all"
     stops = []
     for line_id in possible_lines:
@@ -110,20 +110,14 @@ def lambda_handler(event: dict = None, context: dict = None) -> dict:
         network = stations_network_data.get(
             'network', nx.Graph())
         stops_df = stations_network_data.get('stops_df', pd.DataFrame())
-        load_dotenv()
-        session = boto3.Session(
-            region_name=environ['AWS_DEFAULT_REGION'],
-            aws_access_key_id=environ['AWS_ACCESS_KEY_ID'],
-            aws_secret_access_key=environ['AWS_SECRET_ACCESS_KEY']
-        )
-        s3_client = session.client('s3')
+        s3_client = boto3.client('s3')
         bucket_name = 'c23-travel-simulation-bucket'
 
         graphml_bytes = BytesIO()
         nx.write_graphml(network, graphml_bytes)
         s3_client.put_object(
             Bucket=bucket_name,
-            Key='processed/tube_network.graphml',
+            Key='processed/bakerloo_network.graphml',
             Body=graphml_bytes.getvalue()
         )
         logging.info(
@@ -132,7 +126,7 @@ def lambda_handler(event: dict = None, context: dict = None) -> dict:
         csv_bytes = stops_df.to_csv(index=False).encode()
         s3_client.put_object(
             Bucket=bucket_name,
-            Key='processed/stations.csv',
+            Key='processed/bakerloo_stations.csv',
             Body=csv_bytes
         )
         logging.info(
