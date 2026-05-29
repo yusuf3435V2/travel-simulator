@@ -105,6 +105,7 @@ def track_network_creation_time() -> None:
 def lambda_handler(event: dict = None, context: dict = None) -> dict:
     """Run the full pipeline and save it in a S3 bucket."""
     try:
+        setup_logger()
         stations_network_data = create_station_network()
         network = stations_network_data.get(
             'network', nx.Graph())
@@ -150,5 +151,4 @@ def lambda_handler(event: dict = None, context: dict = None) -> dict:
 
 
 if __name__ == "__main__":
-    setup_logger()
     lambda_handler()
