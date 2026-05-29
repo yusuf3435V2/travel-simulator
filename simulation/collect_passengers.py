@@ -4,6 +4,12 @@ import networkx as nx
 import mesa
 import pandas as pd
 from distance_maths import haversine_distance
+from s3_utils import (
+    fetch_passenger_data_from_s3,
+    fetch_station_data_from_s3,
+    fetch_graph_from_s3,
+    load_env_variables,
+)
 
 # Here are some speeds of different methods of getting to the station.
 WALK_SPEED = 5 / 60
@@ -463,24 +469,59 @@ def create_agents_from_passenger_data(passenger_data: pd.DataFrame, model: Trave
         model.agents.add(agent)
 
 
-if __name__ == "__main__":
-    graph = load_graphml("stations/tube_network.graphml")
-    station_data = pd.read_csv("stations/Stations.csv")
-    model = TravelModel(graph, station_data)
-    passenger_data = assign_unique_id_to_routes(
-        load_user_information("simulation/passengers.csv")
+def run_simulation_with_user_station(
+    graph: nx.Graph,
+    base_station_data: pd.DataFrame,
+    stations: list[dict],
+    input_passenger_data: pd.DataFrame,
+):
+    station_data = base_station_data.copy()
+    for station in stations:
+        station_data = add_station_to_stations_data(
+            station_data,
+            station["UniqueId"],
+            station["Latitude"],
+            station["Longitude"],
+            station["Line_id"],
+            station["Name"],
+        )
+    model = TravelModel(graph, station_data, new_stations=stations)
+    passenger_data = assign_unique_id_to_routes(input_passenger_data)
+    create_agents_from_passenger_data(passenger_data, model)
+
+    # Run simulation
+    model.step()
+
+    # Extract results
+    results_df = extract_agent_data(model)
+    print(results_df)
+
+    # Optionally save to CSV
+    results_df.to_csv(
+        "simulation/simulation_results_with_user_station.csv", index=False
     )
-    # create_agents_from_passenger_data(passenger_data, model)
+    return results_df
 
-    # # Run simulation
-    # model.step()
 
-    # # Extract results
-    # results_df = extract_agent_data(model)
-    # print(results_df)
+def run_simulation_baseline(
+    graph: nx.Graph, base_station_data: pd.DataFrame, input_passenger_data: pd.DataFrame
+) -> pd.DataFrame:
+    """Run the baseline simulation without any user-added stations and return the results as a DataFrame."""
 
-    # # Optionally save to CSV
-    # results_df.to_csv("simulation/simulation_results.csv", index=False)
+    return run_simulation_with_user_station(
+        graph, base_station_data, [], input_passenger_data
+    )
+
+
+if __name__ == "__main__":
+    bucket_name = load_env_variables()
+    local = True
+    graph = fetch_graph_from_s3(bucket_name)
+    input_passenger_data = fetch_passenger_data_from_s3(bucket_name)
+    base_station_data = fetch_station_data_from_s3(bucket_name)
+
+    run_simulation_baseline(graph, base_station_data, input_passenger_data)
+
     new_station = {
         "UniqueId": "user_station_1",
         "Name": "User Station",
@@ -488,18 +529,7 @@ if __name__ == "__main__":
         "Longitude": -0.0532169,
         "Line_id": "district",
     }
-    station_data = add_station_to_stations_data(
-        station_data,
-        new_station["UniqueId"],
-        new_station["Latitude"],
-        new_station["Longitude"],
-        new_station["Line_id"],
-        new_station["Name"],
-    )
-    model_new = TravelModel(graph, station_data, new_stations=[new_station])
-    create_agents_from_passenger_data(passenger_data, model_new)
-    model_new.step()
-    results_df_new = extract_agent_data(model_new)
-    results_df_new.to_csv(
-        "simulation/simulation_results_with_user_station.csv", index=False
+
+    run_simulation_with_user_station(
+        graph, base_station_data, [new_station], input_passenger_data
     )

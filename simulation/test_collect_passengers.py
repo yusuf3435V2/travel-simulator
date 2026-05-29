@@ -23,7 +23,10 @@ from collect_passengers import (
     BIKE_SPEED,
     WALK_SPEED,
 )
+from s3_utils import fetch_file_from_s3
 from distance_maths import haversine_distance
+from moto import mock_aws
+import boto3
 import pytest
 import pandas as pd
 import networkx as nx
@@ -32,7 +35,7 @@ import networkx as nx
 @pytest.fixture
 def sample_data() -> pd.DataFrame:
     """Fixture for sample passenger data."""
-    return pd.read_csv("simulation/sample_passengers.csv")
+    return pd.read_csv("simulation/test_data/sample_passengers.csv")
 
 
 @pytest.fixture
@@ -50,14 +53,20 @@ def sample_stations() -> nx.Graph:
 @pytest.fixture
 def sample_graph_for_tube() -> nx.Graph:
     """Fixture for loading the actual tube network graph."""
-    return load_graphml("stations/tube_network.graphml")
+    return load_graphml("simulation/test_data/tube_network.graphml")
 
 
 @pytest.fixture
 def sample_station_data() -> pd.DataFrame:
     """Fixture for sample station data."""
-    data = pd.read_csv("stations/Stations.csv")
+    data = pd.read_csv("simulation/test_data/Stations.csv")
     return data
+
+
+@pytest.fixture
+def sample_station_graph() -> nx.Graph:
+    """Fixture for loading the actual tube network graph."""
+    return load_graphml("simulation/test_data/tube_network.graphml")
 
 
 def test_get_station_latlong(sample_station_data):
@@ -272,9 +281,9 @@ def test_get_station_distance_invalid_station(sample_station_data):
     assert distance is None, f"Expected None for invalid station, got {distance}"
 
 
-def test_load_graphml():
+def test_load_graphml(sample_station_graph):
     """Test that the GraphML file is loaded correctly."""
-    graph = load_graphml("stations/tube_network.graphml")
+    graph = sample_station_graph
     assert isinstance(graph, nx.Graph), "Expected NetworkX Graph object"
     assert len(graph.nodes()) > 0, "Expected graph to contain nodes"
     assert len(graph.edges()) > 0, "Expected graph to contain edges"
@@ -415,4 +424,219 @@ def test_add_station_to_network(sample_graph_for_tube, sample_station_data):
     num_connections = graph.degree(station_id)
     assert num_connections == 2, (
         f"Expected 2 connections for {station_id}, got {num_connections}"
+    )
+
+
+# S3 Tests using moto mock_aws
+@mock_aws
+def test_fetch_file_from_s3_csv():
+    """Test fetching a CSV file from S3 returns a DataFrame."""
+    import boto3
+
+    # Create mock S3 bucket and upload a test CSV
+    s3_client = boto3.client("s3", region_name="us-east-1")
+    bucket_name = "test-bucket"
+    s3_client.create_bucket(Bucket=bucket_name)
+
+    # Create sample CSV data
+    test_df = pd.DataFrame(
+        {
+            "passenger_id": ["P001", "P002"],
+            "origin_lat": [51.5074, 51.4883],
+            "origin_lng": [-0.1278, -0.3426],
+            "destination_lat": [51.5165, 51.5175],
+            "destination_lng": [-0.1019, -0.0532],
+            "day_type": ["weekday", "weekend"],
+        }
+    )
+
+    # Upload to S3
+    csv_content = test_df.to_csv(index=False)
+    s3_client.put_object(
+        Bucket=bucket_name, Key="processed/passengers.csv", Body=csv_content.encode()
+    )
+
+    # Fetch and verify
+    result_df = fetch_file_from_s3(bucket_name, "processed/passengers.csv")
+
+    assert isinstance(result_df, pd.DataFrame), "Expected DataFrame"
+    assert len(result_df) == 2, f"Expected 2 rows, got {len(result_df)}"
+    assert list(result_df.columns) == list(test_df.columns), "Column mismatch"
+    assert result_df.iloc[0]["passenger_id"] == "P001"
+
+
+@mock_aws
+def test_fetch_file_from_s3_file_not_found():
+    """Test that fetch_file_from_s3 returns empty DataFrame when file doesn't exist."""
+    import boto3
+
+    s3_client = boto3.client("s3", region_name="us-east-1")
+    bucket_name = "test-bucket"
+    s3_client.create_bucket(Bucket=bucket_name)
+
+    # Try to fetch non-existent file
+    result_df = fetch_file_from_s3(bucket_name, "processed/nonexistent.csv")
+
+    assert isinstance(result_df, pd.DataFrame), "Expected DataFrame"
+    assert len(result_df) == 0, "Expected empty DataFrame for missing file"
+
+
+@mock_aws
+def test_fetch_file_from_s3_multiple_files():
+    """Test fetching different files from S3."""
+    import boto3
+
+    s3_client = boto3.client("s3", region_name="us-east-1")
+    bucket_name = "test-bucket"
+    s3_client.create_bucket(Bucket=bucket_name)
+
+    # Create and upload first CSV
+    df1 = pd.DataFrame({"id": [1, 2], "name": ["Alice", "Bob"]})
+    s3_client.put_object(
+        Bucket=bucket_name, Key="file1.csv", Body=df1.to_csv(index=False).encode()
+    )
+
+    # Create and upload second CSV
+    df2 = pd.DataFrame({"id": [3, 4], "name": ["Charlie", "David"]})
+    s3_client.put_object(
+        Bucket=bucket_name, Key="file2.csv", Body=df2.to_csv(index=False).encode()
+    )
+
+    # Fetch and verify both files
+    result_df1 = fetch_file_from_s3(bucket_name, "file1.csv")
+    result_df2 = fetch_file_from_s3(bucket_name, "file2.csv")
+
+    assert len(result_df1) == 2, "Expected 2 rows in first file"
+    assert len(result_df2) == 2, "Expected 2 rows in second file"
+    assert result_df1.iloc[0]["name"] == "Alice"
+    assert result_df2.iloc[0]["name"] == "Charlie"
+
+
+@mock_aws
+def test_fetch_file_from_s3_preserves_data_types():
+    """Test that data types are preserved when fetching from S3."""
+
+    s3_client = boto3.client("s3", region_name="us-east-1")
+    bucket_name = "test-bucket"
+    s3_client.create_bucket(Bucket=bucket_name)
+
+    # Create DataFrame with multiple data types
+    test_df = pd.DataFrame(
+        {"int_col": [1, 2, 3], "float_col": [1.5, 2.5, 3.5], "str_col": ["a", "b", "c"]}
+    )
+
+    # Upload to S3
+    csv_content = test_df.to_csv(index=False)
+    s3_client.put_object(Bucket=bucket_name, Key="data.csv", Body=csv_content.encode())
+
+    # Fetch and verify
+    result_df = fetch_file_from_s3(bucket_name, "data.csv")
+
+    assert result_df["int_col"].dtype in ["int64", "int32"], "Int column type incorrect"
+    assert result_df["float_col"].dtype == "float64", "Float column type incorrect"
+    assert result_df["str_col"].dtype == "string", "String column type incorrect"
+
+
+@mock_aws
+def test_fetch_file_from_s3_with_passenger_data():
+    """Test fetching real passenger data format from S3."""
+    import boto3
+
+    s3_client = boto3.client("s3", region_name="us-east-1")
+    bucket_name = "test-bucket"
+    s3_client.create_bucket(Bucket=bucket_name)
+
+    # Create sample passenger data matching real format
+    passenger_df = pd.DataFrame(
+        {
+            "passenger_id": ["P001", "P002", "P003"],
+            "origin_lat": [51.5074, 51.4883, 51.5165],
+            "origin_lng": [-0.1278, -0.3426, -0.1019],
+            "destination_lat": [51.5165, 51.5175, 51.5074],
+            "destination_lng": [-0.1019, -0.0532, -0.1278],
+            "day_type": ["weekday", "weekend", "weekday"],
+        }
+    )
+
+    # Upload to S3
+    s3_client.put_object(
+        Bucket=bucket_name,
+        Key="processed/passengers.csv",
+        Body=passenger_df.to_csv(index=False).encode(),
+    )
+
+    # Fetch and verify
+    result_df = fetch_file_from_s3(bucket_name, "processed/passengers.csv")
+
+    expected_columns = {
+        "passenger_id",
+        "origin_lat",
+        "origin_lng",
+        "destination_lat",
+        "destination_lng",
+        "day_type",
+    }
+    assert set(result_df.columns) == expected_columns, "Column mismatch"
+    assert len(result_df) == 3, "Expected 3 passengers"
+    assert all(isinstance(v, str) for v in result_df["passenger_id"]), (
+        "Passenger IDs should be strings"
+    )
+
+
+@mock_aws
+def test_fetch_file_from_s3_add_and_fetch_cycle():
+    """Test adding a file to S3 and then fetching it to verify integrity."""
+    import boto3
+
+    s3_client = boto3.client("s3", region_name="us-east-1")
+    bucket_name = "test-bucket"
+    s3_client.create_bucket(Bucket=bucket_name)
+
+    # Create original data
+    original_df = pd.DataFrame(
+        {
+            "route_id": [0, 1, 2],
+            "passenger_id": ["P001", "P002", "P003"],
+            "time_spent": [45.5, 62.3, 38.1],
+            "day_type": ["weekday", "weekend", "weekday"],
+        }
+    )
+
+    # Upload to S3
+    s3_client.put_object(
+        Bucket=bucket_name,
+        Key="results/simulation_output.csv",
+        Body=original_df.to_csv(index=False).encode(),
+    )
+
+    # Fetch from S3
+    fetched_df = fetch_file_from_s3(bucket_name, "results/simulation_output.csv")
+
+    # Verify data integrity
+    assert len(fetched_df) == len(original_df), "Row count mismatch"
+    pd.testing.assert_frame_equal(fetched_df, original_df, check_dtype=False)
+
+
+@mock_aws
+def test_fetch_file_from_s3_empty_file():
+    """Test fetching an empty CSV file from S3."""
+    import boto3
+
+    s3_client = boto3.client("s3", region_name="us-east-1")
+    bucket_name = "test-bucket"
+    s3_client.create_bucket(Bucket=bucket_name)
+
+    # Create empty CSV with headers only
+    empty_df = pd.DataFrame(columns=["col1", "col2", "col3"])
+    s3_client.put_object(
+        Bucket=bucket_name, Key="empty.csv", Body=empty_df.to_csv(index=False).encode()
+    )
+
+    # Fetch and verify
+    result_df = fetch_file_from_s3(bucket_name, "empty.csv")
+
+    assert isinstance(result_df, pd.DataFrame), "Expected DataFrame"
+    assert len(result_df) == 0, "Expected 0 rows"
+    assert list(result_df.columns) == ["col1", "col2", "col3"], (
+        "Columns should be preserved"
     )

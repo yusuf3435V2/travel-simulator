@@ -9,4 +9,5 @@ streamlit
 streamlit-folium 
 boto3
 dotenv
+moto
 
