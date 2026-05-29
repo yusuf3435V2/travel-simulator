@@ -5,3 +5,4 @@ folium
 mapclassify
 pylint
 pytest
+boto3

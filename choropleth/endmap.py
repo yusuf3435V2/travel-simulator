@@ -1,51 +1,15 @@
+"""The main choropleth functions to build the interactive map."""
 import logging
-from pathlib import Path
-import requests
 import pandas as pd
 import geopandas as gpd
-import pickle
 import folium
+from data_functions import load_boundaries_local, get_normalised_stops
 
 logger = logging.getLogger(__name__)
+
+
 STOPS_URL = "https://api.tfl.gov.uk/StopPoint/Mode/tube"
-
-
-def load_boundary_data() -> gpd.GeoDataFrame:
-    """Load boundary data from cache or geojson file."""
-    script_dir = Path(__file__).parent
-    cache_file = script_dir / "boundaryData.pkl"
-    geojson_file = script_dir / "boundaryData.geojson"
-
-    if cache_file.exists():
-        with open(cache_file, "rb") as f:
-            gdf = pickle.load(f)
-    elif geojson_file.exists():
-        gdf = gpd.read_file(geojson_file)
-        with open(cache_file, "wb") as f:
-            pickle.dump(gdf, f)
-    else:
-        raise FileNotFoundError(
-            "Boundary data not found. Please download from ONS and save as 'boundaryData.geojson'.")
-
-    # Filter to E09 areas (london)
-    gdf = gdf[gdf["CTYUA25CD"].str.startswith("E09")]
-    return gdf
-
-
-def get_normalised_stops(stops_url: str) -> pd.DataFrame:
-    """Fetch tube stops and return averaged coordinates per station."""
-    try:
-        response = requests.get(stops_url)
-        response.raise_for_status()
-    except requests.RequestException as e:
-        logger.info(f"Error: {e}")
-        return pd.DataFrame()
-
-    stops_df = pd.DataFrame(response.json()["stopPoints"])
-    clean_stops = stops_df[['lat', 'lon', 'commonName', 'id']]
-    stations = clean_stops.groupby('commonName')[
-        ['lat', 'lon']].mean().reset_index()
-    return stations
+BOUNDARIES_FILE = "boundaryData.pkl"
 
 
 def get_stations_per_boundary(gdf: gpd.GeoDataFrame, stations_gdf: gpd.GeoDataFrame) -> pd.Series:
@@ -56,49 +20,46 @@ def get_stations_per_boundary(gdf: gpd.GeoDataFrame, stations_gdf: gpd.GeoDataFr
     return station_counts
 
 
-def create_choropleth(gdf: gpd.GeoDataFrame, stations: pd.DataFrame) -> folium.Map:
+def create_choropleth(gdf: gpd.GeoDataFrame) -> folium.Map:
     """Create a choropleth map with station counts and station markers."""
     m = gdf.explore(column='station_count', cmap='YlOrRd', legend=True)
-
-    for idx, row in stations.iterrows():
-        folium.CircleMarker(
-            location=[row['lat'], row['lon']],
-            radius=3,
-            popup=row['commonName'],
-            color='blue',
-            fill=True,
-            fillColor='blue',
-            fillOpacity=0.7
-        ).add_to(m)
 
     return m
 
 
-if __name__ == "__main__":
+def choropleth_creation(stops_url: str):
+    """A function that combines the local functionality into one."""
     # STEP 1: Load boundary data
     # This data is manually downloaded once from ONS website.
-    gdf = load_boundary_data()
+    gdf = load_boundaries_local(BOUNDARIES_FILE)
 
     # STEP 2: Load tube stops
-    stations = get_normalised_stops(STOPS_URL)
+    stations_gdf = get_normalised_stops(stops_url)
 
-    # STEP 3: Convert stations to GeoDataFrame
-    stations_gdf = gpd.GeoDataFrame(
-        stations,
-        geometry=gpd.points_from_xy(stations['lon'], stations['lat']),
-        crs='EPSG:4326'
-    )
-
-    # STEP 4: Spatial join - count stations in each boundary zone
+    # STEP 3: Spatial join - count stations in each boundary zone
     station_counts = get_stations_per_boundary(gdf, stations_gdf)
 
     # Merge counts back to gdf
     gdf['station_count'] = gdf.index.map(station_counts).fillna(0).astype(int)
 
-    # STEP 5: Create the map coloured by station count
-    m = create_choropleth(gdf, stations)
+    # STEP 4: Create the map coloured by station count
+    m = create_choropleth(gdf)
 
-    # STEP 6: Save the map
-    m.save("combined_map.html")
+    # STEP 5: Save the map
+    m.save("choropleth.html")
     print(
-        f"Map created with {len(stations)} tube stops across {gdf['station_count'].astype(bool).sum()} zones")
+        f"Map created with {len(stations_gdf)} tube stops across {gdf['station_count'].astype(bool).sum()} zones")
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
+    # # list contents of s3 bucket to check if file exists
+    # check_s3_contents(BUCKET_NAME)
+
+    # file = get_file_from_s3(BUCKET_NAME, FILE_KEY)
+    # # save file to local disk
+    # with open("s3.pkl", "wb") as f:
+    #     f.write(file)
+    choropleth_creation(STOPS_URL)

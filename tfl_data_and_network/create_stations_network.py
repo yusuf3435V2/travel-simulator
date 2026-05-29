@@ -3,9 +3,7 @@
 import logging
 import time
 from io import BytesIO
-from os import environ
 import boto3
-from dotenv import load_dotenv
 import pandas as pd
 import networkx as nx
 from get_sequenced_stops import get_sequenced_stops, get_line_stops_data
@@ -102,27 +100,22 @@ def track_network_creation_time() -> None:
         "Time taken to create station network: %.2f seconds", end_time - start_time)
 
 
-def pipeline() -> bool:
+def lambda_handler(event: dict = None, context: dict = None) -> dict:
     """Run the full pipeline and save it in a S3 bucket."""
     try:
+        setup_logger()
         stations_network_data = create_station_network()
         network = stations_network_data.get(
             'network', nx.Graph())
         stops_df = stations_network_data.get('stops_df', pd.DataFrame())
-        load_dotenv()
-        session = boto3.Session(
-            region_name=environ['AWS_DEFAULT_REGION'],
-            aws_access_key_id=environ['AWS_ACCESS_KEY_ID'],
-            aws_secret_access_key=environ['AWS_SECRET_ACCESS_KEY']
-        )
-        s3_client = session.client('s3')
+        s3_client = boto3.client('s3')
         bucket_name = 'c23-travel-simulation-bucket'
 
         graphml_bytes = BytesIO()
         nx.write_graphml(network, graphml_bytes)
         s3_client.put_object(
             Bucket=bucket_name,
-            Key='processed/tube_network.graphml',
+            Key='processed/stations_network.graphml',
             Body=graphml_bytes.getvalue()
         )
         logging.info(
@@ -136,13 +129,18 @@ def pipeline() -> bool:
         )
         logging.info(
             "Successfully uploaded station data to S3 bucket %s", bucket_name)
-        return True
+        return {
+            'statusCode': 200,
+            'body': 'Data processed and loaded successfully.'
+        }
     except Exception as e:
         logging.error(
             "Failed to run pipeline and save to S3: %s", e)
-        return False
+        return {
+            'statusCode': 500,
+            'body': 'Failed to run pipeline and save to S3: %s' % str(e)
+        }
 
 
 if __name__ == "__main__":
-    setup_logger()
-    pipeline()
+    lambda_handler()
