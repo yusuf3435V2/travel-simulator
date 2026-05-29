@@ -64,8 +64,10 @@ if __name__ == "__main__":
     )
     # Compare the baseline and altered simulation results
     baseline_vs_simulated = compare_simulations(baseline_results, simulated_output)
+    comparison_path = "simulation/simulation_comparison.csv"
+    baseline_vs_simulated.to_csv(comparison_path, index=False)
     save_results_to_s3(
-        "simulation/simulation_comparison.csv",
+        comparison_path
         load_env_variables(),
         f"raw/{int(running_time)}/simulation_comparison.csv",
     )
