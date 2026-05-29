@@ -159,12 +159,15 @@ def get_nearest_station(
     lat: float, lng: float, station_data: pd.DataFrame
 ) -> str | None:
     """Get the nearest station to a given latitude and longitude."""
-    station_data["Distance"] = station_data.apply(
+    if station_data.empty:
+        return None
+
+    distances = station_data.apply(
         lambda row: haversine_distance(lat, lng, row["Latitude"], row["Longitude"]),
         axis=1,
     )
-    nearest_station = station_data.loc[station_data["Distance"].idxmin()]
-    return nearest_station["UniqueId"] if not nearest_station.empty else None
+    nearest_idx = distances.idxmin()
+    return station_data.loc[nearest_idx, "UniqueId"]
 
 
 def get_station_distance(
