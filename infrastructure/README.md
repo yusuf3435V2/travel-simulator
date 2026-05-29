@@ -14,7 +14,7 @@ This Terraform configuration creates an AWS Lambda function that runs your Docke
 - **ECR Repository**: Docker image registry
 - **Lambda Function**: Runs your pipeline with 15-minute timeout and 3GB memory
 - **IAM Role**: Permissions for Lambda to write logs and S3
-- **EventBridge Rule**: Optional daily schedule trigger (2 AM UTC)
+- **EventBridge Rule**: Optional monthly schedule trigger (2 AM UTC on the 1st)
 - **CloudWatch Log Group**: 7-day retention logs
 
 ## Deployment Steps
