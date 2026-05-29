@@ -21,7 +21,7 @@ def get_stations_per_boundary(gdf: gpd.GeoDataFrame, stations_gdf: gpd.GeoDataFr
 
 
 def create_choropleth(gdf: gpd.GeoDataFrame) -> folium.Map:
-    """Create a choropleth map with station counts and station markers."""
+    """Create a choropleth map with station counts."""
     m = gdf.explore(column='station_count', cmap='YlOrRd', legend=True)
 
     return m
