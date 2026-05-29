@@ -65,22 +65,22 @@ class TestCreateColourScheme(unittest.TestCase):
         """Test that all expected lines are in the scheme."""
         result = create_colour_scheme()
         expected_lines = [
-            "bakerloo", "central", "circle", "district", "hammersmith-city",
-            "jubilee", "metropolitan", "northern", "piccadilly", "victoria",
-            "waterloo-city"
+            "bakerloo", "central", "circle", "district", "dlr", "elizabeth",
+            "hammersmith-city", "jubilee", "metropolitan", "northern",
+            "piccadilly", "victoria", "waterloo-city"
         ]
         for line in expected_lines:
             self.assertIn(line, result)
 
     def test_all_values_are_colors(self):
-        """Test that all values are color strings."""
+        """Test that all values are valid hex color strings."""
         result = create_colour_scheme()
-        valid_colors = [
-            "brown", "red", "yellow", "green", "pink", "grey", "purple",
-            "black", "darkblue", "lightblue", "cyan"
-        ]
         for color in result.values():
-            self.assertIn(color, valid_colors)
+            # Check if it's a valid hex color (starts with # and has 6 hex digits)
+            self.assertTrue(color.startswith(
+                '#'), f"Color {color} is not hex format")
+            self.assertEqual(
+                len(color), 7, f"Color {color} has invalid length")
 
     def test_consistent_mapping(self):
         """Test that function returns consistent results."""
@@ -98,7 +98,8 @@ class TestPlotStationNetwork(unittest.TestCase):
             'UniqueId': ['A', 'B', 'C'],
             'Name': ['Station A', 'Station B', 'Station C'],
             'Latitude': [51.5, 51.6, 51.7],
-            'Longitude': [-0.1, -0.2, -0.3]
+            'Longitude': [-0.1, -0.2, -0.3],
+            'Line_id': ['central', 'northern', 'circle']
         })
 
     @patch('plot_networkx.folium.Map')
@@ -106,7 +107,7 @@ class TestPlotStationNetwork(unittest.TestCase):
     def test_empty_station_data_raises_error(self, _mock_marker, _mock_map):
         """Test that empty station data raises ValueError."""
         empty_df = pd.DataFrame({'Latitude': [], 'Longitude': []})
-        network = nx.Graph()
+        network = nx.MultiGraph()
 
         with self.assertRaises(ValueError) as context:
             plot_station_network(network, empty_df)
@@ -120,7 +121,7 @@ class TestPlotStationNetwork(unittest.TestCase):
         mock_map_instance = MagicMock()
         mock_map.return_value = mock_map_instance
 
-        network = nx.Graph()
+        network = nx.MultiGraph()
         network.add_node('A')
 
         result = plot_station_network(network, self.valid_station_data)
@@ -135,7 +136,7 @@ class TestPlotStationNetwork(unittest.TestCase):
         mock_map_instance = MagicMock()
         mock_map.return_value = mock_map_instance
 
-        network = nx.Graph()  # Empty network
+        network = nx.MultiGraph()  # Empty network
         result = plot_station_network(network, self.valid_station_data)
 
         # Should still return map (logs warning but doesn't fail)
@@ -148,7 +149,7 @@ class TestPlotStationNetwork(unittest.TestCase):
         mock_map_instance = MagicMock()
         mock_map.return_value = mock_map_instance
 
-        network = nx.Graph()
+        network = nx.MultiGraph()
         plot_station_network(network, self.valid_station_data)
 
         # Should call Map with center location (mean of lat/lon)
@@ -168,7 +169,7 @@ class TestPlotStationNetwork(unittest.TestCase):
         mock_marker_instance = MagicMock()
         mock_marker.return_value = mock_marker_instance
 
-        network = nx.Graph()
+        network = nx.MultiGraph()
         plot_station_network(network, self.valid_station_data)
 
         # Should create 3 markers (one for each station)
@@ -187,10 +188,11 @@ class TestPlotStationNetwork(unittest.TestCase):
             'UniqueId': ['A', 'B', 'C'],
             'Name': ['Station A', 'Station B', 'Station C'],
             'Latitude': [51.5, np.nan, 51.7],
-            'Longitude': [-0.1, -0.2, -0.3]
+            'Longitude': [-0.1, -0.2, -0.3],
+            'Line_id': ['central', 'northern', 'circle']
         })
 
-        network = nx.Graph()
+        network = nx.MultiGraph()
         plot_station_network(network, station_data)
 
         # Should create markers only for valid stations (2 instead of 3)
@@ -208,7 +210,7 @@ class TestPlotStationNetwork(unittest.TestCase):
         mock_polyline_instance = MagicMock()
         mock_polyline.return_value = mock_polyline_instance
 
-        network = nx.Graph()
+        network = nx.MultiGraph()
         network.add_edge('A', 'B', line_id='northern', duration=5)
 
         plot_station_network(network, self.valid_station_data)
@@ -228,14 +230,14 @@ class TestPlotStationNetwork(unittest.TestCase):
         mock_polyline_instance = MagicMock()
         mock_polyline.return_value = mock_polyline_instance
 
-        network = nx.Graph()
+        network = nx.MultiGraph()
         network.add_edge('A', 'B', line_id='central', duration=5)
 
         plot_station_network(network, self.valid_station_data)
 
-        # Central line should be red
+        # Central line should be #dc241f (hex for red)
         call_args = mock_polyline.call_args
-        self.assertEqual(call_args[1]['color'], 'red')
+        self.assertEqual(call_args[1]['color'], '#dc241f')
 
     @patch('plot_networkx.folium.Map')
     @patch('plot_networkx.folium.CircleMarker')
@@ -249,7 +251,7 @@ class TestPlotStationNetwork(unittest.TestCase):
         mock_polyline_instance = MagicMock()
         mock_polyline.return_value = mock_polyline_instance
 
-        network = nx.Graph()
+        network = nx.MultiGraph()
         network.add_edge('A', 'B', line_id='unknown-line', duration=5)
 
         plot_station_network(network, self.valid_station_data)
@@ -270,7 +272,7 @@ class TestPlotStationNetwork(unittest.TestCase):
         mock_polyline_instance = MagicMock()
         mock_polyline.return_value = mock_polyline_instance
 
-        network = nx.Graph()
+        network = nx.MultiGraph()
         # Add edge to stations that don't exist in station_data
         network.add_edge('X', 'Y', line_id='central', duration=5)
 
@@ -291,7 +293,7 @@ class TestPlotStationNetwork(unittest.TestCase):
         mock_polyline_instance = MagicMock()
         mock_polyline.return_value = mock_polyline_instance
 
-        network = nx.Graph()
+        network = nx.MultiGraph()
         network.add_edge('A', 'B', line_id='central', duration=5)
         network.add_edge('B', 'C', line_id='northern', duration=3)
 
@@ -312,7 +314,7 @@ class TestPlotStationNetwork(unittest.TestCase):
         mock_polyline_instance = MagicMock()
         mock_polyline.return_value = mock_polyline_instance
 
-        network = nx.Graph()
+        network = nx.MultiGraph()
         network.add_edge('A', 'B', line_id='central', duration=5)
 
         plot_station_network(network, self.valid_station_data)

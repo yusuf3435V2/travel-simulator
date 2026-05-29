@@ -232,7 +232,7 @@ class TestTrackNetworkCreationTime(unittest.TestCase):
         """Test timing of network creation."""
         mock_time.side_effect = [100.0, 105.5]  # 5.5 seconds
         mock_create.return_value = {
-            'network': nx.Graph(), 'stops_df': pd.DataFrame()}
+            'network': nx.MultiGraph(), 'stops_df': pd.DataFrame()}
 
         track_network_creation_time()
 
@@ -245,7 +245,7 @@ class TestTrackNetworkCreationTime(unittest.TestCase):
         """Test that timing measures the duration correctly."""
         mock_time.side_effect = [1000.0, 1010.5]  # 10.5 seconds
         mock_create.return_value = {
-            'network': nx.Graph(), 'stops_df': pd.DataFrame()}
+            'network': nx.MultiGraph(), 'stops_df': pd.DataFrame()}
 
         track_network_creation_time()
 
@@ -258,7 +258,7 @@ class TestTrackNetworkCreationTime(unittest.TestCase):
         """Test that create_station_network is called."""
         mock_time.side_effect = [100.0, 101.0]
         mock_create.return_value = {
-            'network': nx.Graph(), 'stops_df': pd.DataFrame()}
+            'network': nx.MultiGraph(), 'stops_df': pd.DataFrame()}
 
         track_network_creation_time()
 
@@ -277,7 +277,7 @@ class TestLambdaHandler(unittest.TestCase):
     @patch('create_stations_network.create_station_network')
     def test_lambda_handler_uploads_to_s3(self, mock_create, mock_client):
         """Test that lambda_handler uploads network and data to S3."""
-        mock_network = nx.Graph()
+        mock_network = nx.MultiGraph()
         mock_df = pd.DataFrame({'id': [1, 2]})
         mock_create.return_value = {
             'network': mock_network, 'stops_df': mock_df}
@@ -300,7 +300,7 @@ class TestLambdaHandler(unittest.TestCase):
     @patch('create_stations_network.create_station_network')
     def test_lambda_handler_uses_processed_prefix(self, mock_create, mock_client):
         """Test that lambda_handler uploads to processed/ prefix in bucket."""
-        mock_network = nx.Graph()
+        mock_network = nx.MultiGraph()
         mock_df = pd.DataFrame({'id': [1, 2]})
         mock_create.return_value = {
             'network': mock_network, 'stops_df': mock_df}
@@ -311,7 +311,8 @@ class TestLambdaHandler(unittest.TestCase):
         lambda_handler()
 
         calls = mock_s3_client.put_object.call_args_list
-        self.assertEqual(calls[0][1]['Key'], 'processed/stations_network.graphml')
+        self.assertEqual(calls[0][1]['Key'],
+                         'processed/stations_network.graphml')
         self.assertEqual(calls[1][1]['Key'], 'processed/stations.csv')
 
     @patch.dict(os.environ, {
