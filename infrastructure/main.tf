@@ -1,4 +1,11 @@
 terraform {
+  backend "s3" {
+    bucket  = "c23-travel-simulation-bucket"
+    key     = "terraform.tfstate"
+    region  = "eu-west-2"
+    encrypt = true
+  }
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
