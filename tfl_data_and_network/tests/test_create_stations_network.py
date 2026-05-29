@@ -273,9 +273,9 @@ class TestLambdaHandler(unittest.TestCase):
         'AWS_ACCESS_KEY_ID': 'test-key',
         'AWS_SECRET_ACCESS_KEY': 'test-secret'
     })
-    @patch('create_stations_network.boto3.Session')
+    @patch('create_stations_network.boto3.client')
     @patch('create_stations_network.create_station_network')
-    def test_lambda_handler_uploads_to_s3(self, mock_create, mock_session):
+    def test_lambda_handler_uploads_to_s3(self, mock_create, mock_client):
         """Test that lambda_handler uploads network and data to S3."""
         mock_network = nx.Graph()
         mock_df = pd.DataFrame({'id': [1, 2]})
@@ -283,9 +283,7 @@ class TestLambdaHandler(unittest.TestCase):
             'network': mock_network, 'stops_df': mock_df}
 
         mock_s3_client = MagicMock()
-        mock_session_instance = MagicMock()
-        mock_session.return_value = mock_session_instance
-        mock_session_instance.client.return_value = mock_s3_client
+        mock_client.return_value = mock_s3_client
 
         result = lambda_handler()
 
