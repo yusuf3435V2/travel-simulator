@@ -218,12 +218,16 @@ def shortest_path_between_stations(
         # Explore all neighboring stations
         for neighbor in graph.neighbors(station):
             edge_data = graph[station][neighbor]
-            edge_line = edge_data.get("line", "")
-            duration = float(edge_data.get("duration", 0))
+            edge_line = edge_data.get("line") or edge_data.get("line_id")
+            duration = float(edge_data.get("duration", 1))
 
             # Cost is duration + penalty if we're changing lines
             edge_cost = duration
-            if current_line is not None and current_line != edge_line:
+            if (
+                current_line is not None
+                and edge_line is not None
+                and current_line != edge_line
+            ):
                 edge_cost += line_change_penalty
 
             new_cost = cost + edge_cost
