@@ -44,8 +44,6 @@ def create_station_network() -> \
     """Create a station network from the TFL API and return network + stops data."""
     network = nx.Graph()
     possible_lines = get_lines(mode="tube,dlr,elizabeth-line")
-    # For testing, limit to one line to speed up execution
-    possible_lines = ['bakerloo']
     direction = "all"
     stops = []
     for line_id in possible_lines:
@@ -117,7 +115,7 @@ def lambda_handler(event: dict = None, context: dict = None) -> dict:
         nx.write_graphml(network, graphml_bytes)
         s3_client.put_object(
             Bucket=bucket_name,
-            Key='processed/bakerloo_network.graphml',
+            Key='processed/stations_network.graphml',
             Body=graphml_bytes.getvalue()
         )
         logging.info(
@@ -126,7 +124,7 @@ def lambda_handler(event: dict = None, context: dict = None) -> dict:
         csv_bytes = stops_df.to_csv(index=False).encode()
         s3_client.put_object(
             Bucket=bucket_name,
-            Key='processed/bakerloo_stations.csv',
+            Key='processed/stations.csv',
             Body=csv_bytes
         )
         logging.info(

@@ -49,45 +49,6 @@ terraform apply
 
 This creates the Lambda function, IAM roles, EventBridge schedule, and CloudWatch logs.
 
-## Manual Docker Build and Push (Alternative)
-
-If you prefer to skip the script:
-
-```bash
-cd ../tfl_data_and_network
-
-aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin $(terraform output -raw ecr_repository_url | cut -d'/' -f1)
-
-docker buildx build -t c23-travel-simulation-networkx-pipeline --platform="linux/amd64" --provenance=false .
-
-docker tag c23-travel-simulation-networkx-pipeline:latest $(terraform output -raw ecr_repository_url):latest
-
-docker push $(terraform output -raw ecr_repository_url):latest
-```
-
-## Manual Invocation
-
-```bash
-aws lambda invoke \
-  --function-name c23-networkx-pipeline \
-  --payload '{}' \
-  response.json
-
-cat response.json
-```
-
-## View Logs
-
-```bash
-# Tail logs in real-time
-aws logs tail /aws/lambda/c23-networkx-pipeline --follow
-
-# Get recent errors
-aws logs filter-log-events \
-  --log-group-name /aws/lambda/c23-networkx-pipeline \
-  --filter-pattern "ERROR"
-```
-
 ## Configuration
 
 Edit `terraform.tfvars` to customize:
@@ -118,4 +79,3 @@ Use these to:
 - Lambda timeout set to 15 minutes (max for API rate limits)
 - Memory set to 3GB for better performance
 - S3 access required to upload processed data
-- Ensure `.env` file exists with AWS credentials for API calls
