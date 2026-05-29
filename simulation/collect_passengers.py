@@ -494,7 +494,6 @@ def run_simulation_with_user_station(
 
     # Extract results
     results_df = extract_agent_data(model)
-    print(results_df)
 
     # Optionally save to CSV
     results_df.to_csv(
