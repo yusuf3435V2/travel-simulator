@@ -5,10 +5,10 @@ This Terraform configuration creates an AWS Lambda function that runs your Docke
 ## Prerequisites
 
 1. **Terraform** installed (v1.0+)
+1. **Terraform** installed (v1.0+)
 2. **AWS CLI** configured with credentials
 3. **Docker** image built locally
-4. **S3 bucket** created: `c23-travel-simulation-bucket`
-
+4. **S3 bucket** will be created by Terraform: `c23-travel-simulation-bucket`
 ## What Gets Created
 
 - **ECR Repository**: Docker image registry
