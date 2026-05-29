@@ -42,8 +42,8 @@ resource "aws_iam_policy" "c23_travel_simulator_networkx_s3_policy" {
           "s3:ListBucket"
         ],
         Resource = [
-          "arn:aws:s3:::c23-travel-simulation-bucket",
-          "arn:aws:s3:::c23-travel-simulation-bucket/*"
+          aws_s3_bucket.travel_simulation_bucket.arn,
+          "${aws_s3_bucket.travel_simulation_bucket.arn}/*"
         ]
       }
     ]
