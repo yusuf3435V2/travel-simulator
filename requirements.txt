@@ -8,4 +8,7 @@ streamlit
 streamlit-folium 
 boto3
 dotenv
-
+geopandas
+shapely
+reportlab
+earthengine-api

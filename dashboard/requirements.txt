@@ -1,3 +1,9 @@
 streamlit 
 streamlit-folium 
 folium
+boto3
+pandas
+geopandas
+shapely
+reportlab
+earthengine-api
