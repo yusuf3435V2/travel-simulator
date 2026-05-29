@@ -139,11 +139,6 @@ if __name__ == "__main__":
     # # list contents of s3 bucket to check if file exists
     # check_s3_contents(BUCKET_NAME)
 
-    # file = get_file_from_s3(BUCKET_NAME, f"processed/{BOUNDARY_FILE}")
-    # gdf = pickle.loads(file)
-    # m = gdf.explore(column='CTYUA25CD', cmap='Set3', legend=True)
-    # m.save("test_map.html")
-
     # gets the stop positions
     # stations = get_normalised_stops(STOPS_URL)
     # save_normalised_stops(stations)
