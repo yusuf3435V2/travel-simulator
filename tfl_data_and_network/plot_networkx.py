@@ -137,7 +137,7 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
     for line_id in station_data['Line_id'].unique():
         if pd.notna(line_id):
             line_groups[line_id] = folium.FeatureGroup(
-                name=f"Line: {str(line_id).replace('-', ' ').capitalize()}")
+                name=f"Line: {str(line_id).replace('-', ' & ').capitalize()}")
             m.add_child(line_groups[line_id])
 
     # Add stations as markers
@@ -151,10 +151,10 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
         # Get all lines at this station
         station_lines = station_data[station_data['UniqueId']
                                      == row['UniqueId']]['Line_id'].unique()
-        lines_text = ", ".join([str(l).replace('-', ' ').capitalize()
+        lines_text = ", ".join([str(l).replace('-', ' & ').capitalize()
                                for l in station_lines if pd.notna(l)])
 
-        popup_text = f"<b>{row['Name'].replace('-', ' ').capitalize()}</b><br>Lines: {lines_text}"
+        popup_text = f"<b>{row['Name'].replace('-', ' ').title()}</b><br>Lines: {lines_text}"
 
         folium.CircleMarker(
             location=[row['Latitude'], row['Longitude']],
@@ -191,7 +191,7 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
                 color=line_color,
                 weight=2,
                 opacity=0.7,
-                popup=f"Line: {str(line_id).replace('-', ' ').capitalize()}"
+                popup=f"Line: {str(line_id).replace('-', ' & ').capitalize()}"
             )
 
             # Add to line's feature group
