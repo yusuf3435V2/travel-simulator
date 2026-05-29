@@ -9,6 +9,7 @@ streamlit
 streamlit-folium 
 boto3
 dotenv
+moto
 geopandas
 shapely
 reportlab

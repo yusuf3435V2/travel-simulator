@@ -2,3 +2,5 @@ networkx
 mesa
 pytest
 pytest-cov
+boto3
+python-dotenv
