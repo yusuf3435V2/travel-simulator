@@ -1,0 +1,1535 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d1" for="edge" attr.name="duration" attr.type="long" />
+  <key id="d0" for="edge" attr.name="line_id" attr.type="string" />
+  <graph edgedefault="undirected">
+    <node id="940GZZLUEAC" />
+    <node id="940GZZLULBN" />
+    <node id="940GZZLUWLO" />
+    <node id="940GZZLUEMB" />
+    <node id="940GZZLUCHX" />
+    <node id="940GZZLUPCC" />
+    <node id="940GZZLUOXC" />
+    <node id="940GZZLURGP" />
+    <node id="940GZZLUBST" />
+    <node id="940GZZLUMYB" />
+    <node id="940GZZLUERB" />
+    <node id="940GZZLUPAC" />
+    <node id="940GZZLUWKA" />
+    <node id="940GZZLUMVL" />
+    <node id="940GZZLUKPK" />
+    <node id="940GZZLUQPS" />
+    <node id="940GZZLUKSL" />
+    <node id="940GZZLUWJN" />
+    <node id="940GZZLUHSN" />
+    <node id="940GZZLUSGP" />
+    <node id="940GZZLUWYC" />
+    <node id="940GZZLUNWY" />
+    <node id="940GZZLUSKT" />
+    <node id="940GZZLUKEN" />
+    <node id="940GZZLUHAW" />
+    <node id="940GZZLUEBY" />
+    <node id="940GZZLUWTA" />
+    <node id="940GZZLUNAN" />
+    <node id="940GZZLUEAN" />
+    <node id="940GZZLUWCY" />
+    <node id="940GZZLUSBC" />
+    <node id="940GZZLUHPK" />
+    <node id="940GZZLUNHG" />
+    <node id="940GZZLUQWY" />
+    <node id="940GZZLULGT" />
+    <node id="940GZZLUMBA" />
+    <node id="940GZZLUBND" />
+    <node id="940GZZLUTCR" />
+    <node id="940GZZLUHBN" />
+    <node id="940GZZLUCHL" />
+    <node id="940GZZLUSPU" />
+    <node id="940GZZLUBNK" />
+    <node id="940GZZLULVT" />
+    <node id="940GZZLUBLG" />
+    <node id="940GZZLUMED" />
+    <node id="940GZZLUSTD" />
+    <node id="940GZZLULYN" />
+    <node id="940GZZLULYS" />
+    <node id="940GZZLUSNB" />
+    <node id="940GZZLUSWF" />
+    <node id="940GZZLUWOF" />
+    <node id="940GZZLUBKH" />
+    <node id="940GZZLULGN" />
+    <node id="940GZZLUDBN" />
+    <node id="940GZZLUTHB" />
+    <node id="940GZZLUEPG" />
+    <node id="940GZZLUWSD" />
+    <node id="940GZZLURBG" />
+    <node id="940GZZLUGTH" />
+    <node id="940GZZLUNBP" />
+    <node id="940GZZLUBKE" />
+    <node id="940GZZLUFLP" />
+    <node id="940GZZLUHLT" />
+    <node id="940GZZLUHGR" />
+    <node id="940GZZLUPVL" />
+    <node id="940GZZLUGFD" />
+    <node id="940GZZLUNHT" />
+    <node id="940GZZLUSRP" />
+    <node id="940GZZLURSG" />
+    <node id="940GZZLUWRP" />
+    <node id="940GZZLUGGH" />
+    <node id="940GZZLUCWL" />
+    <node id="940GZZLURVY" />
+    <node id="940GZZLUERC" />
+    <node id="940GZZLUBWT" />
+    <node id="940GZZLUHSK" />
+    <node id="940GZZLUGTR" />
+    <node id="940GZZLUSKS" />
+    <node id="940GZZLUSSQ" />
+    <node id="940GZZLUVIC" />
+    <node id="940GZZLUSJP" />
+    <node id="940GZZLUWSM" />
+    <node id="940GZZLUTMP" />
+    <node id="940GZZLUBKF" />
+    <node id="940GZZLUMSH" />
+    <node id="940GZZLUCST" />
+    <node id="940GZZLUMMT" />
+    <node id="940GZZLUTWH" />
+    <node id="940GZZLUALD" />
+    <node id="940GZZLUMGT" />
+    <node id="940GZZLUBBN" />
+    <node id="940GZZLUFCN" />
+    <node id="940GZZLUKSX" />
+    <node id="940GZZLUESQ" />
+    <node id="940GZZLUGPS" />
+    <node id="940GZZLUPAH" />
+    <node id="940GZZLURYO" />
+    <node id="940GZZLUWSP" />
+    <node id="940GZZLULAD" />
+    <node id="940GZZLULRD" />
+    <node id="940GZZLUWLA" />
+    <node id="940GZZLUSBM" />
+    <node id="940GZZLUGHK" />
+    <node id="940GZZLUHSC" />
+    <node id="940GZZLUECM" />
+    <node id="940GZZLUACT" />
+    <node id="940GZZLUCWP" />
+    <node id="940GZZLUTNG" />
+    <node id="940GZZLUSFB" />
+    <node id="940GZZLURVP" />
+    <node id="940GZZLUHSD" />
+    <node id="940GZZLUBSC" />
+    <node id="940GZZLUWKN" />
+    <node id="940GZZLUECT" />
+    <node id="940GZZLUADE" />
+    <node id="940GZZLUWPL" />
+    <node id="940GZZLUSGN" />
+    <node id="940GZZLUBWR" />
+    <node id="940GZZLUBBB" />
+    <node id="940GZZLUWHM" />
+    <node id="940GZZLUPLW" />
+    <node id="940GZZLUUPK" />
+    <node id="940GZZLUEHM" />
+    <node id="940GZZLUBKG" />
+    <node id="940GZZLUUPY" />
+    <node id="940GZZLUBEC" />
+    <node id="940GZZLUDGY" />
+    <node id="940GZZLUDGE" />
+    <node id="940GZZLUEPK" />
+    <node id="940GZZLUHCH" />
+    <node id="940GZZLUUPB" />
+    <node id="940GZZLUUPM" />
+    <node id="940GZZLUKOY" />
+    <node id="940GZZLUWBN" />
+    <node id="940GZZLUFBY" />
+    <node id="940GZZLUPSG" />
+    <node id="940GZZLUPYB" />
+    <node id="940GZZLUEPY" />
+    <node id="940GZZLUSFS" />
+    <node id="940GZZLUWIP" />
+    <node id="940GZZLUWIM" />
+    <node id="940GZZLUGBY" />
+    <node id="940GZZLUKWG" />
+    <node id="940GZZLURMD" />
+    <node id="940GZZLUSTM" />
+    <node id="940GZZLUCPK" />
+    <node id="940GZZLUQBY" />
+    <node id="940GZZLUKBY" />
+    <node id="940GZZLUWYP" />
+    <node id="940GZZLUNDN" />
+    <node id="940GZZLUDOH" />
+    <node id="940GZZLUWIG" />
+    <node id="940GZZLUKBN" />
+    <node id="940GZZLUWHP" />
+    <node id="940GZZLUFYR" />
+    <node id="940GZZLUSWC" />
+    <node id="940GZZLUSJW" />
+    <node id="940GZZLUGPK" />
+    <node id="940GZZLUSWK" />
+    <node id="940GZZLULNB" />
+    <node id="940GZZLUBMY" />
+    <node id="940GZZLUCWR" />
+    <node id="940GZZLUCYF" />
+    <node id="940GZZLUNGW" />
+    <node id="940GZZLUCGT" />
+    <node id="940GZZLUPRD" />
+    <node id="940GZZLUNKP" />
+    <node id="940GZZLUHOH" />
+    <node id="940GZZLUNHA" />
+    <node id="940GZZLUPNR" />
+    <node id="940GZZLUNWH" />
+    <node id="940GZZLUNOW" />
+    <node id="940GZZLUMPK" />
+    <node id="940GZZLUCXY" />
+    <node id="940GZZLUWAF" />
+    <node id="940GZZLURKW" />
+    <node id="940GZZLUCYD" />
+    <node id="940GZZLUCAL" />
+    <node id="940GZZLUAMS" />
+    <node id="940GZZLUCSM" />
+    <node id="940GZZLUWHW" />
+    <node id="940GZZLURYL" />
+    <node id="940GZZLUEAE" />
+    <node id="940GZZLURSM" />
+    <node id="940GZZLURSP" />
+    <node id="940GZZLUICK" />
+    <node id="940GZZLUHGD" />
+    <node id="940GZZLUUXB" />
+    <node id="940GZZBPSUST" />
+    <node id="940GZZNEUGST" />
+    <node id="940GZZLUKNG" />
+    <node id="940GZZLULSQ" />
+    <node id="940GZZLUGDG" />
+    <node id="940GZZLUWRR" />
+    <node id="940GZZLUEUS" />
+    <node id="940GZZLUMTC" />
+    <node id="940GZZLUCTN" />
+    <node id="940GZZLUCFM" />
+    <node id="940GZZLUBZP" />
+    <node id="940GZZLUHTD" />
+    <node id="940GZZLUGGN" />
+    <node id="940GZZLUBTX" />
+    <node id="940GZZLUHCL" />
+    <node id="940GZZLUCND" />
+    <node id="940GZZLUBTK" />
+    <node id="940GZZLUEGW" />
+    <node id="940GZZLUKSH" />
+    <node id="940GZZLUTFP" />
+    <node id="940GZZLUACY" />
+    <node id="940GZZLUHGT" />
+    <node id="940GZZLUEFY" />
+    <node id="940GZZLUFYC" />
+    <node id="940GZZLUWFN" />
+    <node id="940GZZLUWOP" />
+    <node id="940GZZLUTAW" />
+    <node id="940GZZLUHBT" />
+    <node id="940GZZLUAGL" />
+    <node id="940GZZLUODS" />
+    <node id="940GZZLUBOR" />
+    <node id="940GZZLUOVL" />
+    <node id="940GZZLUSKW" />
+    <node id="940GZZLUCPN" />
+    <node id="940GZZLUCPC" />
+    <node id="940GZZLUCPS" />
+    <node id="940GZZLUBLM" />
+    <node id="940GZZLUTBC" />
+    <node id="940GZZLUTBY" />
+    <node id="940GZZLUCSD" />
+    <node id="940GZZLUSWN" />
+    <node id="940GZZLUMDN" />
+    <node id="940GZZLUMHL" />
+    <node id="940GZZLUCKS" />
+    <node id="940GZZLUOAK" />
+    <node id="940GZZLUSGT" />
+    <node id="940GZZLUASG" />
+    <node id="940GZZLUBDS" />
+    <node id="940GZZLUWOG" />
+    <node id="940GZZLUTPN" />
+    <node id="940GZZLUMRH" />
+    <node id="940GZZLUFPK" />
+    <node id="940GZZLUASL" />
+    <node id="940GZZLUHWY" />
+    <node id="940GZZLUCAR" />
+    <node id="940GZZLURSQ" />
+    <node id="940GZZLUCGN" />
+    <node id="940GZZLUHPC" />
+    <node id="940GZZLUKNB" />
+    <node id="940GZZLUNEN" />
+    <node id="940GZZLUPKR" />
+    <node id="940GZZLUALP" />
+    <node id="940GZZLUSUT" />
+    <node id="940GZZLUSUH" />
+    <node id="940GZZLUSHH" />
+    <node id="940GZZLUSEA" />
+    <node id="940GZZLUNFD" />
+    <node id="940GZZLUBOS" />
+    <node id="940GZZLUOSY" />
+    <node id="940GZZLUHWE" />
+    <node id="940GZZLUHWC" />
+    <node id="940GZZLUHWT" />
+    <node id="940GZZLUHNX" />
+    <node id="940GZZLUHR4" />
+    <node id="940GZZLUHRC" />
+    <node id="940GZZLUHR5" />
+    <node id="940GZZLUBXN" />
+    <node id="940GZZLUVXL" />
+    <node id="940GZZLUPCO" />
+    <node id="940GZZLUHAI" />
+    <node id="940GZZLUSVS" />
+    <node id="940GZZLUTMH" />
+    <node id="940GZZLUBLR" />
+    <node id="940GZZLUWWL" />
+    <edge source="940GZZLUEAC" target="940GZZLULBN">
+      <data key="d0">bakerloo</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUEAC" target="940GZZLUBOR">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUEAC" target="940GZZLUKNG">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLULBN" target="940GZZLUWLO">
+      <data key="d0">bakerloo</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUWLO" target="940GZZLUEMB">
+      <data key="d0">northern</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUWLO" target="940GZZLUWSM">
+      <data key="d0">jubilee</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUWLO" target="940GZZLUSWK">
+      <data key="d0">jubilee</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUWLO" target="940GZZLUKNG">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUWLO" target="940GZZLUBNK">
+      <data key="d0">waterloo-city</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUEMB" target="940GZZLUCHX">
+      <data key="d0">northern</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUEMB" target="940GZZLUWSM">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUEMB" target="940GZZLUTMP">
+      <data key="d0">district</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUCHX" target="940GZZLUPCC">
+      <data key="d0">bakerloo</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUCHX" target="940GZZLULSQ">
+      <data key="d0">northern</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUPCC" target="940GZZLUOXC">
+      <data key="d0">bakerloo</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUPCC" target="940GZZLULSQ">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUPCC" target="940GZZLUGPK">
+      <data key="d0">piccadilly</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUOXC" target="940GZZLURGP">
+      <data key="d0">bakerloo</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUOXC" target="940GZZLUBND">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUOXC" target="940GZZLUTCR">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUOXC" target="940GZZLUGPK">
+      <data key="d0">victoria</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUOXC" target="940GZZLUWRR">
+      <data key="d0">victoria</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLURGP" target="940GZZLUBST">
+      <data key="d0">bakerloo</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUBST" target="940GZZLUMYB">
+      <data key="d0">bakerloo</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUBST" target="940GZZLUGPS">
+      <data key="d0">metropolitan</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUBST" target="940GZZLUERC">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUBST" target="940GZZLUSJW">
+      <data key="d0">jubilee</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUBST" target="940GZZLUBND">
+      <data key="d0">jubilee</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUBST" target="940GZZLUFYR">
+      <data key="d0">metropolitan</data>
+      <data key="d1">6</data>
+    </edge>
+    <edge source="940GZZLUMYB" target="940GZZLUERB">
+      <data key="d0">bakerloo</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUERB" target="940GZZLUPAC">
+      <data key="d0">bakerloo</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUPAC" target="940GZZLUWKA">
+      <data key="d0">bakerloo</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUPAC" target="940GZZLUERC">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUPAC" target="940GZZLUBWT">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUWKA" target="940GZZLUMVL">
+      <data key="d0">bakerloo</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUMVL" target="940GZZLUKPK">
+      <data key="d0">bakerloo</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUKPK" target="940GZZLUQPS">
+      <data key="d0">bakerloo</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUQPS" target="940GZZLUKSL">
+      <data key="d0">bakerloo</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUKSL" target="940GZZLUWJN">
+      <data key="d0">bakerloo</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUWJN" target="940GZZLUHSN">
+      <data key="d0">bakerloo</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUHSN" target="940GZZLUSGP">
+      <data key="d0">bakerloo</data>
+      <data key="d1">5</data>
+    </edge>
+    <edge source="940GZZLUSGP" target="940GZZLUWYC">
+      <data key="d0">bakerloo</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUWYC" target="940GZZLUNWY">
+      <data key="d0">bakerloo</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUNWY" target="940GZZLUSKT">
+      <data key="d0">bakerloo</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSKT" target="940GZZLUKEN">
+      <data key="d0">bakerloo</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUKEN" target="940GZZLUHAW">
+      <data key="d0">bakerloo</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUEBY" target="940GZZLUWTA">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUEBY" target="940GZZLUECM">
+      <data key="d0">district</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUWTA" target="940GZZLUNAN">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUNAN" target="940GZZLUEAN">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUNAN" target="940GZZLUHGR">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUEAN" target="940GZZLUWCY">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUWCY" target="940GZZLUSBC">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSBC" target="940GZZLUHPK">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHPK" target="940GZZLUNHG">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUNHG" target="940GZZLUQWY">
+      <data key="d0">central</data>
+      <data key="d1">0</data>
+    </edge>
+    <edge source="940GZZLUNHG" target="940GZZLUBWT">
+      <data key="d0">district</data>
+      <data key="d1">0</data>
+    </edge>
+    <edge source="940GZZLUNHG" target="940GZZLUHSK">
+      <data key="d0">district</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUQWY" target="940GZZLULGT">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLULGT" target="940GZZLUMBA">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUMBA" target="940GZZLUBND">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUBND" target="940GZZLUGPK">
+      <data key="d0">jubilee</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUTCR" target="940GZZLUHBN">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUTCR" target="940GZZLULSQ">
+      <data key="d0">northern</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUTCR" target="940GZZLUGDG">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHBN" target="940GZZLUCHL">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUHBN" target="940GZZLURSQ">
+      <data key="d0">piccadilly</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUHBN" target="940GZZLUCGN">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUCHL" target="940GZZLUSPU">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSPU" target="940GZZLUBNK">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUBNK" target="940GZZLULVT">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBNK" target="940GZZLUMGT">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBNK" target="940GZZLULNB">
+      <data key="d0">northern</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLULVT" target="940GZZLUBLG">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLULVT" target="940GZZLUALD">
+      <data key="d0">metropolitan</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLULVT" target="940GZZLUMGT">
+      <data key="d0">metropolitan</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLULVT" target="940GZZLUADE">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">5</data>
+    </edge>
+    <edge source="940GZZLUBLG" target="940GZZLUMED">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUMED" target="940GZZLUSTD">
+      <data key="d0">central</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUMED" target="940GZZLUSGN">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUMED" target="940GZZLUBWR">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUSTD" target="940GZZLULYN">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUSTD" target="940GZZLUWHM">
+      <data key="d0">jubilee</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLULYN" target="940GZZLULYS">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLULYS" target="940GZZLUSNB">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLULYS" target="940GZZLUWSD">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSNB" target="940GZZLUSWF">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSWF" target="940GZZLUWOF">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUWOF" target="940GZZLUBKH">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUWOF" target="940GZZLURVY">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBKH" target="940GZZLULGN">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLULGN" target="940GZZLUDBN">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUDBN" target="940GZZLUTHB">
+      <data key="d0">central</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUTHB" target="940GZZLUEPG">
+      <data key="d0">central</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUWSD" target="940GZZLURBG">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLURBG" target="940GZZLUGTH">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUGTH" target="940GZZLUNBP">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUNBP" target="940GZZLUBKE">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUBKE" target="940GZZLUFLP">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUFLP" target="940GZZLUHLT">
+      <data key="d0">central</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUHLT" target="940GZZLUGGH">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUHGR" target="940GZZLUPVL">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUPVL" target="940GZZLUGFD">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUGFD" target="940GZZLUNHT">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUNHT" target="940GZZLUSRP">
+      <data key="d0">central</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSRP" target="940GZZLURSG">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLURSG" target="940GZZLUWRP">
+      <data key="d0">central</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUGGH" target="940GZZLUCWL">
+      <data key="d0">central</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUCWL" target="940GZZLURVY">
+      <data key="d0">central</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUERC" target="940GZZLUPAH">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHSK" target="940GZZLUGTR">
+      <data key="d0">circle</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHSK" target="940GZZLUECT">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUGTR" target="940GZZLUSKS">
+      <data key="d0">piccadilly</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUGTR" target="940GZZLUECT">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSKS" target="940GZZLUSSQ">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSKS" target="940GZZLUKNB">
+      <data key="d0">piccadilly</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUSSQ" target="940GZZLUVIC">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUVIC" target="940GZZLUSJP">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUVIC" target="940GZZLUPCO">
+      <data key="d0">victoria</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUVIC" target="940GZZLUGPK">
+      <data key="d0">victoria</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSJP" target="940GZZLUWSM">
+      <data key="d0">district</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUWSM" target="940GZZLUGPK">
+      <data key="d0">jubilee</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUTMP" target="940GZZLUBKF">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBKF" target="940GZZLUMSH">
+      <data key="d0">district</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUMSH" target="940GZZLUCST">
+      <data key="d0">district</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUCST" target="940GZZLUMMT">
+      <data key="d0">district</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUMMT" target="940GZZLUTWH">
+      <data key="d0">district</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUTWH" target="940GZZLUALD">
+      <data key="d0">circle</data>
+      <data key="d1">5</data>
+    </edge>
+    <edge source="940GZZLUTWH" target="940GZZLUADE">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUMGT" target="940GZZLUBBN">
+      <data key="d0">metropolitan</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUMGT" target="940GZZLUODS">
+      <data key="d0">northern</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUBBN" target="940GZZLUFCN">
+      <data key="d0">metropolitan</data>
+      <data key="d1">0</data>
+    </edge>
+    <edge source="940GZZLUFCN" target="940GZZLUKSX">
+      <data key="d0">metropolitan</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUKSX" target="940GZZLUESQ">
+      <data key="d0">metropolitan</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUKSX" target="940GZZLUEUS">
+      <data key="d0">victoria</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUKSX" target="940GZZLUAGL">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUKSX" target="940GZZLUCAR">
+      <data key="d0">piccadilly</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUKSX" target="940GZZLURSQ">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUKSX" target="940GZZLUHAI">
+      <data key="d0">victoria</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUESQ" target="940GZZLUGPS">
+      <data key="d0">metropolitan</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUPAH" target="940GZZLURYO">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLURYO" target="940GZZLUWSP">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUWSP" target="940GZZLULAD">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLULAD" target="940GZZLULRD">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLULRD" target="940GZZLUWLA">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUWLA" target="940GZZLUSBM">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUSBM" target="940GZZLUGHK">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUGHK" target="940GZZLUHSC">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUECM" target="940GZZLUACT">
+      <data key="d0">piccadilly</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUECM" target="940GZZLUNEN">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUACT" target="940GZZLUCWP">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUACT" target="940GZZLUTNG">
+      <data key="d0">piccadilly</data>
+      <data key="d1">12</data>
+    </edge>
+    <edge source="940GZZLUACT" target="940GZZLUSEA">
+      <data key="d0">piccadilly</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUCWP" target="940GZZLUTNG">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUTNG" target="940GZZLUSFB">
+      <data key="d0">district</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUTNG" target="940GZZLUGBY">
+      <data key="d0">district</data>
+      <data key="d1">10</data>
+    </edge>
+    <edge source="940GZZLUTNG" target="940GZZLUHSD">
+      <data key="d0">piccadilly</data>
+      <data key="d1">6</data>
+    </edge>
+    <edge source="940GZZLUSFB" target="940GZZLURVP">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLURVP" target="940GZZLUHSD">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHSD" target="940GZZLUBSC">
+      <data key="d0">piccadilly</data>
+      <data key="d1">9</data>
+    </edge>
+    <edge source="940GZZLUBSC" target="940GZZLUWKN">
+      <data key="d0">district</data>
+      <data key="d1">11</data>
+    </edge>
+    <edge source="940GZZLUBSC" target="940GZZLUECT">
+      <data key="d0">piccadilly</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUWKN" target="940GZZLUECT">
+      <data key="d0">district</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUECT" target="940GZZLUKOY">
+      <data key="d0">district</data>
+      <data key="d1">12</data>
+    </edge>
+    <edge source="940GZZLUECT" target="940GZZLUWBN">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUADE" target="940GZZLUWPL">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUWPL" target="940GZZLUSGN">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBWR" target="940GZZLUBBB">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBBB" target="940GZZLUWHM">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUWHM" target="940GZZLUPLW">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUWHM" target="940GZZLUCGT">
+      <data key="d0">jubilee</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUPLW" target="940GZZLUUPK">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUUPK" target="940GZZLUEHM">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">7</data>
+    </edge>
+    <edge source="940GZZLUEHM" target="940GZZLUBKG">
+      <data key="d0">hammersmith-city</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUBKG" target="940GZZLUUPY">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUUPY" target="940GZZLUBEC">
+      <data key="d0">district</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUBEC" target="940GZZLUDGY">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUDGY" target="940GZZLUDGE">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUDGE" target="940GZZLUEPK">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUEPK" target="940GZZLUHCH">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHCH" target="940GZZLUUPB">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUUPB" target="940GZZLUUPM">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUWBN" target="940GZZLUFBY">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUFBY" target="940GZZLUPSG">
+      <data key="d0">district</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUPSG" target="940GZZLUPYB">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUPYB" target="940GZZLUEPY">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUEPY" target="940GZZLUSFS">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSFS" target="940GZZLUWIP">
+      <data key="d0">district</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUWIP" target="940GZZLUWIM">
+      <data key="d0">district</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUGBY" target="940GZZLUKWG">
+      <data key="d0">district</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUKWG" target="940GZZLURMD">
+      <data key="d0">district</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUSTM" target="940GZZLUCPK">
+      <data key="d0">jubilee</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUCPK" target="940GZZLUQBY">
+      <data key="d0">jubilee</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUQBY" target="940GZZLUKBY">
+      <data key="d0">jubilee</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUKBY" target="940GZZLUWYP">
+      <data key="d0">jubilee</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUWYP" target="940GZZLUNDN">
+      <data key="d0">jubilee</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUWYP" target="940GZZLUFYR">
+      <data key="d0">metropolitan</data>
+      <data key="d1">7</data>
+    </edge>
+    <edge source="940GZZLUWYP" target="940GZZLUPRD">
+      <data key="d0">metropolitan</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUWYP" target="940GZZLUWIG">
+      <data key="d0">metropolitan</data>
+      <data key="d1">7</data>
+    </edge>
+    <edge source="940GZZLUNDN" target="940GZZLUDOH">
+      <data key="d0">jubilee</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUDOH" target="940GZZLUWIG">
+      <data key="d0">jubilee</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUWIG" target="940GZZLUKBN">
+      <data key="d0">jubilee</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUWIG" target="940GZZLUFYR">
+      <data key="d0">metropolitan</data>
+      <data key="d1">5</data>
+    </edge>
+    <edge source="940GZZLUKBN" target="940GZZLUWHP">
+      <data key="d0">jubilee</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUWHP" target="940GZZLUFYR">
+      <data key="d0">jubilee</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUFYR" target="940GZZLUSWC">
+      <data key="d0">jubilee</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSWC" target="940GZZLUSJW">
+      <data key="d0">jubilee</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUGPK" target="940GZZLUHPC">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSWK" target="940GZZLULNB">
+      <data key="d0">jubilee</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLULNB" target="940GZZLUBMY">
+      <data key="d0">jubilee</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLULNB" target="940GZZLUBOR">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBMY" target="940GZZLUCWR">
+      <data key="d0">jubilee</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUCWR" target="940GZZLUCYF">
+      <data key="d0">jubilee</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUCYF" target="940GZZLUNGW">
+      <data key="d0">jubilee</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUNGW" target="940GZZLUCGT">
+      <data key="d0">jubilee</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUPRD" target="940GZZLUNKP">
+      <data key="d0">metropolitan</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUNKP" target="940GZZLUHOH">
+      <data key="d0">metropolitan</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUHOH" target="940GZZLUNHA">
+      <data key="d0">metropolitan</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUHOH" target="940GZZLUWHW">
+      <data key="d0">metropolitan</data>
+      <data key="d1">8</data>
+    </edge>
+    <edge source="940GZZLUNHA" target="940GZZLUPNR">
+      <data key="d0">metropolitan</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUPNR" target="940GZZLUNWH">
+      <data key="d0">metropolitan</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUNWH" target="940GZZLUNOW">
+      <data key="d0">metropolitan</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUNOW" target="940GZZLUMPK">
+      <data key="d0">metropolitan</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUMPK" target="940GZZLUCXY">
+      <data key="d0">metropolitan</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUMPK" target="940GZZLURKW">
+      <data key="d0">metropolitan</data>
+      <data key="d1">6</data>
+    </edge>
+    <edge source="940GZZLUCXY" target="940GZZLUWAF">
+      <data key="d0">metropolitan</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLURKW" target="940GZZLUCYD">
+      <data key="d0">metropolitan</data>
+      <data key="d1">5</data>
+    </edge>
+    <edge source="940GZZLUCYD" target="940GZZLUCAL">
+      <data key="d0">metropolitan</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUCAL" target="940GZZLUAMS">
+      <data key="d0">metropolitan</data>
+      <data key="d1">9</data>
+    </edge>
+    <edge source="940GZZLUCAL" target="940GZZLUCSM">
+      <data key="d0">metropolitan</data>
+      <data key="d1">8</data>
+    </edge>
+    <edge source="940GZZLUWHW" target="940GZZLURYL">
+      <data key="d0">metropolitan</data>
+      <data key="d1">19</data>
+    </edge>
+    <edge source="940GZZLURYL" target="940GZZLUEAE">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLURYL" target="940GZZLUSHH">
+      <data key="d0">piccadilly</data>
+      <data key="d1">7</data>
+    </edge>
+    <edge source="940GZZLUEAE" target="940GZZLURSM">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLURSM" target="940GZZLURSP">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLURSP" target="940GZZLUICK">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUICK" target="940GZZLUHGD">
+      <data key="d0">piccadilly</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUHGD" target="940GZZLUUXB">
+      <data key="d0">piccadilly</data>
+      <data key="d1">6</data>
+    </edge>
+    <edge source="940GZZBPSUST" target="940GZZNEUGST">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZNEUGST" target="940GZZLUKNG">
+      <data key="d0">northern</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUKNG" target="940GZZLUOVL">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLULSQ" target="940GZZLUCGN">
+      <data key="d0">piccadilly</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUGDG" target="940GZZLUWRR">
+      <data key="d0">northern</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUWRR" target="940GZZLUEUS">
+      <data key="d0">victoria</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUEUS" target="940GZZLUMTC">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUEUS" target="940GZZLUCTN">
+      <data key="d0">northern</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUMTC" target="940GZZLUCTN">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUCTN" target="940GZZLUCFM">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUCTN" target="940GZZLUKSH">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUCFM" target="940GZZLUBZP">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBZP" target="940GZZLUHTD">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHTD" target="940GZZLUGGN">
+      <data key="d0">northern</data>
+      <data key="d1">5</data>
+    </edge>
+    <edge source="940GZZLUGGN" target="940GZZLUBTX">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBTX" target="940GZZLUHCL">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHCL" target="940GZZLUCND">
+      <data key="d0">northern</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUCND" target="940GZZLUBTK">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBTK" target="940GZZLUEGW">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUKSH" target="940GZZLUTFP">
+      <data key="d0">northern</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUTFP" target="940GZZLUACY">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUACY" target="940GZZLUHGT">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHGT" target="940GZZLUEFY">
+      <data key="d0">northern</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUEFY" target="940GZZLUFYC">
+      <data key="d0">northern</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUFYC" target="940GZZLUWFN">
+      <data key="d0">northern</data>
+      <data key="d1">5</data>
+    </edge>
+    <edge source="940GZZLUFYC" target="940GZZLUMHL">
+      <data key="d0">northern</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUWFN" target="940GZZLUWOP">
+      <data key="d0">northern</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUWOP" target="940GZZLUTAW">
+      <data key="d0">northern</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUTAW" target="940GZZLUHBT">
+      <data key="d0">northern</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUAGL" target="940GZZLUODS">
+      <data key="d0">northern</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUOVL" target="940GZZLUSKW">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSKW" target="940GZZLUCPN">
+      <data key="d0">northern</data>
+      <data key="d1">6</data>
+    </edge>
+    <edge source="940GZZLUSKW" target="940GZZLUBXN">
+      <data key="d0">victoria</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSKW" target="940GZZLUVXL">
+      <data key="d0">victoria</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUCPN" target="940GZZLUCPC">
+      <data key="d0">northern</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUCPC" target="940GZZLUCPS">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUCPS" target="940GZZLUBLM">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBLM" target="940GZZLUTBC">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUTBC" target="940GZZLUTBY">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUTBY" target="940GZZLUCSD">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUCSD" target="940GZZLUSWN">
+      <data key="d0">northern</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUSWN" target="940GZZLUMDN">
+      <data key="d0">northern</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUCKS" target="940GZZLUOAK">
+      <data key="d0">piccadilly</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUOAK" target="940GZZLUSGT">
+      <data key="d0">piccadilly</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUSGT" target="940GZZLUASG">
+      <data key="d0">piccadilly</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUASG" target="940GZZLUBDS">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBDS" target="940GZZLUWOG">
+      <data key="d0">piccadilly</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUWOG" target="940GZZLUTPN">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUTPN" target="940GZZLUMRH">
+      <data key="d0">piccadilly</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUMRH" target="940GZZLUFPK">
+      <data key="d0">piccadilly</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUFPK" target="940GZZLUASL">
+      <data key="d0">piccadilly</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUFPK" target="940GZZLUHAI">
+      <data key="d0">victoria</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUFPK" target="940GZZLUSVS">
+      <data key="d0">victoria</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUASL" target="940GZZLUHWY">
+      <data key="d0">piccadilly</data>
+      <data key="d1">1</data>
+    </edge>
+    <edge source="940GZZLUHWY" target="940GZZLUCAR">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHPC" target="940GZZLUKNB">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUNEN" target="940GZZLUPKR">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUPKR" target="940GZZLUALP">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUALP" target="940GZZLUSUT">
+      <data key="d0">piccadilly</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUSUT" target="940GZZLUSUH">
+      <data key="d0">piccadilly</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUSUH" target="940GZZLUSHH">
+      <data key="d0">piccadilly</data>
+      <data key="d1">5</data>
+    </edge>
+    <edge source="940GZZLUSEA" target="940GZZLUNFD">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUNFD" target="940GZZLUBOS">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBOS" target="940GZZLUOSY">
+      <data key="d0">piccadilly</data>
+      <data key="d1">3</data>
+    </edge>
+    <edge source="940GZZLUOSY" target="940GZZLUHWE">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHWE" target="940GZZLUHWC">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHWC" target="940GZZLUHWT">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHWT" target="940GZZLUHNX">
+      <data key="d0">piccadilly</data>
+      <data key="d1">5</data>
+    </edge>
+    <edge source="940GZZLUHNX" target="940GZZLUHR4">
+      <data key="d0">piccadilly</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUHNX" target="940GZZLUHRC">
+      <data key="d0">piccadilly</data>
+      <data key="d1">5</data>
+    </edge>
+    <edge source="940GZZLUHR4" target="940GZZLUHRC">
+      <data key="d0">piccadilly</data>
+      <data key="d1">5</data>
+    </edge>
+    <edge source="940GZZLUHRC" target="940GZZLUHR5">
+      <data key="d0">piccadilly</data>
+      <data key="d1">4</data>
+    </edge>
+    <edge source="940GZZLUVXL" target="940GZZLUPCO">
+      <data key="d0">victoria</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUSVS" target="940GZZLUTMH">
+      <data key="d0">victoria</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUTMH" target="940GZZLUBLR">
+      <data key="d0">victoria</data>
+      <data key="d1">2</data>
+    </edge>
+    <edge source="940GZZLUBLR" target="940GZZLUWWL">
+      <data key="d0">victoria</data>
+      <data key="d1">2</data>
+    </edge>
+  </graph>
+</graphml>

@@ -3,6 +3,7 @@ pytest
 requests
 networkx
 pandas
+mesa
 folium
 streamlit 
 streamlit-folium 
