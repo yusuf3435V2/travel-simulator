@@ -25,7 +25,7 @@ if __name__ == "__main__":
         logging.info(
             "Baseline simulation results not found in S3. Running baseline simulation..."
         )
-        baseline_results = run_simulation_baseline(graph, station_data, passenger_data)
+        run_simulation_baseline(graph, station_data, passenger_data)
         save_results_to_s3(
             "simulation/simulation_results.csv",
             load_env_variables(),
