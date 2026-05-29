@@ -53,6 +53,8 @@ This creates the Lambda function, IAM roles, EventBridge schedule, and CloudWatc
 
 Edit `terraform.tfvars` to customize:
 - `aws_region`: AWS region (default: eu-west-2)
+- `aws_access_key_id`: AWS access key ID for Terraform authentication
+- `aws_secret_access_key`: AWS secret access key for Terraform authentication
 
 ## Cleanup
 
