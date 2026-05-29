@@ -43,10 +43,10 @@ def fetch_station_data_from_s3(bucket_name: str) -> pd.DataFrame:
 def fetch_graph_from_s3(bucket_name: str) -> nx.Graph:
     """Fetch graph data from S3 and return as a NetworkX graph."""
     s3_client = boto3.client("s3")
-    graph_file = s3_client.get_object(
-        Bucket=bucket_name, Key="processed/stations_network.graphml"
-    )
     try:
+        graph_file = s3_client.get_object(
+            Bucket=bucket_name, Key="processed/stations_network.graphml"
+        )
         file_content = graph_file["Body"].read().decode("utf-8").strip()
         return nx.parse_graphml(file_content)
     except Exception as e:
