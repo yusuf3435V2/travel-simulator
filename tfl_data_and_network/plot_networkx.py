@@ -115,7 +115,7 @@ def extract_stations() -> pd.DataFrame:
 
 
 def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> folium.Map:
-    """Plot the station network using Folium with colored edges."""
+    """Plot the station network using Folium with colored edges and layer control."""
     if len(station_data) == 0:
         logging.error("Station data is empty, cannot plot map")
         raise ValueError("Cannot plot map with empty station data")
@@ -129,8 +129,15 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
     center_lat = station_data['Latitude'].mean()
     center_lon = station_data['Longitude'].mean()
 
-    # Create Folium map
+    # Create Folium map with layer control
     m = folium.Map(location=[center_lat, center_lon], zoom_start=12)
+
+    # Group edges by line for layer control
+    line_groups = {}
+    for line_id in station_data['Line_id'].unique():
+        if pd.notna(line_id):
+            line_groups[line_id] = folium.FeatureGroup(name=f"Line: {line_id}")
+            m.add_child(line_groups[line_id])
 
     # Add stations as markers
     logging.info("Adding %s station markers to map", len(station_data))
@@ -139,17 +146,26 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
             logging.warning(
                 "Station %s has missing coordinates, skipping", row['Name'])
             continue
+
+        # Get all lines at this station
+        station_lines = station_data[station_data['UniqueId']
+                                     == row['UniqueId']]['Line_id'].unique()
+        lines_text = ", ".join([str(l) for l in station_lines if pd.notna(l)])
+
+        popup_text = f"<b>{row['Name']}</b><br>Lines: {lines_text}"
+
         folium.CircleMarker(
             location=[row['Latitude'], row['Longitude']],
-            radius=1,
-            popup=row['Name'],
-            color='blue',
+            radius=2,
+            popup=folium.Popup(popup_text, max_width=200),
+            color=color_scheme.get(row['Line_id'], 'grey'),
             fill=True,
-            fillColor='blue',
-            fillOpacity=0.4
+            fillColor=color_scheme.get(row['Line_id'], 'grey'),
+            fillOpacity=0.7,
+            weight=1
         ).add_to(m)
 
-    # Add edges colored by line
+    # Add edges colored by line with layer control
     logging.info("Adding %s edges to map", network.number_of_edges())
     for source, target, data in network.edges(data=True):
         line_id = data.get('line_id', 'unknown')
@@ -168,8 +184,22 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
                 [target_row.iloc[0]['Latitude'], target_row.iloc[0]['Longitude']]
             ]
 
-            folium.PolyLine(coords, color=line_color,
-                            weight=2, opacity=0.7).add_to(m)
+            polyline = folium.PolyLine(
+                coords,
+                color=line_color,
+                weight=2,
+                opacity=0.7,
+                popup=f"Line: {line_id}"
+            )
+
+            # Add to line's feature group
+            if line_id in line_groups:
+                polyline.add_to(line_groups[line_id])
+            else:
+                polyline.add_to(m)
+
+    # Add layer control to toggle lines
+    folium.LayerControl().add_to(m)
 
     logging.info(
         "Plotted %s stations and %s edges", len(station_data), network.number_of_edges())
