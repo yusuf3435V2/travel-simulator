@@ -130,11 +130,13 @@ def get_line_switches(path: list[str], graph: nx.Graph) -> list[tuple[str, str, 
         station2 = path[i + 1]
         edge_data = graph.get_edge_data(station1, station2)
         if edge_data:
-            line = edge_data.get("line")
+            line = edge_data.get("line") or edge_data.get("line_id")
             if i > 0:
                 previous_edge_data = graph.get_edge_data(path[i - 1], station1)
                 previous_line = (
-                    previous_edge_data.get("line") if previous_edge_data else None
+                    (previous_edge_data.get("line") or previous_edge_data.get("line_id"))
+                    if previous_edge_data
+                    else None
                 )
                 if previous_line and line and previous_line != line:
                     line_switches.append((station1, previous_line, line))
