@@ -2,14 +2,124 @@
 
 import networkx as nx
 import mesa
-import json
 import pandas as pd
 from distance_maths import haversine_distance
+
+# Here are some speeds of different methods of getting to the station.
+WALK_SPEED = 5 / 60
+BIKE_SPEED = 20 / 60
+BUS_SPEED = 30 / 60
 
 
 def load_user_information(file_path: str) -> pd.DataFrame:
     """Load user information from a CSV file."""
     return pd.read_csv(file_path)
+
+
+def load_graphml(file_path: str) -> nx.Graph:
+    """Load a graph from a GraphML file."""
+    return nx.read_graphml(file_path)
+
+
+def add_station_to_stations_data(
+    station_data: pd.DataFrame,
+    station_id: str,
+    lat: float,
+    lng: float,
+    line: str,
+    station_name: str = "User Station",
+) -> pd.DataFrame:
+    """Add a station to the stations data DataFrame."""
+    new_station = {
+        "UniqueId": station_id,
+        "Name": station_name,
+        "Latitude": lat,
+        "Longitude": lng,
+        "Line_id": line,
+    }
+    station_data = pd.concat(
+        [station_data, pd.DataFrame([new_station])], ignore_index=True
+    )
+    return station_data
+
+
+def add_station_to_network(
+    graph: nx.Graph,
+    station_id: str,
+    lat: float,
+    lng: float,
+    line: str,
+    station_data: pd.DataFrame,
+    station_name: str = "User Station",
+) -> None:
+    """Add a station to the network graph."""
+    graph.add_node(station_id, name=station_name)
+    closest_stations = find_closest_consecutive_stations(graph, lat, lng, station_data)
+    print(f"found closest stations: {closest_stations} for new station {station_id}")
+    if closest_stations is not None:
+        closest_station, neighbor_station = closest_stations
+
+        time_between_stations = graph.get_edge_data(
+            closest_station, neighbor_station
+        ).get("duration", 0)
+        graph.add_edge(
+            station_id,
+            closest_station,
+            line_id=line,
+            duration=time_between_stations / 2,
+        )
+        graph.add_edge(
+            station_id,
+            neighbor_station,
+            line_id=line,
+            duration=time_between_stations / 2,
+        )
+        graph.remove_edge(closest_station, neighbor_station)  # Remove the original edge
+
+
+def find_closest_consecutive_stations(
+    graph: nx.Graph, lat: float, lng: float, station_data: pd.DataFrame
+) -> tuple[str, str] | None:
+    """Find the closest consecutive stations in the graph to a given latitude and longitude."""
+    closest_station = None
+    closest_distance = float("inf")
+
+    for node in graph.nodes(data=True):
+        if node[0].startswith("user_station"):
+            continue  # Skip user-added stations to avoid connecting to them
+        station_id = node[0]
+        print(f"checking station {station_id} for closest station")
+        station_latlong = get_station_latlong(station_id, station_data)
+        if station_latlong is not None:
+            station_lat, station_lng = station_latlong
+            print(station_lat, station_lng)
+            distance = haversine_distance(lat, lng, station_lat, station_lng)
+            if distance < closest_distance:
+                closest_distance = distance
+                closest_station = station_id
+    print(closest_station, closest_distance)
+    if closest_station is not None:
+        neighbors = list(graph.neighbors(closest_station))
+        if neighbors:
+            return closest_station, neighbors[
+                0
+            ]  # Return the closest station and one of its neighbors
+
+    return None
+
+
+def assign_unique_id_to_routes(passenger_data: pd.DataFrame) -> pd.DataFrame:
+    """Assign a unique ID to each route in the passenger data."""
+    passenger_data["route_id"] = passenger_data.index
+    return passenger_data
+
+
+def get_station_name_from_id(station_id: str, station_data: pd.DataFrame) -> str | None:
+    """Get the station name given a station ID."""
+    station_info = station_data[station_data["UniqueId"] == station_id]
+    if not station_info.empty:
+        return station_info.iloc[0]["Name"]
+    return None
 
 
 def get_line_switches(path: list[str], graph: nx.Graph) -> list[tuple[str, str, str]]:
@@ -137,6 +247,48 @@ def shortest_path_length_between_stations(
         return float("inf")
 
 
+def extract_agent_data(model: TravelModel) -> pd.DataFrame:
+    """Extract data from all agents in the model and return as a DataFrame."""
+    agent_data = []
+
+    for agent in model.agents:
+        agent_data.append(
+            {
+                "route_id": agent.unique_id,
+                "passenger_id": agent.passenger_id,
+                "origin_lat": agent.origin_lat,
+                "origin_lng": agent.origin_lng,
+                "destination_lat": agent.destination_lat,
+                "destination_lng": agent.destination_lng,
+                "day_type": agent.day_type,
+                "nearest_station": get_station_name_from_id(
+                    agent.nearest_station, model.station_data
+                ),
+                "alighting_station": get_station_name_from_id(
+                    agent.alighting_station, model.station_data
+                ),
+                "time_spent": agent.time_spent,
+                "walk_time": agent.transit_time,
+            }
+        )
+
+    return pd.DataFrame(agent_data)
+
+
+def choose_transport_speed(distance: float) -> float:
+    """choose the transport based on different distances. We say > 1.6 is bike, > 5 is bus"""
+    if distance < 1.6:
+        return WALK_SPEED
+    if distance < 5:
+        return BIKE_SPEED
+    return BUS_SPEED
+
+
+def determine_travel_time(distance: float) -> float:
+    """Determine travel time adapted for distance"""
+    return distance / choose_transport_speed(distance)
+
+
 class PassengerAgent(mesa.Agent):
     """An agent representing a passenger in the simulation."""
 
@@ -144,7 +296,6 @@ class PassengerAgent(mesa.Agent):
         self,
         unique_id: int,
         model,
-        walking_speed: float,  # Walking speed in km/min (5 km/h)
         passenger_id: str,
         origin_lat: float,
         origin_lng: float,
@@ -154,17 +305,20 @@ class PassengerAgent(mesa.Agent):
     ):
         """Passenger agent in simulation. An agent wants to get from an origin to a stop at a certain time."""
         super().__init__(model)
+        self.unique_id = unique_id
         self.origin_lat = origin_lat
         self.origin_lng = origin_lng
         self.passenger_id = passenger_id
         self.destination_lat = destination_lat
         self.destination_lng = destination_lng
         self.day_type = day_type
-        self.walking_speed = walking_speed
+        self.walking_speed = WALK_SPEED
+        self.bus_speed = BUS_SPEED
+        self.cycle_speed = BIKE_SPEED
         self.nearest_station = None
         self.alighting_station = None
         self.time_spent = 0
-        self.walk_time = 0
+        self.transit_time = 0
 
     def look_for_nearest_stop(self) -> None:
         """Look for the nearest stop to the passenger's origin."""
@@ -177,7 +331,7 @@ class PassengerAgent(mesa.Agent):
         self.nearest_station = nearest_station
         self.alighting_station = nearest_destination_station
 
-    def walk_to_nearest_station(self):
+    def go_to_nearest_station(self):
         """Simulate the passenger walking to the nearest station."""
         distance_to_station = get_station_distance(
             self.nearest_station,
@@ -185,14 +339,10 @@ class PassengerAgent(mesa.Agent):
             self.origin_lng,
             self.model.station_data,
         )
-        if distance_to_station > 1.6:
-            print(
-                f"the station is {self.nearest_station} and the distance is {distance_to_station} km for {self.passenger_id}"
-            )
-        self.time_spent += (
-            distance_to_station / self.walking_speed
+        self.time_spent += determine_travel_time(
+            distance_to_station
         )  # Assuming walking speed of 5 km/h
-        self.walk_time += distance_to_station / self.walking_speed
+        self.transit_time += determine_travel_time(distance_to_station)
 
     def wait_for_transport(self):
         """Simulate the passenger waiting for transport at the station. cool but gonna ignore for now"""
@@ -215,7 +365,7 @@ class PassengerAgent(mesa.Agent):
         )
         self.time_spent += duration + total_switch_time(all_switches)
 
-    def walk_to_destination(self):
+    def go_to_destination(self):
         """Simulate the passenger walking from the station to their final destination."""
         alighting_latlong = get_station_latlong(
             self.alighting_station, self.model.station_data
@@ -226,17 +376,16 @@ class PassengerAgent(mesa.Agent):
         distance_to_destination = haversine_distance(
             self.destination_lat, self.destination_lng, alighting_lat, alighting_lng
         )
-        self.walk_time += distance_to_destination / self.walking_speed
-        self.time_spent += (
-            distance_to_destination / self.walking_speed
-        )  # Assuming walking speed of 5 km/h
+        get_to_destination_time = determine_travel_time(distance_to_destination)
+        self.transit_time += get_to_destination_time
+        self.time_spent += get_to_destination_time
 
     def travel(self):
         """Simulate the passenger's travel from origin to destination."""
-        self.walk_to_nearest_station()
+        self.go_to_nearest_station()
         self.wait_for_transport()
         self.travel_on_transport(self.nearest_station, self.alighting_station)
-        self.walk_to_destination()
+        self.go_to_destination()
 
     def step(self):
         """Advance the agent's state by one step."""
@@ -245,7 +394,7 @@ class PassengerAgent(mesa.Agent):
         if self.time_spent > 100:
             print(
                 "Passenger {} has been traveling for a long time ({} minutes). Walk time: {} minutes.".format(
-                    self.passenger_id, self.time_spent, self.walk_time
+                    self.passenger_id, self.time_spent, self.transit_time
                 )
             )
 
@@ -253,11 +402,29 @@ class PassengerAgent(mesa.Agent):
 class TravelModel(mesa.Model):
     """A model which combines passenger agents and their overall movement."""
 
-    def __init__(self):
+    def __init__(
+        self,
+        graph: nx.Graph,
+        station_data: pd.DataFrame,
+        new_stations: list[dict] = None,
+    ):
         super().__init__()
         self.num_agents = 1
-        self.G = nx.read_graphml("stations/tube_network.graphml")
-        self.station_data = pd.read_csv("stations/Stations.csv")
+        self.station_data = station_data
+        self.new_stations = new_stations if new_stations is not None else []
+        for station in self.new_stations:
+            add_station_to_network(
+                graph,
+                station["UniqueId"],
+                station["Latitude"],
+                station["Longitude"],
+                station["Line_id"],
+                self.station_data,
+            )
+        self.station_ids = [
+            new_station["UniqueId"] for new_station in self.new_stations
+        ]
+        self.G = graph
 
     def step(self):
         """Advance the model by one step."""
@@ -270,9 +437,8 @@ def create_agents_from_passenger_data(passenger_data: pd.DataFrame, model: Trave
 
     for index, row in passenger_data.iterrows():
         agent = PassengerAgent(
-            unique_id=index,
+            unique_id=row["route_id"],
             model=model,
-            walking_speed=5 / 60,
             passenger_id=row["passenger_id"],
             origin_lat=row["origin_lat"],
             origin_lng=row["origin_lng"],
@@ -286,9 +452,42 @@ def create_agents_from_passenger_data(passenger_data: pd.DataFrame, model: Trave
 
 
 if __name__ == "__main__":
-    passenger_data = load_user_information("simulation/passengers.csv")
-    travel_model = TravelModel()
-    create_agents_from_passenger_data(passenger_data, travel_model)
-    for _ in range(1):  # Run the model for 1 step
-        print(f"Step {_ + 1}")
-        travel_model.step()
+    graph = load_graphml("stations/tube_network.graphml")
+    station_data = pd.read_csv("stations/Stations.csv")
+    model = TravelModel(graph, station_data)
+    passenger_data = assign_unique_id_to_routes(
+        load_user_information("simulation/passengers.csv")
+    )
+    # create_agents_from_passenger_data(passenger_data, model)
+
+    # # Run simulation
+    # model.step()
+
+    # # Extract results
+    # results_df = extract_agent_data(model)
+    # print(results_df)
+
+    # # Optionally save to CSV
+    # results_df.to_csv("simulation/simulation_results.csv", index=False)
+    new_station = {
+        "UniqueId": "user_station_1",
+        "Name": "User Station",
+        "Latitude": 51.5175221,
+        "Longitude": -0.0532169,
+        "Line_id": "district",
+    }
+    station_data = add_station_to_stations_data(
+        station_data,
+        new_station["UniqueId"],
+        new_station["Latitude"],
+        new_station["Longitude"],
+        new_station["Line_id"],
+        new_station["Name"],
+    )
+    model_new = TravelModel(graph, station_data, new_stations=[new_station])
+    create_agents_from_passenger_data(passenger_data, model_new)
+    model_new.step()
+    results_df_new = extract_agent_data(model_new)
+    results_df_new.to_csv(
+        "simulation/simulation_results_with_user_station.csv", index=False
+    )
