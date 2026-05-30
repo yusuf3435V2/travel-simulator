@@ -13,7 +13,6 @@ from s3_utils import (
 
 # Here are some speeds of different methods of getting to the station.
 WALK_SPEED = 5 / 60
-BIKE_SPEED = 20 / 60
 BUS_SPEED = 30 / 60
 
 
@@ -265,18 +264,48 @@ def shortest_path_length_between_stations(
         return float("inf")
 
 
-def choose_transport_speed(distance: float) -> float:
+def choose_transport_mode(distance: float) -> TravelMode:
     """choose the transport based on different distances. We say > 1.6 is bike, > 5 is bus"""
     if distance < 1.6:
-        return WALK_SPEED
-    if distance < 5:
-        return BIKE_SPEED
-    return BUS_SPEED
+        return WalkingMode(distance)
+    else:
+        return BusMode(distance)
 
 
 def determine_travel_time(distance: float) -> float:
     """Determine travel time adapted for distance"""
-    return distance / choose_transport_speed(distance)
+    return choose_transport_mode(distance).calculate_travel_time()
+
+
+class TravelMode:
+    """A class to represent the travel mode of a passenger, which can be walking, biking, or taking the bus."""
+
+    def __init__(self, distance: float = 0):
+        self.distance = distance
+        self.speed = None
+        self.wait_time = None
+
+    def calculate_travel_time(self) -> float:
+        """Calculate travel time based on distance and chosen transport speed."""
+        return self.distance / self.speed + self.wait_time
+
+
+class WalkingMode(TravelMode):
+    """A class to represent walking as a travel mode."""
+
+    def __init__(self, distance: float = 0):
+        super().__init__(distance)
+        self.speed = WALK_SPEED
+        self.wait_time = 0
+
+
+class BusMode(TravelMode):
+    """A class to represent taking the bus as a travel mode."""
+
+    def __init__(self, distance: float = 0):
+        super().__init__(distance)
+        self.speed = BUS_SPEED
+        self.wait_time = 5
 
 
 class PassengerAgent(mesa.Agent):
@@ -302,9 +331,6 @@ class PassengerAgent(mesa.Agent):
         self.destination_lat = destination_lat
         self.destination_lng = destination_lng
         self.day_type = day_type
-        self.walking_speed = WALK_SPEED
-        self.bus_speed = BUS_SPEED
-        self.cycle_speed = BIKE_SPEED
         self.nearest_station = None
         self.alighting_station = None
         self.time_spent = 0
