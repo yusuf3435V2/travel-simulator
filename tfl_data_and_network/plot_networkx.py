@@ -50,18 +50,18 @@ def ensure_files_exist(network_file_path: str = "stations/tube_network.graphml",
     return False
 
 
-def extract_station_network_local(file_path: str = "stations/tube_network.graphml") -> nx.Graph:
+def extract_station_network_local(file_path: str = "stations/tube_network.graphml") -> nx.MultiGraph:
     """Load the station network from a .graphml file, extracting from API if missing."""
     # Ensure file exists by extracting from API if necessary
     if not ensure_files_exist(network_file_path=file_path):
         logging.error("Failed to ensure network file exists at %s", file_path)
-        return nx.Graph()
+        return nx.MultiGraph()
 
     try:
         return nx.read_graphml(file_path)
     except Exception as e:
         logging.error("Failed to read network file at %s: %s", file_path, e)
-        return nx.Graph()
+        return nx.MultiGraph()
 
 
 def extract_station_data_local(file_path: str = "stations/Stations.csv") -> pd.DataFrame:
@@ -80,7 +80,7 @@ def extract_station_data_local(file_path: str = "stations/Stations.csv") -> pd.D
         return pd.DataFrame()
 
 
-def extract_station_network() -> nx.Graph:
+def extract_station_network() -> nx.MultiGraph:
     """Extract the station network from S3 bucket."""
     try:
         s3_client = boto3.client('s3')
@@ -94,7 +94,7 @@ def extract_station_network() -> nx.Graph:
         return network
     except Exception as e:
         logging.error("Failed to extract network from S3: %s", e)
-        return nx.Graph()
+        return nx.MultiGraph()
 
 
 def extract_stations() -> pd.DataFrame:
@@ -114,7 +114,7 @@ def extract_stations() -> pd.DataFrame:
         return pd.DataFrame()
 
 
-def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> folium.Map:
+def plot_station_network(network: nx.MultiGraph, station_data: pd.DataFrame) -> folium.Map:
     """Plot the station network using Folium with colored edges and layer control."""
     if len(station_data) == 0:
         logging.error("Station data is empty, cannot plot map")
@@ -169,7 +169,7 @@ def plot_station_network(network: nx.Graph, station_data: pd.DataFrame) -> foliu
 
     # Add edges colored by line with layer control
     logging.info("Adding %s edges to map", network.number_of_edges())
-    for source, target, data in network.edges(data=True):
+    for source, target, key, data in network.edges(keys=True, data=True):
         line_id = data.get('line_id', 'unknown')
         line_color = color_scheme.get(line_id, 'black')
 

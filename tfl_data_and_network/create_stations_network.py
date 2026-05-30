@@ -40,9 +40,9 @@ def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
 
 
 def create_station_network() -> \
-        dict[str, pd.DataFrame | nx.Graph]:
+        dict[str, pd.DataFrame | nx.MultiGraph]:
     """Create a station network from the TFL API and return network + stops data."""
-    network = nx.Graph()
+    network = nx.MultiGraph()
     possible_lines = get_lines(mode="tube,dlr,elizabeth-line")
     direction = "all"
     stops = []
@@ -53,22 +53,25 @@ def create_station_network() -> \
         line_branches = get_sequenced_stops(line_data)
         for branch in line_branches:
             for i in range(len(branch) - 1):
-                if network.has_edge(branch[i], branch[i + 1]):
-                    edge_data = network.get_edge_data(branch[i], branch[i + 1])
+                station1 = branch[i]
+                station2 = branch[i + 1]
+                if network.has_edge(station1, station2):
+                    edge_data_dict = network.get_edge_data(station1, station2)
+                    edge_data = edge_data_dict[0]
                     if edge_data.get('line_id') == line_id:
                         logging.info(
                             "Edge already exists between %s and %s for line %s, skipping",
-                            branch[i], branch[i + 1], line_id)
+                            station1, station2, line_id)
                         continue
                     duration = edge_data.get('duration')
                     logging.info(
                         "Edge already exists between %s and %s for a different line, "
                         "using existing duration: %s minutes",
-                        branch[i], branch[i + 1], duration)
+                        station1, station2, duration)
                 else:
-                    duration = get_duration_data(branch[i], branch[i + 1])
+                    duration = get_duration_data(station1, station2)
                 add_edge_between_stations(
-                    network, branch[i], branch[i + 1], line_id=line_id, duration=duration)
+                    network, station1, station2, line_id=line_id, duration=duration)
     stops_df = pd.DataFrame(stops)
     return {'stops_df': stops_df, 'network': network}
 
