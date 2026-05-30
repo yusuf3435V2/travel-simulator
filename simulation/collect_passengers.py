@@ -4,7 +4,7 @@ import networkx as nx
 import mesa
 import pandas as pd
 from distance_maths import haversine_distance
-from simulation.s3_utils_sim import (
+from s3_utils_sim import (
     fetch_passenger_data_from_s3,
     fetch_station_data_from_s3,
     fetch_graph_from_s3,
