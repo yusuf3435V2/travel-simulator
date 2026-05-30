@@ -52,7 +52,7 @@ def connect_nearby_stations(graph: nx.Graph, station_data: pd.DataFrame) -> nx.G
             for i in range(len(station_ids)):
                 for j in range(i + 1, len(station_ids)):
                     if not graph.has_edge(station_ids[i], station_ids[j]):
-                        graph.add_edge(station_ids[i], station_ids[j], weight=0)
+                        graph.add_edge(station_ids[i], station_ids[j], duration=0, line_id="transfer")
     return graph
 
 
