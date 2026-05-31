@@ -1,6 +1,6 @@
 """Script for saving simulation results to S3."""
 
-from s3_utils import load_env_variables, load_results_from_s3
+from s3_utils_sim import load_env_variables, load_results_from_s3
 
 
 if __name__ == "__main__":

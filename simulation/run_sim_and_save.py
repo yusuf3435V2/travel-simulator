@@ -1,6 +1,6 @@
 from collect_passengers import run_simulation_baseline, run_simulation_with_user_station
 from result_analysis import compare_simulations
-from s3_utils import (
+from s3_utils_sim import (
     load_env_variables,
     check_baseline_exists_in_s3,
     load_results_from_s3,

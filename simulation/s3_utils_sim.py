@@ -37,7 +37,7 @@ def fetch_passenger_data_from_s3(bucket_name: str) -> pd.DataFrame:
 
 def fetch_station_data_from_s3(bucket_name: str) -> pd.DataFrame:
     """Fetch station data from S3 and return as a DataFrame."""
-    return fetch_file_from_s3(bucket_name, "processed/Stations.csv")
+    return fetch_file_from_s3(bucket_name, "processed/stations.csv")
 
 
 def fetch_graph_from_s3(bucket_name: str) -> nx.Graph:

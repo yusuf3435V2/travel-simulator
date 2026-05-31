@@ -23,7 +23,7 @@ from collect_passengers import (
     BIKE_SPEED,
     WALK_SPEED,
 )
-from s3_utils import fetch_file_from_s3
+from s3_utils_sim import fetch_file_from_s3
 from distance_maths import haversine_distance
 from moto import mock_aws
 import boto3
