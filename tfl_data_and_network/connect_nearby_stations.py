@@ -44,6 +44,9 @@ def get_station_data(bucket_name: str) -> pd.DataFrame:
 
 def connect_nearby_stations(graph: nx.Graph, station_data: pd.DataFrame) -> nx.Graph:
     """Connect stations with the same name in the graph."""
+    if "Name" not in station_data.columns or "UniqueId" not in station_data.columns:
+        logging.error("Station data must contain 'Name' and 'UniqueId' columns.")
+        return graph
     station_data["unsuffixed_name"] = station_data["Name"].apply(unsuffix_name)
     station_groups = station_data.groupby("unsuffixed_name")
     for name, group in station_groups:
@@ -52,7 +55,12 @@ def connect_nearby_stations(graph: nx.Graph, station_data: pd.DataFrame) -> nx.G
             for i in range(len(station_ids)):
                 for j in range(i + 1, len(station_ids)):
                     if not graph.has_edge(station_ids[i], station_ids[j]):
-                        graph.add_edge(station_ids[i], station_ids[j], duration=0, line_id="transfer")
+                        graph.add_edge(
+                            station_ids[i],
+                            station_ids[j],
+                            duration=0,
+                            line_id="transfer",
+                        )
     return graph
 
 
