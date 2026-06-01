@@ -2,8 +2,9 @@
 
 import logging
 from io import BytesIO
-import os
+import pickle
 import pandas as pd
+import geopandas as gpd
 import networkx as nx
 import folium
 import boto3
@@ -16,6 +17,7 @@ def setup_logger(log_level: str = "INFO") -> None:
         format='%(asctime)s - %(levelname)s - %(message)s',
         encoding="utf-8"
     )
+
 
 def create_colour_scheme() -> dict:
     """Create a colour scheme for the different lines."""
@@ -53,6 +55,22 @@ def extract_station_network() -> nx.MultiGraph:
         return nx.MultiGraph()
 
 
+def extract_boundaries() -> gpd.GeoDataFrame:
+    """Extract boundary data from S3 bucket."""
+    try:
+        s3_client = boto3.client('s3')
+        response = s3_client.get_object(
+            Bucket='c23-travel-simulation-bucket',
+            Key='processed/boundaryData.pkl'
+        )
+        gdf = pickle.loads(response['Body'].read())
+        logging.info("Successfully loaded boundaries from S3")
+        return gdf
+    except Exception as e:
+        logging.error("Failed to extract boundaries from S3: %s", e)
+        return gpd.GeoDataFrame()
+
+
 def extract_stations() -> pd.DataFrame:
     """Extract the stations data from S3 bucket."""
     try:
@@ -68,6 +86,26 @@ def extract_stations() -> pd.DataFrame:
     except Exception as e:
         logging.error("Failed to extract stations from S3: %s", e)
         return pd.DataFrame()
+
+
+def convert_stations_to_geodataframe(stations: pd.DataFrame) -> gpd.GeoDataFrame:
+    """Convert stations DataFrame to GeoDataFrame."""
+    logging.info("Converting stations to GeoDataFrame.")
+    stations_gdf = gpd.GeoDataFrame(
+        stations,
+        geometry=gpd.points_from_xy(
+            stations['Longitude'], stations['Latitude']),
+        crs='EPSG:4326'
+    )
+    return stations_gdf
+
+
+def get_stations_per_boundary(gdf: gpd.GeoDataFrame, stations_gdf: gpd.GeoDataFrame) -> pd.Series:
+    """Perform spatial join to count stations in each boundary zone."""
+    stations_in_zones = gpd.sjoin(
+        stations_gdf, gdf, how='left', predicate='within')
+    station_counts = stations_in_zones.groupby("index_right").size()
+    return station_counts
 
 
 def validate_plot_inputs(station_data: pd.DataFrame, network: nx.MultiGraph) -> None:
@@ -182,42 +220,47 @@ def add_network_edges(network: nx.MultiGraph, station_data: pd.DataFrame,
             polyline.add_to(base_map)
 
 
-def plot_station_network(network: nx.MultiGraph, station_data: pd.DataFrame) -> folium.Map:
-    """Plot the station network using Folium with colored edges and layer control."""
-    validate_plot_inputs(station_data, network)
+def get_stations_per_boundary(gdf: gpd.GeoDataFrame, stations_gdf: gpd.GeoDataFrame) -> pd.Series:
+    """Perform spatial join to count how many stations fall within each boundary zone."""
+    stations_in_zones = gpd.sjoin(
+        stations_gdf, gdf, how='left', predicate='within')
+    station_counts = stations_in_zones.groupby("index_right").size()
+    return station_counts
+
+
+def create_combined_base_map(gdf: gpd.GeoDataFrame, station_data: pd.DataFrame) -> folium.Map:
+    """Create a choropleth map colored by station density as base for network overlay."""
+    m = gdf.explore(column='station_count', cmap='YlOrRd', legend=True)
+
+    # Optionally center on stations for better UX
+    center_lat = station_data['Latitude'].mean()
+    center_lon = station_data['Longitude'].mean()
+    m.location = [center_lat, center_lon]
+
+    return m
+
+
+def create_choropleth() -> folium.Map:
+    """Create a choropleth map with station counts and station markers."""
+    network = extract_station_network()
+    gdf = extract_boundaries()
+    stations_df = extract_stations()
+    stations_gdf = convert_stations_to_geodataframe(stations_df)
+    station_counts = get_stations_per_boundary(gdf, stations_gdf)
+    gdf['station_count'] = gdf.index.map(station_counts).fillna(0).astype(int)
+
+    m = create_combined_base_map(gdf, stations_df)
 
     color_scheme = create_colour_scheme()
-    base_map = create_base_map(station_data)
-    line_groups = create_line_feature_groups(station_data, base_map)
+    line_groups = create_line_feature_groups(stations_df, m)
 
-    add_station_markers(station_data, base_map, color_scheme)
-    add_network_edges(network, station_data, base_map,
+    add_station_markers(stations_df, m, color_scheme)
+    add_network_edges(network, stations_df, m,
                       line_groups, color_scheme)
-
-    folium.LayerControl().add_to(base_map)
-
-    logging.info(
-        "Plotted %s stations and %s edges", len(station_data), network.number_of_edges())
-    return base_map
-
-
-def main() -> None:
-    """Main entry point for plotting station network from S3."""
-    setup_logger()
-    logging.info("Loading station network and data from S3")
-    network_graph = extract_station_network()
-    station_dataframe = extract_stations()
-
-    logging.info("Plotting station network")
-    try:
-        station_map = plot_station_network(network_graph, station_dataframe)
-        station_map.save("tube_network_map.html")
-        logging.info("Map saved to tube_network_map.html")
-    except ValueError as e:
-        logging.error("Failed to plot map: %s", e)
-    except IOError as e:
-        logging.error("Failed to save map to file: %s", e)
+    folium.LayerControl().add_to(m)
+    m.save("tube_network_map.html")
+    return m
 
 
 if __name__ == "__main__":
-    main()
+    create_choropleth()
