@@ -175,7 +175,7 @@ def get_edge_coordinates(source_id: str, target_id: str,
     target_lat = target_row.iloc[0]['Latitude']
     target_lon = target_row.iloc[0]['Longitude']
 
-    if pd.isna(source_lat) or pd.isna(target_lat):
+    if (pd.isna(source_lat) or pd.isna(target_lat) or pd.isna(source_lon) or pd.isna(target_lon):
         logging.debug("Skipping edge %s-%s, missing coordinates",
                       source_id, target_id)
         return None
@@ -241,22 +241,6 @@ def create_combined_base_map(gdf: gpd.GeoDataFrame, station_data: pd.DataFrame) 
         name='Borough Tooltips'
     ).add_to(m)
 
-    logging.info(
-        "Choropleth map centered at (%.4f, %.4f)", center_lat, center_lon)
-
-    return m
-
-
-def create_choropleth_base_map(gdf: gpd.GeoDataFrame, station_data: pd.DataFrame) -> folium.Map:
-    """Create a choropleth map colored by station density as base for network overlay."""
-    logging.info("Creating choropleth base map with %s zones", len(gdf))
-    m = gdf.explore(column='station_count', cmap='YlOrRd',
-                    legend=True, name="Choropleth")
-
-    # Center on stations for better UX
-    center_lat = station_data['Latitude'].mean()
-    center_lon = station_data['Longitude'].mean()
-    m.location = [center_lat, center_lon]
     logging.info(
         "Choropleth map centered at (%.4f, %.4f)", center_lat, center_lon)
 
