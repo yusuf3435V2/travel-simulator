@@ -65,6 +65,7 @@ def extract_boundaries() -> gpd.GeoDataFrame:
         )
         gdf = pickle.loads(response['Body'].read())
         logging.info("Successfully loaded boundaries from S3")
+        gdf = gdf[gdf["CTYUA25CD"].str.startswith("E09")]
         return gdf
     except Exception as e:
         logging.error("Failed to extract boundaries from S3: %s", e)
@@ -102,31 +103,18 @@ def convert_stations_to_geodataframe(stations: pd.DataFrame) -> gpd.GeoDataFrame
 
 def get_stations_per_boundary(gdf: gpd.GeoDataFrame, stations_gdf: gpd.GeoDataFrame) -> pd.Series:
     """Perform spatial join to count stations in each boundary zone."""
+    logging.info("Performing spatial join for %s stations and %s zones", len(
+        stations_gdf), len(gdf))
     stations_in_zones = gpd.sjoin(
         stations_gdf, gdf, how='left', predicate='within')
     station_counts = stations_in_zones.groupby("index_right").size()
+    logging.info("Counted stations in %s zones", len(station_counts))
     return station_counts
-
-
-def validate_plot_inputs(station_data: pd.DataFrame, network: nx.MultiGraph) -> None:
-    """Validate that input data is suitable for plotting."""
-    if len(station_data) == 0:
-        logging.error("Station data is empty, cannot plot map")
-        raise ValueError("Cannot plot map with empty station data")
-
-    if network.number_of_nodes() == 0:
-        logging.warning("Network has no nodes, plotting station markers only")
-
-
-def create_base_map(station_data: pd.DataFrame) -> folium.Map:
-    """Create base Folium map centered on station data."""
-    center_lat = station_data['Latitude'].mean()
-    center_lon = station_data['Longitude'].mean()
-    return folium.Map(location=[center_lat, center_lon], zoom_start=12)
 
 
 def create_line_feature_groups(station_data: pd.DataFrame, base_map: folium.Map) -> dict:
     """Create FeatureGroups for each line and add to map."""
+    logging.info("Creating feature groups for tube lines")
     line_groups = {}
     for line_id in station_data['Line_id'].unique():
         if pd.notna(line_id):
@@ -134,6 +122,7 @@ def create_line_feature_groups(station_data: pd.DataFrame, base_map: folium.Map)
             line_groups[line_id] = folium.FeatureGroup(
                 name=f"Line: {line_name}")
             base_map.add_child(line_groups[line_id])
+    logging.info("Created %s feature groups", len(line_groups))
     return line_groups
 
 
@@ -198,7 +187,14 @@ def add_network_edges(network: nx.MultiGraph, station_data: pd.DataFrame,
     logging.info("Adding %s edges to map", network.number_of_edges())
     for source, target, key, data in network.edges(keys=True, data=True):
         line_id = data.get('line_id', 'unknown')
-        line_color = color_scheme.get(line_id, 'black')
+
+        # Only include edges with colours in the scheme
+        if line_id not in color_scheme:
+            logging.debug(
+                "Skipping edge %s-%s, line_id '%s' not in colour scheme", source, target, line_id)
+            continue
+
+        line_color = color_scheme[line_id]
 
         coords = get_edge_coordinates(source, target, station_data)
         if coords is None:
@@ -220,31 +216,34 @@ def add_network_edges(network: nx.MultiGraph, station_data: pd.DataFrame,
             polyline.add_to(base_map)
 
 
-def get_stations_per_boundary(gdf: gpd.GeoDataFrame, stations_gdf: gpd.GeoDataFrame) -> pd.Series:
-    """Perform spatial join to count how many stations fall within each boundary zone."""
-    stations_in_zones = gpd.sjoin(
-        stations_gdf, gdf, how='left', predicate='within')
-    station_counts = stations_in_zones.groupby("index_right").size()
-    return station_counts
-
-
 def create_combined_base_map(gdf: gpd.GeoDataFrame, station_data: pd.DataFrame) -> folium.Map:
     """Create a choropleth map colored by station density as base for network overlay."""
+    logging.info("Creating choropleth base map with %s zones", len(gdf))
     m = gdf.explore(column='station_count', cmap='YlOrRd', legend=True)
 
-    # Optionally center on stations for better UX
+    # Center on stations for better UX
     center_lat = station_data['Latitude'].mean()
     center_lon = station_data['Longitude'].mean()
     m.location = [center_lat, center_lon]
+    logging.info(
+        "Choropleth map centered at (%.4f, %.4f)", center_lat, center_lon)
 
     return m
 
 
 def create_choropleth() -> folium.Map:
     """Create a choropleth map with station counts and station markers."""
+    setup_logger()
+    logging.info("Starting choropleth creation")
+
     network = extract_station_network()
     gdf = extract_boundaries()
     stations_df = extract_stations()
+
+    if gdf.empty or stations_df.empty:
+        logging.error("Failed to load required data")
+        return None
+
     stations_gdf = convert_stations_to_geodataframe(stations_df)
     station_counts = get_stations_per_boundary(gdf, stations_gdf)
     gdf['station_count'] = gdf.index.map(station_counts).fillna(0).astype(int)
@@ -255,10 +254,18 @@ def create_choropleth() -> folium.Map:
     line_groups = create_line_feature_groups(stations_df, m)
 
     add_station_markers(stations_df, m, color_scheme)
-    add_network_edges(network, stations_df, m,
-                      line_groups, color_scheme)
+    add_network_edges(network, stations_df, m, line_groups, color_scheme)
+
+    logging.info("Adding layer control to map")
     folium.LayerControl().add_to(m)
-    m.save("tube_network_map.html")
+
+    logging.info("Saving map to tube_network_map.html")
+    try:
+        m.save("tube_network_map.html")
+        logging.info("Map successfully saved to tube_network_map.html")
+    except IOError as e:
+        logging.error("Failed to save map: %s", e)
+
     return m
 
 
