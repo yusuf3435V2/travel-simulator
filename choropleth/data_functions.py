@@ -15,6 +15,15 @@ BUCKET_NAME = "c23-travel-simulation-bucket"
 BOUNDARY_FILE = "boundaryData.pkl"
 
 
+def create_stations_geodataframe(df: pd.DataFrame) -> gpd.GeoDataFrame:
+    """Create a GeoDataFrame from stations DataFrame with geometry."""
+    return gpd.GeoDataFrame(
+        df,
+        geometry=gpd.points_from_xy(df['Longitude'], df['Latitude']),
+        crs='EPSG:4326'
+    )
+
+
 def load_boundaries_local(filepath: str) -> gpd.GeoDataFrame:
     """Load boundary data from cache or geojson file."""
     script_dir = Path(__file__).parent
@@ -87,11 +96,7 @@ def get_normalised_stops(stops_url: str) -> gpd.GeoDataFrame:
     if cache_file.exists():
         logger.info("Loading normalised stops from cache.")
         df = pd.read_csv(cache_file)
-        return gpd.GeoDataFrame(
-            df,
-            geometry=gpd.points_from_xy(df['Longitude'], df['Latitude']),
-            crs='EPSG:4326'
-        )
+        return create_stations_geodataframe(df)
 
     # Fetch from API if no cache
     try:
@@ -123,14 +128,7 @@ def normalise_stops_data(response: requests.Response) -> gpd.GeoDataFrame:
 
     # Convert to GeoDataFrame (single place)
     logger.info("Converting stations to GeoDataFrame.")
-    stations_gdf = gpd.GeoDataFrame(
-        stations,
-        geometry=gpd.points_from_xy(
-            stations['Longitude'], stations['Latitude']),
-        crs='EPSG:4326'
-    )
-
-    return stations_gdf
+    return create_stations_geodataframe(stations)
 
 
 def get_normalised_stops_from_s3(
@@ -143,12 +141,7 @@ def get_normalised_stops_from_s3(
         logger.info("Loading stations from S3: %s", s3_path)
         data = get_file_from_s3(bucket_name, s3_path)
         df = pd.read_csv(io.BytesIO(data))
-        stations_gdf = gpd.GeoDataFrame(
-            df,
-            geometry=gpd.points_from_xy(df['Longitude'], df['Latitude']),
-            crs='EPSG:4326'
-        )
-        return stations_gdf
+        return create_stations_geodataframe(df)
     except RuntimeError:
         logger.info("Stations not in S3, fetching from API.")
         # Fetch from API directly without local save
@@ -181,7 +174,8 @@ def save_choropleth_to_s3(gdf: gpd.GeoDataFrame, bucket_name: str, s3_path: str)
         geojson_str = gdf.to_json()
         data = geojson_str.encode('utf-8')
         upload_file_to_s3(bucket_name, s3_path, data)
-        logger.info("Choropleth GeoDataFrame saved successfully to S3: %s", s3_path)
+        logger.info(
+            "Choropleth GeoDataFrame saved successfully to S3: %s", s3_path)
     except Exception as e:
         logger.error("Error saving choropleth to S3: %s", e)
         raise RuntimeError(f"Failed to save choropleth to S3: {e}")
@@ -193,7 +187,8 @@ def load_choropleth_from_s3(bucket_name: str, s3_path: str) -> gpd.GeoDataFrame:
     try:
         data = get_file_from_s3(bucket_name, s3_path)
         gdf = gpd.read_file(io.BytesIO(data))
-        logger.info("Choropleth GeoDataFrame loaded successfully from S3: %s", s3_path)
+        logger.info(
+            "Choropleth GeoDataFrame loaded successfully from S3: %s", s3_path)
         return gdf
     except Exception as e:
         logger.error("Error loading choropleth from S3: %s", e)
