@@ -4,6 +4,7 @@ import folium
 import streamlit as st
 from streamlit_folium import st_folium
 from analysis import generate_recommendation_pdf
+from kml_export import generate_kmz_bytes
 
 st.set_page_config(
     page_title="Travel Simulation Dashboard",
@@ -50,6 +51,9 @@ if "simulation_finished" not in st.session_state:
 if "pdf_bytes" not in st.session_state:
     st.session_state.pdf_bytes = None
 
+if "kmz_bytes" not in st.session_state:
+    st.session_state.kmz_bytes = None
+
 INPUT_DISABLED = st.session_state.simulation_running
 
 
@@ -85,6 +89,7 @@ if input_method == "Type latitude/longitude":
         st.session_state.proposed_lon = typed_lon
         st.session_state.simulation_finished = False
         st.session_state.pdf_bytes = None
+        st.session_state.kmz_bytes = None
 
 else:
     st.write("Click on the map to set the proposed station location.")
@@ -120,6 +125,7 @@ else:
         st.session_state.proposed_lon = map_data["last_clicked"]["lng"]
         st.session_state.simulation_finished = False
         st.session_state.pdf_bytes = None
+        st.session_state.kmz_bytes = None
         st.rerun()
 
 st.subheader("2. Choose proposed train line")
@@ -135,7 +141,7 @@ if not INPUT_DISABLED and selected_line != st.session_state.selected_line:
     st.session_state.selected_line = selected_line
     st.session_state.simulation_finished = False
     st.session_state.pdf_bytes = None
-
+    st.session_state.kmz_bytes = None
 
 st.subheader("3. Confirm and run simulation")
 
@@ -154,12 +160,19 @@ else:
         st.session_state.simulation_running = True
         st.session_state.simulation_finished = False
         st.session_state.pdf_bytes = None
+        st.session_state.kmz_bytes = None
 
         with st.spinner("Running simulation and generating report..."):
             # This is where the simulation function will go.
             time.sleep(3)
 
             st.session_state.pdf_bytes = generate_recommendation_pdf(
+                proposed_lat=st.session_state.proposed_lat,
+                proposed_lon=st.session_state.proposed_lon,
+                selected_line=st.session_state.selected_line,
+            )
+
+            st.session_state.kmz_bytes = generate_kmz_bytes(
                 proposed_lat=st.session_state.proposed_lat,
                 proposed_lon=st.session_state.proposed_lon,
                 selected_line=st.session_state.selected_line,
@@ -190,4 +203,12 @@ if st.session_state.simulation_finished:
             data=st.session_state.pdf_bytes,
             file_name="travel_simulation_recommendation.pdf",
             mime="application/pdf",
+        )
+
+    if st.session_state.kmz_bytes:
+        st.download_button(
+            label="Download Google Earth KMZ",
+            data=st.session_state.kmz_bytes,
+            file_name="travel_simulation_google_earth.kmz",
+            mime="application/vnd.google-earth.kmz",
         )

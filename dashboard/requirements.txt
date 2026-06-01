@@ -7,3 +7,4 @@ geopandas
 shapely
 reportlab
 earthengine-api
+simplekml

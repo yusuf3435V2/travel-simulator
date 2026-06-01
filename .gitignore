@@ -15,3 +15,5 @@ boundaryData.*
 # Terraform variable files
 *.tfvars
 *.tfvars.json
+.ds_store
+.DS_Store
