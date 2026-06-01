@@ -219,7 +219,37 @@ def add_network_edges(network: nx.MultiGraph, station_data: pd.DataFrame,
 def create_combined_base_map(gdf: gpd.GeoDataFrame, station_data: pd.DataFrame) -> folium.Map:
     """Create a choropleth map colored by station density as base for network overlay."""
     logging.info("Creating choropleth base map with %s zones", len(gdf))
-    m = gdf.explore(column='station_count', cmap='YlOrRd', legend=True)
+    m = gdf.explore(column='station_count', cmap='YlOrRd',
+                    legend=True, name="Choropleth")
+
+    # Center on stations for better UX
+    center_lat = station_data['Latitude'].mean()
+    center_lon = station_data['Longitude'].mean()
+    m.location = [center_lat, center_lon]
+
+    # Add tooltip layer with no name
+    folium.GeoJson(
+        data=gdf.__geo_interface__,
+        style_function=lambda x: {'fillOpacity': 0,
+                                  'color': 'transparent', 'weight': 0},
+        tooltip=folium.features.GeoJsonTooltip(
+            fields=['CTYUA25NM', 'station_count'],
+            aliases=['Borough:', 'Station Count:']
+        ),
+        name='Borough Tooltips'
+    ).add_to(m)
+
+    logging.info(
+        "Choropleth map centered at (%.4f, %.4f)", center_lat, center_lon)
+
+    return m
+
+
+def create_choropleth_base_map(gdf: gpd.GeoDataFrame, station_data: pd.DataFrame) -> folium.Map:
+    """Create a choropleth map colored by station density as base for network overlay."""
+    logging.info("Creating choropleth base map with %s zones", len(gdf))
+    m = gdf.explore(column='station_count', cmap='YlOrRd',
+                    legend=True, name="Choropleth")
 
     # Center on stations for better UX
     center_lat = station_data['Latitude'].mean()
