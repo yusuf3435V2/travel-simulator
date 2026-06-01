@@ -1,5 +1,4 @@
 """Analysis and report generation for the Travel Simulation dashboard."""
-
 from io import BytesIO
 import ee
 import pandas as pd
@@ -8,6 +7,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 import os
 from dotenv import load_dotenv
+from openai import OpenAI
 from coverage_context import get_coverage_context_from_s3
 
 def get_google_cloud_project() -> str:
@@ -193,6 +193,7 @@ def explain_land_use(land_use_df: pd.DataFrame) -> str:
     )
 
 
+
 def build_recommendation_text(
     proposed_lat: float,
     proposed_lon: float,
@@ -232,35 +233,70 @@ def build_recommendation_text(
         )
 
     return f"""
-Travel Simulation Recommendation
+    Travel Simulation Recommendation
 
-Proposed location:
-Latitude: {proposed_lat}
-Longitude: {proposed_lon}
-Selected line: {selected_line}
+    Proposed location:
+    Latitude: {proposed_lat}
+    Longitude: {proposed_lon}
+    Selected line: {selected_line}
 
-Coverage context:
-{coverage_explanation}
+    Coverage context:
+    {coverage_explanation}
 
-Land-use breakdown:
-{land_use_lines}
+    Land-use breakdown:
+    {land_use_lines}
 
-Land-use context:
-{land_use_explanation}
+    Land-use context:
+    {land_use_explanation}
 
-Recommendation:
-{recommendation}
+    Recommendation:
+    {recommendation}
 
-Assumptions and limitations:
-- Coverage level is currently based on the number of existing stations within a 800m catchment.
-- Land-use data is based on broad satellite classification from Google Earth Engine Dynamic World.
-- Built-up land does not distinguish perfectly between residential, commercial and industrial use.
-- This report should be updated once simulation demand impact results are available.
-"""
+    Assumptions and limitations:
+    - Coverage level is currently based on the number of existing stations within a 800m catchment.
+    - Land-use data is based on broad satellite classification from Google Earth Engine Dynamic World.
+    - Built-up land does not distinguish perfectly between residential, commercial and industrial use.
+    - This report should be updated once simulation demand impact results are available.
+    """
+
+
+def rewrite_report_with_openai(report_context: str) -> str:
+    """Rewrite the calculated report context into a client-ready report."""
+
+    load_dotenv()
+
+    if not os.getenv("OPENAI_API_KEY"):
+        raise ValueError("OPENAI_API_KEY not found in .env")
+
+    client = OpenAI()
+
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=f"""
+        You are a transport consultant writing a one-page recommendation for a non-technical local authority client.
+
+        Rewrite the report using ONLY the context below.
+        Do not invent numbers.
+        Do not invent station names.
+        Do not invent routes.
+        Keep the structure:
+        - Context
+        - Key findings
+        - Recommendation
+        - Assumptions and limitations
+
+        Use clear, professional language.
+
+        CONTEXT:
+        {report_context}
+        """
+    )
+
+    return response.output_text
 
 
 def create_pdf_report(report_text: str) -> bytes:
-    """Create a PDF report with wrapped text."""
+    """Create a PDF report with wrapped text and proper headings."""
 
     buffer = BytesIO()
 
@@ -276,6 +312,7 @@ def create_pdf_report(report_text: str) -> bytes:
     styles = getSampleStyleSheet()
     normal_style = styles["Normal"]
     heading_style = styles["Heading2"]
+    title_style = styles["Title"]
 
     story = []
 
@@ -286,11 +323,26 @@ def create_pdf_report(report_text: str) -> bytes:
             story.append(Spacer(1, 10))
             continue
 
-        if line.endswith(":") or line == "Travel Simulation Recommendation":
-            story.append(Paragraph(line, heading_style))
-        else:
-            story.append(Paragraph(line, normal_style))
+        # Main title
+        if line == "Travel Simulation Recommendation":
+            story.append(Paragraph(line, title_style))
+            story.append(Spacer(1, 12))
+            continue
 
+        # Handle OpenAI markdown headings like **Context**
+        if line.startswith("**") and line.endswith("**"):
+            clean_heading = line.replace("**", "")
+            story.append(Paragraph(clean_heading, heading_style))
+            story.append(Spacer(1, 8))
+            continue
+
+        # Handle plain headings like Context:
+        if line.endswith(":"):
+            story.append(Paragraph(line, heading_style))
+            story.append(Spacer(1, 8))
+            continue
+
+        story.append(Paragraph(line, normal_style))
         story.append(Spacer(1, 6))
 
     doc.build(story)
@@ -335,17 +387,9 @@ def generate_recommendation_pdf(
         land_use_explanation=land_use_explanation,
     )
 
-    return create_pdf_report(report_text)
+    ai_report_text = rewrite_report_with_openai(report_text)
+
+    return create_pdf_report(ai_report_text)
 
 
-if __name__ == "__main__":
-    pdf = generate_recommendation_pdf(
-        proposed_lat=51.5581234,
-        proposed_lon=-0.0307055,
-        selected_line="Central",
-    )
 
-    with open("recommendation_report.pdf", "wb") as file:
-        file.write(pdf)
-
-    print("PDF report created: recommendation_report.pdf")
