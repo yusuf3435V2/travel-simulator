@@ -109,7 +109,7 @@ def get_normalised_stops(stops_url: str) -> gpd.GeoDataFrame:
 
     # Process and normalize
     stations_gdf = normalise_stops_data(response)
-    save_normalised_stops(stations_gdf)
+    save_normalised_stops(stations_gdf, str(cache_file))
     return stations_gdf
 
 
