@@ -8,3 +8,4 @@ shapely
 reportlab
 earthengine-api
 simplekml
+python-dotenv
