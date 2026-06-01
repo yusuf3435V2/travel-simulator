@@ -48,6 +48,8 @@ def extract_station_network() -> nx.MultiGraph:
         )
         graphml_bytes = BytesIO(response['Body'].read())
         network = nx.read_graphml(graphml_bytes)
+        if not network.is_multigraph():
+            network = nx.MultiGraph(network)
         logging.info("Successfully loaded network from S3")
         return network
     except Exception as e:
