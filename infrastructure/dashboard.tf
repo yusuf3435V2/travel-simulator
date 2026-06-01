@@ -1,5 +1,5 @@
 resource "aws_ecr_repository" "c23_travel_simulator_dashboard_ecr" {
-    name                 = "c23-travel_simulator-dashboard-ecr"
+    name                 = "c23_travel_simulator_dashboard_ecr"
     image_tag_mutability = "MUTABLE"
     force_delete         = true
 
@@ -34,19 +34,20 @@ data "aws_subnets" "c23_public_subnets" {
         name   = "tag:Name"
         values = ["c23-public-subnet-*"]
     }
+    filter {
         name   = "vpc-id"
         values = [data.aws_vpc.c23_vpc.id]
     }
 }
 
 resource "aws_cloudwatch_log_group" "ecs_log_group" {
-    name              = "/ecs/c23-travel_simulator-dashboard"
+    name              = "/ecs/c23_travel_simulator_dashboard"
     retention_in_days = 7
 }
 
 # IAM Role for ECS Task Execution
 resource "aws_iam_role" "ecs_task_execution_role" {
-    name = "c23-travel_simulator-dashboard-ecs-task-execution-role"
+    name = "c23_travel_simulator_dashboard_ecs_task_execution_role"
 
     assume_role_policy = jsonencode({
         Version = "2012-10-17"
@@ -69,7 +70,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
 
 # IAM Role for ECS Task (application permissions)
 resource "aws_iam_role" "ecs_task_role" {
-    name = "c23-travel_simulator-dashboard-ecs-task-role"
+    name = "c23_travel_simulator_dashboard_ecs_task_role"
 
     assume_role_policy = jsonencode({
         Version = "2012-10-17"
@@ -87,7 +88,7 @@ resource "aws_iam_role" "ecs_task_role" {
 
 # Policy to allow S3 access for the dashboard
 resource "aws_iam_role_policy" "ecs_task_s3_policy" {
-    name = "c23-travel_simulator-dashboard-s3-policy"
+    name = "c23_travel_simulator_dashboard_s3_policy"
     role = aws_iam_role.ecs_task_role.id
 
     policy = jsonencode({
@@ -110,7 +111,7 @@ resource "aws_iam_role_policy" "ecs_task_s3_policy" {
 
 # Security Group for ECS Task
 resource "aws_security_group" "dashboard_ecs_sg" {
-    name        = "c23-travel_simulator-dashboard-ecs-sg"
+    name        = "c23_travel_simulator_dashboard_ecs_sg"
     description = "Security group for dashboard ECS task"
     vpc_id      = data.aws_vpc.c23_vpc.id
     ingress {
@@ -128,13 +129,13 @@ resource "aws_security_group" "dashboard_ecs_sg" {
     }
 
     tags = {
-        Name = "c23-travel_simulator-dashboard-ecs-sg"
+        Name = "c23_travel_simulator_dashboard_ecs_sg"
     }
 }
 
 # ECS Task Definition
 resource "aws_ecs_task_definition" "dashboard" {
-    family                   = "c23-travel_simulator-dashboard"
+    family                   = "c23_travel_simulator_dashboard"
     network_mode             = "awsvpc"
     requires_compatibilities = ["FARGATE"]
     cpu                      = "512"
@@ -172,13 +173,13 @@ resource "aws_ecs_task_definition" "dashboard" {
     ])
 
     tags = {
-        Name = "c23-travel_simulator-dashboard"
+        Name = "c23_travel_simulator_dashboard"
     }
 }
 
 # ECS Service
 resource "aws_ecs_service" "dashboard" {
-    name            = "c23-travel_simulator-dashboard-service"
+    name            = "c23_travel_simulator_dashboard_service"
     cluster         = data.aws_ecs_cluster.c23_ecs_cluster.id
     task_definition = aws_ecs_task_definition.dashboard.arn
     desired_count   = 1
@@ -191,7 +192,7 @@ resource "aws_ecs_service" "dashboard" {
     }
 
     tags = {
-        Name = "c23-travel_simulator-dashboard-service"
+        Name = "c23_travel_simulator_dashboard_service"
     }
 
     depends_on = [
