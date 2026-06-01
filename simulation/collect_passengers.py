@@ -474,7 +474,9 @@ def run_simulation_with_user_station(
     base_station_data: pd.DataFrame,
     stations: list[dict],
     input_passenger_data: pd.DataFrame,
-):
+    path: str | None = None,
+) -> pd.DataFrame:
+    """Run the simulation with a user-added station and return the results as a DataFrame. Optionally save to CSV if path is provided."""
     station_data = base_station_data.copy()
     for station in stations:
         station_data = add_station_to_stations_data(
@@ -496,19 +498,21 @@ def run_simulation_with_user_station(
     results_df = extract_agent_data(model)
 
     # Optionally save to CSV
-    results_df.to_csv(
-        "simulation/simulation_results_with_user_station.csv", index=False
-    )
+    if path:
+        results_df.to_csv(path, index=False)
     return results_df
 
 
 def run_simulation_baseline(
-    graph: nx.Graph, base_station_data: pd.DataFrame, input_passenger_data: pd.DataFrame
+    graph: nx.Graph,
+    base_station_data: pd.DataFrame,
+    input_passenger_data: pd.DataFrame,
+    path: str | None = None,
 ) -> pd.DataFrame:
     """Run the baseline simulation without any user-added stations and return the results as a DataFrame."""
 
     return run_simulation_with_user_station(
-        graph, base_station_data, [], input_passenger_data
+        graph, base_station_data, [], input_passenger_data, path
     )
 
 
@@ -518,7 +522,12 @@ if __name__ == "__main__":
     input_passenger_data = fetch_passenger_data_from_s3(bucket_name)
     base_station_data = fetch_station_data_from_s3(bucket_name)
 
-    run_simulation_baseline(graph, base_station_data, input_passenger_data)
+    run_simulation_baseline(
+        graph,
+        base_station_data,
+        input_passenger_data,
+        path="simulation/simulation_results.csv",
+    )
 
     new_station = {
         "UniqueId": "user_station_1",
@@ -529,5 +538,9 @@ if __name__ == "__main__":
     }
 
     run_simulation_with_user_station(
-        graph, base_station_data, [new_station], input_passenger_data
+        graph,
+        base_station_data,
+        [new_station],
+        input_passenger_data,
+        path="simulation/simulation_results_with_user_station.csv",
     )

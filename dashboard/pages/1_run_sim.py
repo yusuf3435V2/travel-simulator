@@ -5,6 +5,7 @@ import folium
 import streamlit as st
 from streamlit_folium import st_folium
 from analysis import generate_recommendation_pdf
+import requests as req
 
 st.set_page_config(page_title="Travel Simulation Dashboard", layout="wide")
 
@@ -152,6 +153,16 @@ else:
         with st.spinner("Running simulation and generating report..."):
             # This is where the simulation function will go.
             time.sleep(3)
+            req.post(
+                "https://your-api-gateway-endpoint/run-simulation",
+                json={
+                    "UniqueId": "user_station_1",
+                    "Latitude": st.session_state.proposed_lat,
+                    "Longitude": st.session_state.proposed_lon,
+                    "Line_id": st.session_state.selected_line,
+                    "Name": "User Proposed Station",
+                },
+            )
 
             st.session_state.pdf_bytes = generate_recommendation_pdf(
                 proposed_lat=st.session_state.proposed_lat,
