@@ -61,11 +61,9 @@ def lambda_handler(event, context):
     )
     # Compare the baseline and altered simulation results
     baseline_vs_simulated = compare_simulations(baseline_results, simulated_output)
-    comparison_path = "simulation/simulation_comparison.csv"
-    baseline_vs_simulated.to_csv(comparison_path, index=False)
+    comparison_path = "simulation_comparison.csv"
     save_dataframe_to_s3(
         baseline_vs_simulated,
         load_env_variables(),
-        f"raw/{int(running_time)}/simulation_comparison.csv",
+        f"raw/{int(running_time)}/{comparison_path}",
     )
-    # Save JSON of station data to S3 for frontend use
