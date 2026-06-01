@@ -19,7 +19,6 @@ from collect_passengers import (
     choose_transport_speed,
     determine_travel_time,
     BUS_SPEED,
-    BIKE_SPEED,
     WALK_SPEED,
 )
 from s3_utils_sim import fetch_file_from_s3
@@ -107,32 +106,11 @@ def test_choose_transport_speed_walk():
     assert speed == WALK_SPEED, f"Expected {WALK_SPEED}, got {speed}"
 
 
-def test_choose_transport_speed_bike():
-    """Test that bike speed is returned for medium distances."""
-    distance = 3.0  # 3 km, between 1.6 and 5
-    speed = choose_transport_speed(distance)
-    assert speed == BIKE_SPEED, f"Expected {BIKE_SPEED}, got {speed}"
-
-
 def test_choose_transport_speed_bus():
     """Test that bus speed is returned for long distances."""
     distance = 6.0  # 6 km, > 5
     speed = choose_transport_speed(distance)
     assert speed == BUS_SPEED, f"Expected {BUS_SPEED}, got {speed}"
-
-
-def test_choose_transport_speed_boundary_walk_to_bike():
-    """Test boundary case between walk and bike speed (1.6 km)."""
-    distance = 1.6
-    speed = choose_transport_speed(distance)
-    assert speed == BIKE_SPEED, f"Expected {BIKE_SPEED} at boundary, got {speed}"
-
-
-def test_choose_transport_speed_boundary_bike_to_bus():
-    """Test boundary case between bike and bus speed (5 km)."""
-    distance = 5.0
-    speed = choose_transport_speed(distance)
-    assert speed == BUS_SPEED, f"Expected {BUS_SPEED} at boundary, got {speed}"
 
 
 def test_determine_travel_time_walk():
@@ -143,19 +121,11 @@ def test_determine_travel_time_walk():
     assert abs(time - expected_time) < 0.01, f"Expected {expected_time}, got {time}"
 
 
-def test_determine_travel_time_bike():
-    """Test travel time calculation for biking."""
-    distance = 3.0  # 3 km
-    time = determine_travel_time(distance)
-    expected_time = distance / BIKE_SPEED
-    assert abs(time - expected_time) < 0.01, f"Expected {expected_time}, got {time}"
-
-
 def test_determine_travel_time_bus():
     """Test travel time calculation for bus."""
     distance = 6.0  # 6 km
     time = determine_travel_time(distance)
-    expected_time = distance / BUS_SPEED
+    expected_time = distance / BUS_SPEED + 5  # Add 5 minutes for bus switch time
     assert abs(time - expected_time) < 0.01, f"Expected {expected_time}, got {time}"
 
 

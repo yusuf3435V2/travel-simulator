@@ -13,7 +13,6 @@ from s3_utils_sim import (
 
 # Here are some speeds of different methods of getting to the station.
 WALK_SPEED = 5 / 60
-BIKE_SPEED = 20 / 60
 BUS_SPEED = 30 / 60
 
 
@@ -272,14 +271,15 @@ def choose_transport_speed(distance: float) -> float:
     """choose the transport based on different distances. We say > 1.6 is bike, > 5 is bus"""
     if distance < 1.6:
         return WALK_SPEED
-    if distance < 5:
-        return BIKE_SPEED
     return BUS_SPEED
 
 
 def determine_travel_time(distance: float) -> float:
     """Determine travel time adapted for distance"""
-    return distance / choose_transport_speed(distance)
+    extra_time = (
+        0 if distance < 1.6 else 5
+    )  # Add 5 minutes if using bus for line switch time
+    return distance / choose_transport_speed(distance) + extra_time
 
 
 class PassengerAgent(mesa.Agent):
@@ -307,7 +307,6 @@ class PassengerAgent(mesa.Agent):
         self.day_type = day_type
         self.walking_speed = WALK_SPEED
         self.bus_speed = BUS_SPEED
-        self.cycle_speed = BIKE_SPEED
         self.nearest_station = None
         self.alighting_station = None
         self.time_spent = 0

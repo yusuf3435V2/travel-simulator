@@ -11,6 +11,17 @@ import requests as req
 import boto3
 import os
 import dotenv
+from s3_utils import (
+    get_station_data,
+    get_comparison_csv,
+)
+from folium_functions import plot_original_station_point, create_folium_map
+from df_analysis import (
+    get_total_time_spent_diff,
+    get_greatest_time_spent_diff,
+    get_percentage_of_affected_routes,
+)
+import uuid
 
 st.set_page_config(page_title="Travel Simulation Dashboard", layout="wide")
 
@@ -26,7 +37,6 @@ lambda_client = boto3.client("lambda")
 s3_client = boto3.client("s3")
 BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "your-simulation-bucket-name")
 # Replace this file name with the exact file your simulation Lambda produces upon completion
-TARGET_OUTPUT_KEY = "raw/user_station_1/simulation_comparison.csv"
 
 TUBE_AND_RAIL_LINES = [
     "Bakerloo",
@@ -48,6 +58,7 @@ TUBE_AND_RAIL_LINES = [
 # Helper to look for simulation outputs without downloading full payloads
 def check_s3_for_completion(bucket, key):
     try:
+        print(f"Checking S3 for key: {key}")
         s3_client.head_object(Bucket=bucket, Key=key)
         return True
     except ClientError:
@@ -72,6 +83,9 @@ if "simulation_finished" not in st.session_state:
 
 if "pdf_bytes" not in st.session_state:
     st.session_state.pdf_bytes = None
+
+if "target_key" not in st.session_state:
+    st.session_state.target_key = None
 
 INPUT_DISABLED = st.session_state.simulation_running
 
@@ -181,13 +195,16 @@ else:
 
     # Passive Background Polling Engine Execution Block
     if st.session_state.simulation_running and not st.session_state.simulation_finished:
+        current_time = int(time.time())
+        unique_id = str(uuid.uuid4())
+        st.session_state.target_key = f"raw/{unique_id}/simulation_comparison.csv"  # Adjust this path based on your Lambda's output structure
         with st.spinner("Invoking remote AWS Lambda engine..."):
             lambda_client.invoke(
                 FunctionName=os.environ.get("SIMULATION_LAMBDA_ARN"),
                 InvocationType="Event",  # Asynchronous invocation
                 Payload=json.dumps(
                     {
-                        "UniqueId": "user_station_1",
+                        "UniqueId": unique_id,
                         "Latitude": st.session_state.proposed_lat,
                         "Longitude": st.session_state.proposed_lon,
                         "Line_id": st.session_state.selected_line,
@@ -211,7 +228,7 @@ else:
             )
             progress_bar.progress(min((attempt + 1) / max_retries, 0.95))
 
-            if check_s3_for_completion(BUCKET_NAME, TARGET_OUTPUT_KEY):
+            if check_s3_for_completion(BUCKET_NAME, st.session_state.target_key):
                 simulation_success = True
                 break
 
@@ -251,6 +268,18 @@ if st.session_state.simulation_finished:
         }
     )
 
+    if st.session_state.target_key is None:
+        st.error("Target key not found. Please run the simulation again.")
+    else:
+        metadata = {
+            "Latitude": st.session_state.proposed_lat,
+            "Longitude": st.session_state.proposed_lon,
+            "Line_id": st.session_state.selected_line,
+            "Name": "User Proposed Station",
+            "number_of_passengers": 32000,  # Placeholder, replace with actual metadata
+        }
+        comparison_df = get_comparison_csv(BUCKET_NAME, st.session_state.target_key)
+
     if st.session_state.pdf_bytes:
         st.download_button(
             label="Download recommendation report",
@@ -264,3 +293,26 @@ if st.session_state.simulation_finished:
         st.session_state.simulation_running = False
         st.session_state.pdf_bytes = None
         st.rerun()
+
+        st.subheader("Simulation Impact Map")
+
+    if not comparison_df.empty:
+        station_data = get_station_data(BUCKET_NAME)
+        if not station_data.empty:
+            folium_map = create_folium_map(station_data, comparison_df)
+            folium_map = plot_original_station_point(metadata, folium_map)
+            st_folium(folium_map, width=700, height=500)
+        else:
+            st.warning("Cannot create map without station data.")
+    else:
+        st.warning("Cannot create map without comparison data.")
+
+    st.subheader("Overall Impact Metrics")
+    total_time_diff = get_total_time_spent_diff(comparison_df)
+    greatest_time_diff = get_greatest_time_spent_diff(comparison_df)
+    percentage_affected = get_percentage_of_affected_routes(
+        comparison_df, metadata.get("number_of_passengers", 0)
+    )
+    st.metric("Total Time Spent Difference (mins)", f"{total_time_diff:.2f}")
+    st.metric("Greatest Time Spent Difference (mins)", f"{greatest_time_diff:.2f}")
+    st.metric("Percentage of Affected Routes", f"{percentage_affected:.2f}%")

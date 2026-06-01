@@ -23,8 +23,10 @@ import os
 def lambda_handler(event, context):
     # Run the baseline simulation and save results
     proposed_station_info = event
+    station_keyname = proposed_station_info.get(
+        "UniqueId", f"user_station_{int(time.time())}"
+    )
     logging.info("Proposed station info: %s", proposed_station_info)
-    running_time = time.time()
     graph = fetch_graph_from_s3(load_env_variables())
     station_data = fetch_station_data_from_s3(load_env_variables())
     passenger_data = fetch_passenger_data_from_s3(load_env_variables())
@@ -54,12 +56,12 @@ def lambda_handler(event, context):
     save_dataframe_to_s3(
         simulated_output,
         load_env_variables(),
-        f"raw/{int(running_time)}/simulation_results_with_user_station.csv",
+        f"raw/{station_keyname}/simulation_results_with_user_station.csv",
     )
     save_json_to_s3(
         json.dumps(proposed_station_info),
         load_env_variables(),
-        f"raw/{int(running_time)}/user_station.json",
+        f"raw/{station_keyname}/user_station.json",
     )
     # Compare the baseline and altered simulation results
     baseline_vs_simulated = compare_simulations(baseline_results, simulated_output)
@@ -67,5 +69,5 @@ def lambda_handler(event, context):
     save_dataframe_to_s3(
         baseline_vs_simulated,
         load_env_variables(),
-        f"raw/{int(running_time)}/{comparison_path}",
+        f"raw/{station_keyname}/{comparison_path}",
     )
