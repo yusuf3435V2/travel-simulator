@@ -12,7 +12,7 @@ from streamlit_folium import st_folium
 s3_client = boto3.client("s3")
 
 
-@st.cache_data(ttl=3600)  # Caches results for 1 hour
+@st.cache_data(ttl=10)  # Caches results for 1 hour
 def get_simulation_folders(bucket_name, prefix=""):
     """
     Lists 'folders' (common prefixes) at a specific path in an S3 bucket.

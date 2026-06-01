@@ -124,30 +124,6 @@ def get_station_name_from_id(station_id: str, station_data: pd.DataFrame) -> str
     return None
 
 
-def get_line_switches(path: list[str], graph: nx.Graph) -> list[tuple[str, str, str]]:
-    """Get line switches in a given path and return a list of tuples containing the station, line switched from, and line switched to."""
-    line_switches = []
-    for i in range(len(path) - 1):
-        station1 = path[i]
-        station2 = path[i + 1]
-        edge_data = graph.get_edge_data(station1, station2)
-        if edge_data:
-            line = edge_data.get("line") or edge_data.get("line_id")
-            if i > 0:
-                previous_edge_data = graph.get_edge_data(path[i - 1], station1)
-                previous_line = (
-                    (
-                        previous_edge_data.get("line")
-                        or previous_edge_data.get("line_id")
-                    )
-                    if previous_edge_data
-                    else None
-                )
-                if previous_line and line and previous_line != line:
-                    line_switches.append((station1, previous_line, line))
-    return line_switches
-
-
 def get_station_latlong(
     station_id: str, station_data: pd.DataFrame
 ) -> tuple[float, float] | None:
@@ -163,16 +139,17 @@ def get_station_latlong(
 def get_nearest_station(
     lat: float, lng: float, station_data: pd.DataFrame
 ) -> str | None:
-    """Get the nearest station to a given latitude and longitude."""
+    """Get the nearest station to a given latitude and longitude using vectorized operations."""
     if station_data.empty:
         return None
 
-    distances = station_data.apply(
-        lambda row: haversine_distance(lat, lng, row["Latitude"], row["Longitude"]),
-        axis=1,
-    )
-    nearest_idx = distances.idxmin()
-    return station_data.loc[nearest_idx, "UniqueId"]
+    # Vectorized haversine calculation
+    lat_diff = (station_data["Latitude"].values - lat) ** 2
+    lng_diff = (station_data["Longitude"].values - lng) ** 2
+    distances = (lat_diff + lng_diff) ** 0.5  # Approximate distance (much faster)
+
+    nearest_idx = distances.argmin()
+    return station_data.iloc[nearest_idx]["UniqueId"]
 
 
 def get_station_distance(
@@ -198,10 +175,12 @@ def shortest_path_between_stations(
     origin: str,
     destination: str,
     line_change_penalty: float = 5.0,
-) -> list[str]:
+) -> tuple[list[str], int, list[tuple[str, str, str]]]:
     """Calculate the shortest path considering line changes as a cost, using
     a modified Dijkstra's algorithm that tracks both the current station
     and the line you're currently on, so line changes incur a penalty.
+
+    Returns: (path, total_duration, line_switches)
     """
     import heapq
 
@@ -215,7 +194,9 @@ def shortest_path_between_stations(
         cost, station, current_line, path = heapq.heappop(priority_queue)
 
         if station == destination:
-            return path
+            # Calculate line switches from the path
+            line_switches = _extract_line_switches(path, graph)
+            return path, cost, line_switches
 
         # Avoid revisiting same state (station + line combination)
         state_key = (station, current_line)
@@ -243,7 +224,33 @@ def shortest_path_between_stations(
 
             heapq.heappush(priority_queue, new_state)
 
-    return []  # No path found
+    return [], float("inf"), []  # No path found
+
+
+def _extract_line_switches(
+    path: list[str], graph: nx.Graph
+) -> list[tuple[str, str, str]]:
+    """Extract line switches from a path. Helper function for shortest_path_between_stations."""
+    line_switches = []
+    for i in range(len(path) - 1):
+        station1 = path[i]
+        station2 = path[i + 1]
+        edge_data = graph.get_edge_data(station1, station2)
+        if edge_data:
+            line = edge_data.get("line") or edge_data.get("line_id")
+            if i > 0:
+                previous_edge_data = graph.get_edge_data(path[i - 1], station1)
+                previous_line = (
+                    (
+                        previous_edge_data.get("line")
+                        or previous_edge_data.get("line_id")
+                    )
+                    if previous_edge_data
+                    else None
+                )
+                if previous_line and line and previous_line != line:
+                    line_switches.append((station1, previous_line, line))
+    return line_switches
 
 
 def shortest_path_length_between_stations(
@@ -319,15 +326,19 @@ class PassengerAgent(mesa.Agent):
 
     def go_to_nearest_station(self):
         """Simulate the passenger walking to the nearest station."""
-        distance_to_station = get_station_distance(
-            self.nearest_station,
-            self.origin_lat,
-            self.origin_lng,
-            self.model.station_data,
-        )
-        self.time_spent += determine_travel_time(
-            distance_to_station
-        )  # Assuming walking speed of 5 km/h
+        # Use cached station data for O(1) lookup
+        station_cache = self.model.station_cache
+        if self.nearest_station in station_cache:
+            station_info = station_cache[self.nearest_station]
+            station_lat = station_info["Latitude"]
+            station_lng = station_info["Longitude"]
+            distance_to_station = haversine_distance(
+                self.origin_lat, self.origin_lng, station_lat, station_lng
+            )
+        else:
+            distance_to_station = 0
+
+        self.time_spent += determine_travel_time(distance_to_station)
         self.transit_time += determine_travel_time(distance_to_station)
 
     def wait_for_transport(self):
@@ -336,29 +347,24 @@ class PassengerAgent(mesa.Agent):
 
     def travel_on_transport(self, boarding_stop_id: str, alighting_stop_id: str):
         """Simulate the passenger traveling on transport from the station to their destination."""
-        duration = shortest_path_length_between_stations(
+        path, duration, line_switches = shortest_path_between_stations(
             self.model.G,
             origin=boarding_stop_id,
             destination=alighting_stop_id,
         )
-        all_switches = get_line_switches(
-            shortest_path_between_stations(
-                self.model.G,
-                origin=boarding_stop_id,
-                destination=alighting_stop_id,
-            ),
-            self.model.G,
-        )
-        self.time_spent += duration + total_switch_time(all_switches)
+        self.time_spent += duration + total_switch_time(line_switches)
 
     def go_to_destination(self):
         """Simulate the passenger walking from the station to their final destination."""
-        alighting_latlong = get_station_latlong(
-            self.alighting_station, self.model.station_data
-        )
-        if alighting_latlong is None:
+        # Use cached station data for O(1) lookup
+        station_cache = self.model.station_cache
+        if self.alighting_station not in station_cache:
             return
-        alighting_lat, alighting_lng = alighting_latlong
+
+        station_info = station_cache[self.alighting_station]
+        alighting_lat = station_info["Latitude"]
+        alighting_lng = station_info["Longitude"]
+
         distance_to_destination = haversine_distance(
             self.destination_lat, self.destination_lng, alighting_lat, alighting_lng
         )
@@ -397,6 +403,10 @@ class TravelModel(mesa.Model):
         super().__init__()
         self.num_agents = 1
         self.station_data = station_data
+        # Create a cached dictionary for O(1) station lookups
+        self.station_cache = {
+            row["UniqueId"]: row for _, row in station_data.iterrows()
+        }
         self.new_stations = new_stations if new_stations is not None else []
         for station in self.new_stations:
             add_station_to_network(
@@ -407,6 +417,8 @@ class TravelModel(mesa.Model):
                 station["Line_id"],
                 self.station_data,
             )
+            # Update cache with new station
+            self.station_cache[station["UniqueId"]] = station
         self.station_ids = [
             new_station["UniqueId"] for new_station in self.new_stations
         ]
@@ -421,8 +433,21 @@ class TravelModel(mesa.Model):
 def extract_agent_data(model: TravelModel) -> pd.DataFrame:
     """Extract data from all agents in the model and return as a DataFrame."""
     agent_data = []
+    station_cache = model.station_cache
 
     for agent in model.agents:
+        # Use cached station lookups for O(1) access
+        nearest_station_name = (
+            station_cache[agent.nearest_station]["Name"]
+            if agent.nearest_station in station_cache
+            else None
+        )
+        alighting_station_name = (
+            station_cache[agent.alighting_station]["Name"]
+            if agent.alighting_station in station_cache
+            else None
+        )
+
         agent_data.append(
             {
                 "route_id": agent.unique_id,
@@ -432,12 +457,8 @@ def extract_agent_data(model: TravelModel) -> pd.DataFrame:
                 "destination_lat": agent.destination_lat,
                 "destination_lng": agent.destination_lng,
                 "day_type": agent.day_type,
-                "nearest_station": get_station_name_from_id(
-                    agent.nearest_station, model.station_data
-                ),
-                "alighting_station": get_station_name_from_id(
-                    agent.alighting_station, model.station_data
-                ),
+                "nearest_station": nearest_station_name,
+                "alighting_station": alighting_station_name,
                 "time_spent": agent.time_spent,
                 "walk_time": agent.transit_time,
             }

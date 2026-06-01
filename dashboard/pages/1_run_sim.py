@@ -195,6 +195,7 @@ else:
                     }
                 ),
             )
+            st.session_state.simulation_running = True
             st.toast("Lambda successfully triggered!")
 
         # Visual elements tracking progress loop

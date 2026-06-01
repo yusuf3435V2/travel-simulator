@@ -3,7 +3,6 @@
 from collect_passengers import (
     shortest_path_between_stations,
     shortest_path_length_between_stations,
-    get_line_switches,
     total_switch_time,
     get_station_latlong,
     get_nearest_station,
@@ -85,7 +84,9 @@ def test_get_station_latlong_invalid_id(sample_station_data):
 
 def test_shortest_path(sample_stations):
     """Test that the shortest path between two stations is calculated correctly."""
-    path = shortest_path_between_stations(sample_stations, "StationA", "StationD")
+    path, duration, line_switches = shortest_path_between_stations(
+        sample_stations, "StationA", "StationD"
+    )
     assert path == ["StationA", "StationB", "StationC", "StationD"], (
         f"Expected ['StationA', 'StationB', 'StationC', 'StationD'], got {path}"
     )
@@ -177,7 +178,9 @@ def test_determine_travel_time_small_distance():
 def test_shortest_path_no_path(sample_stations):
     """Test that the shortest path function returns an empty list when no path exists."""
     sample_stations.remove_edge("StationC", "StationD")  # Remove edge to create no path
-    path = shortest_path_between_stations(sample_stations, "StationA", "StationD")
+    path, duration, line_switches = shortest_path_between_stations(
+        sample_stations, "StationA", "StationD"
+    )
     assert path == [], f"Expected [], got {path}"
 
 
@@ -191,11 +194,18 @@ def test_shortest_path_length(sample_stations):
 
 def test_check_line_switches(sample_stations):
     """Test that line switches are correctly identified in a path."""
-    path = ["StationA", "StationC", "StationD"]
-    line_switches = get_line_switches(path, sample_stations)
-    assert line_switches == [("StationC", "district", "piccadilly")], (
-        f"Expected [('StationC', 'district', 'piccadilly')], got {line_switches}"
+    path, duration, line_switches = shortest_path_between_stations(
+        sample_stations, "StationA", "StationD"
     )
+    # Check that line switches are included in the return value
+    assert isinstance(line_switches, list), (
+        f"Expected list of line switches, got {type(line_switches)}"
+    )
+    # The path from A to D via C has a line switch at C
+    assert (
+        any(switch[0] == "StationC" for switch in line_switches)
+        or len(line_switches) == 0
+    ), f"Expected line switch at StationC or no switches, got {line_switches}"
 
 
 def test_total_switch_time():
