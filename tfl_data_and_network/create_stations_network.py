@@ -14,7 +14,7 @@ from api_utils import setup_logger
 
 
 def add_edge_between_stations(
-    G: nx.Graph, station1: str, station2: str, line_id: str, duration: int
+    G: nx.MultiGraph, station1: str, station2: str, line_id: str, duration: int
 ) -> None:
     """
     Add an edge between two stations in the graph G
@@ -101,15 +101,18 @@ def load_station_network_local(
     try:
         stations_network_data = create_station_network()
         nx.write_graphml(
-            stations_network_data.get("network", nx.Graph()), network_file_path
+            stations_network_data.get(
+                "network", nx.MultiGraph()), network_file_path
         )
         stations_network_data.get("stops_df", pd.DataFrame()).to_csv(
             station_file_path, index=False
         )
-        logging.info("Successfully loaded station network and data to local files")
+        logging.info(
+            "Successfully loaded station network and data to local files")
         return True
     except Exception as e:
-        logging.error("Failed to load station network data to local files: %s", e)
+        logging.error(
+            "Failed to load station network data to local files: %s", e)
         return False
 
 
@@ -128,7 +131,7 @@ def lambda_handler(event: dict = None, context: dict = None) -> dict:
     try:
         setup_logger()
         stations_network_data = create_station_network()
-        network = stations_network_data.get("network", nx.Graph())
+        network = stations_network_data.get("network", nx.MultiGraph())
         stops_df = stations_network_data.get("stops_df", pd.DataFrame())
         s3_client = boto3.client("s3")
         bucket_name = "c23-travel-simulation-bucket"
@@ -140,13 +143,15 @@ def lambda_handler(event: dict = None, context: dict = None) -> dict:
             Key="processed/stations_network.graphml",
             Body=graphml_bytes.getvalue(),
         )
-        logging.info("Successfully uploaded network to S3 bucket %s", bucket_name)
+        logging.info(
+            "Successfully uploaded network to S3 bucket %s", bucket_name)
 
         csv_bytes = stops_df.to_csv(index=False).encode()
         s3_client.put_object(
             Bucket=bucket_name, Key="processed/stations.csv", Body=csv_bytes
         )
-        logging.info("Successfully uploaded station data to S3 bucket %s", bucket_name)
+        logging.info(
+            "Successfully uploaded station data to S3 bucket %s", bucket_name)
         return {"statusCode": 200, "body": "Data processed and loaded successfully."}
     except Exception as e:
         logging.error("Failed to run pipeline and save to S3: %s", e)
