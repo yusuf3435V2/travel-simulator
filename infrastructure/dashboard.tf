@@ -1,38 +1,41 @@
-resource "aws_ecr_repository" "c23_travel_simulator-dashboard-ecr" {
+resource "aws_ecr_repository" "c23_travel_simulator_dashboard_ecr" {
     name                 = "c23-travel_simulator-dashboard-ecr"
     image_tag_mutability = "MUTABLE"
     force_delete         = true
+
+    image_scanning_configuration {
+        scan_on_push = true
+    }
 }
 
 output "ecr_repository_dashboard_url" {
     description = "ECR repository URL for Docker image"
-    value       = aws_ecr_repository.c23_travel_simulator-dashboard-ecr.repository_url
+    value       = aws_ecr_repository.c23_travel_simulator_dashboard_ecr.repository_url
 }
 
 output "ecr_repository_dashboard_name" {
     description = "ECR repository name"
-    value       = aws_ecr_repository.c23_travel_simulator-dashboard-ecr.name
+    value       = aws_ecr_repository.c23_travel_simulator_dashboard_ecr.name
 }
 
-data "aws_ecs_cluster" "c23-ecs-cluster" {
+data "aws_ecs_cluster" "c23_ecs_cluster" {
     cluster_name = "c23-ecs-cluster"
 }
 
-data "aws_vpc" "c23-vpc" {
+data "aws_vpc" "c23_vpc" {
     filter {
         name   = "tag:Name"
         values = ["c23-VPC"]
     }
 }
 
-data "aws_subnets" "c23-public-subnets" {
+data "aws_subnets" "c23_public_subnets" {
     filter {
         name   = "tag:Name"
         values = ["c23-public-subnet-*"]
     }
-    filter {
         name   = "vpc-id"
-        values = [data.aws_vpc.c23-vpc.id]
+        values = [data.aws_vpc.c23_vpc.id]
     }
 }
 
@@ -109,8 +112,7 @@ resource "aws_iam_role_policy" "ecs_task_s3_policy" {
 resource "aws_security_group" "dashboard_ecs_sg" {
     name        = "c23-travel_simulator-dashboard-ecs-sg"
     description = "Security group for dashboard ECS task"
-    vpc_id      = data.aws_vpc.c23-vpc.id
-
+    vpc_id      = data.aws_vpc.c23_vpc.id
     ingress {
         from_port   = 8501
         to_port     = 8501
@@ -143,7 +145,7 @@ resource "aws_ecs_task_definition" "dashboard" {
     container_definitions = jsonencode([
         {
             name      = "dashboard"
-            image     = "${aws_ecr_repository.c23_travel_simulator-dashboard-ecr.repository_url}:latest"
+            image     = "${aws_ecr_repository.c23_travel_simulator_dashboard_ecr.repository_url}:latest"
             essential = true
             portMappings = [
                 {
@@ -177,13 +179,13 @@ resource "aws_ecs_task_definition" "dashboard" {
 # ECS Service
 resource "aws_ecs_service" "dashboard" {
     name            = "c23-travel_simulator-dashboard-service"
-    cluster         = data.aws_ecs_cluster.c23-ecs-cluster.id
+    cluster         = data.aws_ecs_cluster.c23_ecs_cluster.id
     task_definition = aws_ecs_task_definition.dashboard.arn
     desired_count   = 1
     launch_type     = "FARGATE"
 
     network_configuration {
-        subnets          = data.aws_subnets.c23-public-subnets.ids
+        subnets          = data.aws_subnets.c23_public_subnets.ids
         security_groups  = [aws_security_group.dashboard_ecs_sg.id]
         assign_public_ip = true
     }
@@ -193,6 +195,9 @@ resource "aws_ecs_service" "dashboard" {
     }
 
     depends_on = [
+        aws_cloudwatch_log_group.ecs_log_group,
+        aws_iam_role_policy_attachment.ecs_task_execution_role_policy,
+        aws_iam_role_policy.ecs_task_s3_policy,
         aws_ecs_task_definition.dashboard
     ]
 }

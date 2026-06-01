@@ -94,8 +94,8 @@ This configuration also deploys a Streamlit dashboard to AWS ECS Fargate.
 
 ```bash
 cd infrastructure
-terraform init (if not already done)
-terraform apply -target aws_ecr_repository.c23_travel_simulator-dashboard-ecr
+terraform init # if not already done
+terraform apply -target=aws_ecr_repository.c23_travel_simulator_dashboard_ecr
 ```
 
 This creates the ECR repository for the dashboard Docker image.
@@ -126,7 +126,7 @@ Once deployed, the Streamlit dashboard will be accessible on port 8501 from the 
 
 ## Environment Variables
 
-The dashboard requires these environment variables (can be added to the ECS task definition):
+The dashboard requires these environment variables:
 - `GOOGLE_CLOUD_PROJECT`: Google Cloud project ID for Earth Engine
-- `AWS_ACCESS_KEY_ID`: AWS credentials for S3 access
-- `AWS_SECRET_ACCESS_KEY`: AWS credentials for S3 access
+
+AWS access to S3 should be provided via the ECS task role (no `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` env vars needed).
