@@ -187,7 +187,7 @@ def add_network_edges(network: nx.MultiGraph, station_data: pd.DataFrame,
                       base_map: folium.Map, line_groups: dict, color_scheme: dict) -> None:
     """Add all network edges to the map with layer control."""
     logging.info("Adding %s edges to map", network.number_of_edges())
-    for source, target, key, data in network.edges(keys=True, data=True):
+    for source, target, _, data in network.edges(keys=True, data=True):
         line_id = data.get('line_id', 'unknown')
 
         # Only include edges with colours in the scheme
