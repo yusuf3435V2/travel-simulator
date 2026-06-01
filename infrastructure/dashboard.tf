@@ -4,12 +4,12 @@ resource "aws_ecr_repository" "c23_travel_simulator-dashboard-ecr" {
     force_delete         = true
 }
 
-output "ecr_repository_url" {
+output "ecr_repository_dashboard_url" {
     description = "ECR repository URL for Docker image"
     value       = aws_ecr_repository.c23_travel_simulator-dashboard-ecr.repository_url
 }
 
-output "ecr_repository_name" {
+output "ecr_repository_dashboard_name" {
     description = "ECR repository name"
     value       = aws_ecr_repository.c23_travel_simulator-dashboard-ecr.name
 }

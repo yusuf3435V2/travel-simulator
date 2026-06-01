@@ -81,3 +81,52 @@ Use these to:
 - Lambda timeout set to 15 minutes (max for API rate limits)
 - Memory set to 3GB for better performance
 - S3 access required to upload processed data
+
+---
+
+# Dashboard ECS Deployment
+
+This configuration also deploys a Streamlit dashboard to AWS ECS Fargate.
+
+## Deployment Steps
+
+### 1. Create Dashboard ECR Repository and Infrastructure
+
+```bash
+cd infrastructure
+terraform init (if not already done)
+terraform apply -target aws_ecr_repository.c23_travel_simulator-dashboard-ecr
+```
+
+This creates the ECR repository for the dashboard Docker image.
+
+### 2. Build and Push Dashboard Docker Image
+
+```bash
+./dashboard.sh
+```
+
+This script handles:
+- ECR login
+- Docker build from dashboard directory
+- Image tagging
+- Push to ECR
+
+### 3. Deploy ECS Task and Service
+
+```bash
+terraform apply
+```
+
+This creates the ECS task definition, service, security groups, IAM roles, and CloudWatch logs for the dashboard.
+
+## Dashboard Access
+
+Once deployed, the Streamlit dashboard will be accessible on port 8501 from the ECS service public IP. Check the AWS ECS console to find the running service and its public IP address.
+
+## Environment Variables
+
+The dashboard requires these environment variables (can be added to the ECS task definition):
+- `GOOGLE_CLOUD_PROJECT`: Google Cloud project ID for Earth Engine
+- `AWS_ACCESS_KEY_ID`: AWS credentials for S3 access
+- `AWS_SECRET_ACCESS_KEY`: AWS credentials for S3 access

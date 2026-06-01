@@ -5,8 +5,8 @@
 set -e
 
 # Get outputs from Terraform (in current directory)
-ECR_REPO_URL=$(terraform output -raw ecr_repository_url)
-ECR_REPO_NAME=$(terraform output -raw ecr_repository_name)
+ECR_REPO_URL=$(terraform output -raw ecr_repository_dashboard_url)
+ECR_REPO_NAME=$(terraform output -raw ecr_repository_dashboard_name)
 AWS_REGION="eu-west-2"
 
 # Change to parent directory where Dockerfile is located
