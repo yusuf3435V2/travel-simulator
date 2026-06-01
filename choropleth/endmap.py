@@ -130,7 +130,7 @@ def choropleth_creation_cloud(
 
     # STEP 5: Save the map
     m.save("choropleth_cloud.html")
-    print(
+    logger.info(
         f"Map created with {len(stations_gdf)} tube stops across {gdf['station_count'].astype(bool).sum()} zones")
 
 
