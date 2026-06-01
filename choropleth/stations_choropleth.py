@@ -175,7 +175,7 @@ def get_edge_coordinates(source_id: str, target_id: str,
     target_lat = target_row.iloc[0]['Latitude']
     target_lon = target_row.iloc[0]['Longitude']
 
-    if (pd.isna(source_lat) or pd.isna(target_lat) or pd.isna(source_lon) or pd.isna(target_lon):
+    if (pd.isna(source_lat) or pd.isna(target_lat) or pd.isna(source_lon) or pd.isna(target_lon)):
         logging.debug("Skipping edge %s-%s, missing coordinates",
                       source_id, target_id)
         return None
