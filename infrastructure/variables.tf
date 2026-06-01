@@ -12,3 +12,8 @@ variable "aws_secret_access_key" {
   type      = string
   sensitive = true
 }
+
+variable "GOOGLE_CLOUD_PROJECT" {
+  description = "Google Cloud project ID for the dashboard"
+  type        = string
+}
