@@ -252,7 +252,7 @@ Recommendation:
 {recommendation}
 
 Assumptions and limitations:
-- Coverage level is currently based on the number of existing stations within a 400m catchment.
+- Coverage level is currently based on the number of existing stations within a 800m catchment.
 - Land-use data is based on broad satellite classification from Google Earth Engine Dynamic World.
 - Built-up land does not distinguish perfectly between residential, commercial and industrial use.
 - This report should be updated once simulation demand impact results are available.
@@ -305,7 +305,7 @@ def generate_recommendation_pdf(
     selected_line: str,
     bucket_name: str = "c23-travel-simulation-bucket",
     stations_key: str = "processed/stations.csv",
-    radius_m: int = 400,
+    radius_m: int = 800,
 ) -> bytes:
     coverage_context = get_coverage_context_from_s3(
         proposed_lat=proposed_lat,
