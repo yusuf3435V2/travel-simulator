@@ -263,7 +263,7 @@ def create_choropleth_base_map(gdf: gpd.GeoDataFrame, station_data: pd.DataFrame
     return m
 
 
-def create_choropleth() -> folium.Map:
+def create_choropleth() -> folium.Map | None:
     """Create a choropleth map with station counts and station markers."""
     setup_logger()
     logging.info("Starting choropleth creation")
@@ -275,7 +275,6 @@ def create_choropleth() -> folium.Map:
     if gdf.empty or stations_df.empty:
         logging.error("Failed to load required data")
         return None
-
     stations_gdf = convert_stations_to_geodataframe(stations_df)
     station_counts = get_stations_per_boundary(gdf, stations_gdf)
     gdf['station_count'] = gdf.index.map(station_counts).fillna(0).astype(int)
