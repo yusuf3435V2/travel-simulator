@@ -17,3 +17,14 @@ variable "GOOGLE_CLOUD_PROJECT" {
   description = "Google Cloud project ID for the dashboard"
   type        = string
 }
+
+variable "OPENAI_API_KEY" {
+  description = "OpenAI API key for the dashboard"
+  type        = string
+  sensitive   = true
+}
+
+variable "S3_BUCKET_NAME" {
+  description = "Name of the S3 bucket for the dashboard"
+  type        = string
+}

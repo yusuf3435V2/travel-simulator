@@ -159,6 +159,15 @@ resource "aws_ecs_task_definition" "dashboard" {
                 {
                     name  = "GOOGLE_CLOUD_PROJECT"
                     value = var.GOOGLE_CLOUD_PROJECT
+                },
+                {
+                    name  = "S3_BUCKET_NAME"
+                    value = var.S3_BUCKET_NAME
+
+                },
+                {
+                    name  = "OPENAI_API_KEY"
+                    value = var.OPENAI_API_KEY
                 }
             ]
             logConfiguration = {
