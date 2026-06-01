@@ -8,6 +8,7 @@ import geopandas as gpd
 import networkx as nx
 import folium
 import boto3
+from botocore.exceptions import ClientError
 
 
 def setup_logger(log_level: str = "INFO") -> None:
@@ -52,7 +53,7 @@ def extract_station_network() -> nx.MultiGraph:
             network = nx.MultiGraph(network)
         logging.info("Successfully loaded network from S3")
         return network
-    except Exception as e:
+    except (ClientError, IOError, nx.NetworkXError) as e:
         logging.error("Failed to extract network from S3: %s", e)
         return nx.MultiGraph()
 
@@ -69,7 +70,7 @@ def extract_boundaries() -> gpd.GeoDataFrame:
         logging.info("Successfully loaded boundaries from S3")
         gdf = gdf[gdf["CTYUA25CD"].str.startswith("E09")]
         return gdf
-    except Exception as e:
+    except (ClientError, IOError, pickle.UnpicklingError) as e:
         logging.error("Failed to extract boundaries from S3: %s", e)
         return gpd.GeoDataFrame()
 
@@ -86,7 +87,7 @@ def extract_stations() -> pd.DataFrame:
         stations_df = pd.read_csv(BytesIO(csv_bytes.encode()))
         logging.info("Successfully loaded stations from S3")
         return stations_df
-    except Exception as e:
+    except (ClientError, IOError, pd.errors.ParserError) as e:
         logging.error("Failed to extract stations from S3: %s", e)
         return pd.DataFrame()
 
