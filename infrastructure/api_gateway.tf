@@ -26,6 +26,7 @@ resource "aws_apigatewayv2_integration" "c23-travel-simulation-integration" {
   description               = "Lambda example"
   integration_method        = "POST"
   integration_uri           = aws_lambda_function.c23_travel_simulator_simulation.invoke_arn
+  payload_format_version   = "2.0"
 }
 
 resource "aws_apigatewayv2_stage" "c23-travel-simulation-stage" {

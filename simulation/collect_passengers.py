@@ -61,7 +61,6 @@ def add_station_to_network(
     """Add a station to the network graph."""
     graph.add_node(station_id, name=station_name)
     closest_stations = find_closest_consecutive_stations(graph, lat, lng, station_data)
-    print(f"found closest stations: {closest_stations} for new station {station_id}")
     if closest_stations is not None:
         closest_station, neighbor_station = closest_stations
 
@@ -94,16 +93,13 @@ def find_closest_consecutive_stations(
         if node[0].startswith("user_station"):
             continue  # Skip user-added stations to avoid connecting to them
         station_id = node[0]
-        print(f"checking station {station_id} for closest station")
         station_latlong = get_station_latlong(station_id, station_data)
         if station_latlong is not None:
             station_lat, station_lng = station_latlong
-            print(station_lat, station_lng)
             distance = haversine_distance(lat, lng, station_lat, station_lng)
             if distance < closest_distance:
                 closest_distance = distance
                 closest_station = station_id
-    print(closest_station, closest_distance)
     if closest_station is not None:
         neighbors = list(graph.neighbors(closest_station))
         if neighbors:
@@ -381,7 +377,7 @@ class PassengerAgent(mesa.Agent):
         """Advance the agent's state by one step."""
         self.look_for_nearest_stop()
         self.travel()
-        if self.time_spent > 100:
+        if self.time_spent > 300:
             print(
                 "Passenger {} has been traveling for a long time ({} minutes). Walk time: {} minutes.".format(
                     self.passenger_id, self.time_spent, self.transit_time

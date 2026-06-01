@@ -22,6 +22,8 @@ import os
 
 def lambda_handler(event, context):
     # Run the baseline simulation and save results
+    proposed_station_info = event
+    logging.info("Proposed station info: %s", proposed_station_info)
     running_time = time.time()
     graph = fetch_graph_from_s3(load_env_variables())
     station_data = fetch_station_data_from_s3(load_env_variables())
@@ -40,14 +42,14 @@ def lambda_handler(event, context):
         logging.info(
             "Baseline simulation results already exist in S3. Skipping baseline simulation."
         )
-        print("LOADING BASELINE FILE")
+        logging.info("LOADING BASELINE FILE")
         baseline_results = load_results_from_s3(
             load_env_variables(), "raw/BASELINE.csv"
         )
-    event["number_of_passengers"] = len(baseline_results)
+    proposed_station_info["number_of_passengers"] = len(baseline_results)
     # Run the altered simulation with user station and save results
     simulated_output = run_simulation_with_user_station(
-        graph, station_data, [event], passenger_data
+        graph, station_data, [proposed_station_info], passenger_data
     )
     save_dataframe_to_s3(
         simulated_output,
@@ -55,7 +57,7 @@ def lambda_handler(event, context):
         f"raw/{int(running_time)}/simulation_results_with_user_station.csv",
     )
     save_json_to_s3(
-        json.dumps(event),
+        json.dumps(proposed_station_info),
         load_env_variables(),
         f"raw/{int(running_time)}/user_station.json",
     )

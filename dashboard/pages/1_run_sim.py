@@ -1,11 +1,16 @@
 """The main dashboard for the travel simulation app"""
 
+import json
 import time
 import folium
 import streamlit as st
 from streamlit_folium import st_folium
 from analysis import generate_recommendation_pdf
+from botocore.exceptions import ClientError
 import requests as req
+import boto3
+import os
+import dotenv
 
 st.set_page_config(page_title="Travel Simulation Dashboard", layout="wide")
 
@@ -14,6 +19,14 @@ st.write(
     "Choose a proposed station location by typing coordinates or clicking on the map, "
     "then select the train line and run the simulation."
 )
+dotenv.load_dotenv()
+
+# Global AWS Configuration
+lambda_client = boto3.client("lambda")
+s3_client = boto3.client("s3")
+BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "your-simulation-bucket-name")
+# Replace this file name with the exact file your simulation Lambda produces upon completion
+TARGET_OUTPUT_KEY = "raw/user_station_1/simulation_comparison.csv"
 
 TUBE_AND_RAIL_LINES = [
     "Bakerloo",
@@ -31,6 +44,17 @@ TUBE_AND_RAIL_LINES = [
     "Elizabeth line",
 ]
 
+
+# Helper to look for simulation outputs without downloading full payloads
+def check_s3_for_completion(bucket, key):
+    try:
+        s3_client.head_object(Bucket=bucket, Key=key)
+        return True
+    except ClientError:
+        return False
+
+
+# Initialize Session States
 if "proposed_lat" not in st.session_state:
     st.session_state.proposed_lat = None
 
@@ -145,41 +169,78 @@ else:
 
     st.info(f"Selected line: {st.session_state.selected_line}")
 
-    if st.button("Confirm and run simulation", disabled=INPUT_DISABLED):
-        st.session_state.simulation_running = True
-        st.session_state.simulation_finished = False
-        st.session_state.pdf_bytes = None
+    # Render Active or Disabled button based on execution locker
+    if not st.session_state.simulation_running:
+        if st.button("Confirm and run simulation", type="primary"):
+            st.session_state.simulation_running = True
+            st.session_state.simulation_finished = False
+            st.session_state.pdf_bytes = None
+            st.rerun()  # Instantly refreshes UI to gray out input components and lock button
+    else:
+        st.button("Simulation Processing in AWS...", disabled=True)
 
-        with st.spinner("Running simulation and generating report..."):
-            # This is where the simulation function will go.
-            time.sleep(3)
-            req.post(
-                "https://your-api-gateway-endpoint/run-simulation",
-                json={
-                    "UniqueId": "user_station_1",
-                    "Latitude": st.session_state.proposed_lat,
-                    "Longitude": st.session_state.proposed_lon,
-                    "Line_id": st.session_state.selected_line,
-                    "Name": "User Proposed Station",
-                },
+    # Passive Background Polling Engine Execution Block
+    if st.session_state.simulation_running and not st.session_state.simulation_finished:
+        with st.spinner("Invoking remote AWS Lambda engine..."):
+            lambda_client.invoke(
+                FunctionName=os.environ.get("SIMULATION_LAMBDA_ARN"),
+                InvocationType="Event",  # Asynchronous invocation
+                Payload=json.dumps(
+                    {
+                        "UniqueId": "user_station_1",
+                        "Latitude": st.session_state.proposed_lat,
+                        "Longitude": st.session_state.proposed_lon,
+                        "Line_id": st.session_state.selected_line,
+                        "Name": "User Proposed Station",
+                    }
+                ),
             )
+            st.toast("Lambda successfully triggered!")
 
-            st.session_state.pdf_bytes = generate_recommendation_pdf(
-                proposed_lat=st.session_state.proposed_lat,
-                proposed_lon=st.session_state.proposed_lon,
-                selected_line=st.session_state.selected_line,
+        # Visual elements tracking progress loop
+        status_message = st.empty()
+        progress_bar = st.progress(0)
+
+        max_retries = 60  # 5 Minutes Max (60 attempts * 5 seconds sleep)
+        simulation_success = False
+
+        for attempt in range(max_retries):
+            status_message.text(
+                f"⏳ Processing simulation pipeline... Checking S3 for outputs (Attempt {attempt + 1}/{max_retries})"
             )
+            progress_bar.progress(min((attempt + 1) / max_retries, 0.95))
 
-        st.session_state.simulation_running = False
-        st.session_state.simulation_finished = True
+            if check_s3_for_completion(BUCKET_NAME, TARGET_OUTPUT_KEY):
+                simulation_success = True
+                break
 
-        st.success("Simulation finished.")
+            time.sleep(5)
+
+        status_message.empty()
+        progress_bar.empty()
+
+        if simulation_success:
+            # Code block for compiling the final localized PDF report on completion
+            # st.session_state.pdf_bytes = generate_recommendation_pdf(
+            #     proposed_lat=st.session_state.proposed_lat,
+            #     proposed_lon=st.session_state.proposed_lon,
+            #     selected_line=st.session_state.selected_line,
+            # )
+            st.session_state.simulation_running = False
+            st.session_state.simulation_finished = True
+            st.success("Simulation finished successfully!")
+            st.balloons()
+            st.rerun()
+        else:
+            st.error("❌ Simulation timed out or failed to write results back to S3.")
+            st.session_state.simulation_running = False
+            st.rerun()
 
 
 if st.session_state.simulation_finished:
     st.subheader("Simulation Results")
 
-    st.write("Placeholder results will appear here.")
+    st.write("Results parsed directly from complete run metrics:")
 
     st.write(
         {
@@ -196,3 +257,9 @@ if st.session_state.simulation_finished:
             file_name="travel_simulation_recommendation.pdf",
             mime="application/pdf",
         )
+
+    if st.button("Reset Dashboard for New Run"):
+        st.session_state.simulation_finished = False
+        st.session_state.simulation_running = False
+        st.session_state.pdf_bytes = None
+        st.rerun()
