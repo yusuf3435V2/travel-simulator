@@ -33,9 +33,11 @@ def remove_uninfluenced_stations(comparison_df) -> pd.DataFrame:
 
 def get_affected_routes(comparison_df) -> pd.DataFrame:
     """Get all affected routes by proposed station. We also want to combine backwards and forwards affected routes to get a full picture of the impact."""
+    comparison_df = comparison_df.copy()
     comparison_df[["station_alpha", "station_omega"]] = np.sort(
         comparison_df[["nearest_station_baseline", "alighting_station_baseline"]],
         axis=1,
+    )
     )
 
     # 2. Combine them into a single clean route identifier string
