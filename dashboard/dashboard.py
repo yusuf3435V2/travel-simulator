@@ -183,13 +183,7 @@ else:
         st.session_state.kmz_bytes = None
         st.rerun()
 
-    if not INPUT_DISABLED and map_data and map_data.get("last_clicked"):
-        st.session_state.proposed_lat = map_data["last_clicked"]["lat"]
-        st.session_state.proposed_lon = map_data["last_clicked"]["lng"]
-        st.session_state.simulation_finished = False
-        st.session_state.pdf_bytes = None
-        st.rerun()
-
+    # Click handling is performed above; avoid duplicated state updates/reruns.
 st.subheader("2. Choose proposed train line")
 
 selected_line = st.selectbox(
