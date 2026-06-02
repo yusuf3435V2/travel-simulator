@@ -46,19 +46,48 @@ def load_boundaries_local(filepath: str) -> gpd.GeoDataFrame:
     return gdf
 
 
-def load_boundaries_s3(bucket_name: str, file_path: str) -> gpd.GeoDataFrame:
-    """Load boundary data from S3 bucket."""
+def load_boundaries_s3(
+    bucket_name: str,
+    file_path: str
+) -> gpd.GeoDataFrame:
+    """Load boundary data from S3 bucket, caching filtered London data."""
     s3 = boto3.client('s3')
     try:
         response = s3.get_object(
             Bucket=bucket_name, Key=file_path)
         gdf = pickle.loads(response['Body'].read())
-        gdf = gdf[gdf["CTYUA25CD"].str.startswith("E09")]
+        gdf = clean_boundary_data(gdf)
+        # Only upload if filtered cache doesn't exist
+        if not file_exists_in_s3(bucket_name, file_path):
+            logger.info("Caching filtered boundary data to S3: %s",
+                        file_path)
+            upload_file_to_s3(
+                bucket_name, file_path, pickle.dumps(gdf))
         logger.info("Boundary data loaded successfully from S3: %s", file_path)
         return gdf
     except Exception as e:
         logger.error("Error fetching file from S3: %s", e)
         raise RuntimeError(f"Failed to load boundaries from S3: {e}")
+
+
+def clean_boundary_data(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    gdf = gdf[gdf["CTYUA25CD"].str.startswith("E09")]
+    gdf = gdf[["CTYUA25NM", "geometry"]]
+    gdf.columns = ["borough_name", "geometry"]
+    return gdf
+
+
+def file_exists_in_s3(bucket_name: str, file_path: str) -> bool:
+    """Check if a file exists in S3 bucket."""
+    s3 = boto3.client('s3')
+    try:
+        s3.head_object(Bucket=bucket_name, Key=file_path)
+        return True
+    except s3.exceptions.NoSuchKey:
+        return False
+    except Exception as e:
+        logger.warning("Error checking S3 file existence: %s", e)
+        return False
 
 
 def get_file_from_s3(bucket_name: str, file_path: str) -> bytes:
@@ -221,3 +250,5 @@ if __name__ == "__main__":
     # gets the stop positions
     # stations = get_normalised_stops(STOPS_URL)
     # save_normalised_stops(stations)
+    gdf = load_boundaries_s3(BUCKET_NAME, f"processed/{BOUNDARY_FILE}")
+    print(gdf.head())
