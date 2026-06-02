@@ -96,6 +96,7 @@ if "proposed_lon" not in st.session_state:
 
 if "selected_line" not in st.session_state:
     st.session_state.selected_line = TUBE_AND_RAIL_LINES[0]
+    st.session_state.selected_line_id = line_to_id_mapping[TUBE_AND_RAIL_LINES[0]]
 
 if "simulation_running" not in st.session_state:
     st.session_state.simulation_running = False
@@ -286,11 +287,17 @@ else:
 
         if simulation_success:
             # Code block for compiling the final localized PDF report on completion
-            # st.session_state.pdf_bytes = generate_recommendation_pdf(
-            #     proposed_lat=st.session_state.proposed_lat,
-            #     proposed_lon=st.session_state.proposed_lon,
-            #     selected_line=st.session_state.selected_line,
-            # )
+            st.session_state.pdf_bytes = generate_recommendation_pdf(
+                proposed_lat=st.session_state.proposed_lat,
+                proposed_lon=st.session_state.proposed_lon,
+                selected_line=st.session_state.selected_line,
+            )
+
+            st.session_state.kmz_bytes = generate_kmz_bytes(
+                proposed_lat=st.session_state.proposed_lat,
+                proposed_lon=st.session_state.proposed_lon,
+                selected_line=st.session_state.selected_line,
+            )
             st.session_state.simulation_running = False
             st.session_state.simulation_finished = True
             st.success("Simulation finished successfully!")
@@ -335,6 +342,15 @@ if st.session_state.simulation_finished:
             mime="application/pdf",
         )
 
+    if st.session_state.kmz_bytes:
+        st.download_button(
+            key="download_kmz_button",
+            label="Download Google Earth KMZ",
+            data=st.session_state.kmz_bytes,
+            file_name="travel_simulation_google_earth.kmz",
+            mime="application/vnd.google-earth.kmz",
+        )
+
     if st.button("Reset Dashboard for New Run"):
         st.session_state.simulation_finished = False
         st.session_state.simulation_running = False
@@ -363,33 +379,3 @@ if st.session_state.simulation_finished:
     st.metric("Total Time Spent Difference (mins)", f"{total_time_diff:.2f}")
     st.metric("Greatest Time Spent Difference (mins)", f"{greatest_time_diff:.2f}")
     st.metric("Percentage of Affected Routes", f"{percentage_affected:.2f}%")
-
-
-if st.session_state.simulation_finished:
-    st.subheader("Simulation Results")
-
-    st.write("Placeholder results will appear here.")
-
-    st.write(
-        {
-            "proposed_lat": st.session_state.proposed_lat,
-            "proposed_lon": st.session_state.proposed_lon,
-            "selected_line": st.session_state.selected_line,
-        }
-    )
-
-    if st.session_state.pdf_bytes:
-        st.download_button(
-            label="Download recommendation report",
-            data=st.session_state.pdf_bytes,
-            file_name="travel_simulation_recommendation.pdf",
-            mime="application/pdf",
-        )
-
-    if st.session_state.kmz_bytes:
-        st.download_button(
-            label="Download Google Earth KMZ",
-            data=st.session_state.kmz_bytes,
-            file_name="travel_simulation_google_earth.kmz",
-            mime="application/vnd.google-earth.kmz",
-        )
