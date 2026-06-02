@@ -1,10 +1,14 @@
-from collect_passengers import run_simulation_baseline, run_simulation_with_user_station
+from collect_passengers import (
+    run_simulation_baseline,
+    run_simulation_with_user_station,
+    assign_unique_id_to_routes,
+)
 from result_analysis import compare_simulations
 from s3_utils_sim import (
     load_env_variables,
     check_baseline_exists_in_s3,
     load_results_from_s3,
-    save_results_to_s3,
+    save_dataframe_to_s3,
     fetch_graph_from_s3,
     fetch_station_data_from_s3,
     fetch_passenger_data_from_s3,
@@ -13,11 +17,16 @@ from s3_utils_sim import (
 import time
 import logging
 import json
+import os
 
 
-if __name__ == "__main__":
+def lambda_handler(event, context):
     # Run the baseline simulation and save results
-    running_time = time.time()
+    proposed_station_info = event
+    station_keyname = proposed_station_info.get(
+        "UniqueId", f"user_station_{int(time.time())}"
+    )
+    logging.info("Proposed station info: %s", proposed_station_info)
     graph = fetch_graph_from_s3(load_env_variables())
     station_data = fetch_station_data_from_s3(load_env_variables())
     passenger_data = fetch_passenger_data_from_s3(load_env_variables())
@@ -26,8 +35,8 @@ if __name__ == "__main__":
             "Baseline simulation results not found in S3. Running baseline simulation..."
         )
         baseline_results = run_simulation_baseline(graph, station_data, passenger_data)
-        save_results_to_s3(
-            "simulation/simulation_results.csv",
+        save_dataframe_to_s3(
+            baseline_results,
             load_env_variables(),
             "raw/BASELINE.csv",
         )
@@ -35,40 +44,30 @@ if __name__ == "__main__":
         logging.info(
             "Baseline simulation results already exist in S3. Skipping baseline simulation."
         )
-        print("LOADING BASELINE FILE")
+        logging.info("LOADING BASELINE FILE")
         baseline_results = load_results_from_s3(
             load_env_variables(), "raw/BASELINE.csv"
         )
-    example_station = {
-        "UniqueId": "user_station_1",
-        "Name": "User Station",
-        "Latitude": 51.5175221,
-        "Longitude": -0.0532169,
-        "Line_id": "district",
-    }
-    simulation_metadata = example_station.copy()
-    simulation_metadata["number_of_passengers"] = len(baseline_results)
+    proposed_station_info["number_of_passengers"] = len(baseline_results)
     # Run the altered simulation with user station and save results
     simulated_output = run_simulation_with_user_station(
-        graph, station_data, [example_station], passenger_data
+        graph, station_data, [proposed_station_info], passenger_data
     )
-    save_results_to_s3(
-        "simulation/simulation_results_with_user_station.csv",
+    save_dataframe_to_s3(
+        simulated_output,
         load_env_variables(),
-        f"raw/{int(running_time)}/simulation_results_with_user_station.csv",
+        f"raw/{station_keyname}/simulation_results_with_user_station.csv",
     )
     save_json_to_s3(
-        json.dumps(simulation_metadata),
+        json.dumps(proposed_station_info),
         load_env_variables(),
-        f"raw/{int(running_time)}/user_station.json",
+        f"raw/{station_keyname}/user_station.json",
     )
     # Compare the baseline and altered simulation results
     baseline_vs_simulated = compare_simulations(baseline_results, simulated_output)
-    comparison_path = "simulation/simulation_comparison.csv"
-    baseline_vs_simulated.to_csv(comparison_path, index=False)
-    save_results_to_s3(
-        comparison_path,
+    comparison_path = "simulation_comparison.csv"
+    save_dataframe_to_s3(
+        baseline_vs_simulated,
         load_env_variables(),
-        f"raw/{int(running_time)}/simulation_comparison.csv",
+        f"raw/{station_keyname}/{comparison_path}",
     )
-    # Save JSON of station data to S3 for frontend use

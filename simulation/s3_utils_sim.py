@@ -81,6 +81,17 @@ def save_results_to_s3(file_path: str, bucket_name: str, s3_key: str):
         print(f"Error uploading file to S3: {e}")
 
 
+def save_dataframe_to_s3(df: pd.DataFrame, bucket_name: str, s3_key: str):
+    """Saves a DataFrame as a CSV file to an S3 bucket."""
+    s3_client = boto3.client("s3")
+    try:
+        csv_buffer = df.to_csv(index=False)
+        s3_client.put_object(Body=csv_buffer, Bucket=bucket_name, Key=s3_key)
+        print(f"DataFrame saved as CSV to S3 bucket {bucket_name} with key {s3_key}.")
+    except Exception as e:
+        print(f"Error saving DataFrame to S3: {e}")
+
+
 def load_results_from_s3(bucket_name: str, s3_key: str) -> pd.DataFrame:
     """Loads a CSV file from S3 into a DataFrame."""
     s3_client = boto3.client("s3")

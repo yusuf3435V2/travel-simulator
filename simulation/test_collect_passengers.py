@@ -3,7 +3,6 @@
 from collect_passengers import (
     shortest_path_between_stations,
     shortest_path_length_between_stations,
-    get_line_switches,
     total_switch_time,
     get_station_latlong,
     get_nearest_station,
@@ -20,7 +19,6 @@ from collect_passengers import (
     choose_transport_speed,
     determine_travel_time,
     BUS_SPEED,
-    BIKE_SPEED,
     WALK_SPEED,
 )
 from s3_utils_sim import fetch_file_from_s3
@@ -85,7 +83,9 @@ def test_get_station_latlong_invalid_id(sample_station_data):
 
 def test_shortest_path(sample_stations):
     """Test that the shortest path between two stations is calculated correctly."""
-    path = shortest_path_between_stations(sample_stations, "StationA", "StationD")
+    path, duration, line_switches = shortest_path_between_stations(
+        sample_stations, "StationA", "StationD"
+    )
     assert path == ["StationA", "StationB", "StationC", "StationD"], (
         f"Expected ['StationA', 'StationB', 'StationC', 'StationD'], got {path}"
     )
@@ -106,32 +106,11 @@ def test_choose_transport_speed_walk():
     assert speed == WALK_SPEED, f"Expected {WALK_SPEED}, got {speed}"
 
 
-def test_choose_transport_speed_bike():
-    """Test that bike speed is returned for medium distances."""
-    distance = 3.0  # 3 km, between 1.6 and 5
-    speed = choose_transport_speed(distance)
-    assert speed == BIKE_SPEED, f"Expected {BIKE_SPEED}, got {speed}"
-
-
 def test_choose_transport_speed_bus():
     """Test that bus speed is returned for long distances."""
     distance = 6.0  # 6 km, > 5
     speed = choose_transport_speed(distance)
     assert speed == BUS_SPEED, f"Expected {BUS_SPEED}, got {speed}"
-
-
-def test_choose_transport_speed_boundary_walk_to_bike():
-    """Test boundary case between walk and bike speed (1.6 km)."""
-    distance = 1.6
-    speed = choose_transport_speed(distance)
-    assert speed == BIKE_SPEED, f"Expected {BIKE_SPEED} at boundary, got {speed}"
-
-
-def test_choose_transport_speed_boundary_bike_to_bus():
-    """Test boundary case between bike and bus speed (5 km)."""
-    distance = 5.0
-    speed = choose_transport_speed(distance)
-    assert speed == BUS_SPEED, f"Expected {BUS_SPEED} at boundary, got {speed}"
 
 
 def test_determine_travel_time_walk():
@@ -142,19 +121,11 @@ def test_determine_travel_time_walk():
     assert abs(time - expected_time) < 0.01, f"Expected {expected_time}, got {time}"
 
 
-def test_determine_travel_time_bike():
-    """Test travel time calculation for biking."""
-    distance = 3.0  # 3 km
-    time = determine_travel_time(distance)
-    expected_time = distance / BIKE_SPEED
-    assert abs(time - expected_time) < 0.01, f"Expected {expected_time}, got {time}"
-
-
 def test_determine_travel_time_bus():
     """Test travel time calculation for bus."""
     distance = 6.0  # 6 km
     time = determine_travel_time(distance)
-    expected_time = distance / BUS_SPEED
+    expected_time = distance / BUS_SPEED + 5  # Add 5 minutes for bus switch time
     assert abs(time - expected_time) < 0.01, f"Expected {expected_time}, got {time}"
 
 
@@ -177,7 +148,9 @@ def test_determine_travel_time_small_distance():
 def test_shortest_path_no_path(sample_stations):
     """Test that the shortest path function returns an empty list when no path exists."""
     sample_stations.remove_edge("StationC", "StationD")  # Remove edge to create no path
-    path = shortest_path_between_stations(sample_stations, "StationA", "StationD")
+    path, duration, line_switches = shortest_path_between_stations(
+        sample_stations, "StationA", "StationD"
+    )
     assert path == [], f"Expected [], got {path}"
 
 
@@ -191,8 +164,14 @@ def test_shortest_path_length(sample_stations):
 
 def test_check_line_switches(sample_stations):
     """Test that line switches are correctly identified in a path."""
-    path = ["StationA", "StationC", "StationD"]
-    line_switches = get_line_switches(path, sample_stations)
+    path, duration, line_switches = shortest_path_between_stations(
+        sample_stations, "StationA", "StationD"
+    )
+    # Check that line switches are included in the return value
+    assert isinstance(line_switches, list), (
+        f"Expected list of line switches, got {type(line_switches)}"
+    )
+    # The path from A to D via C has a line switch at C
     assert line_switches == [("StationC", "district", "piccadilly")], (
         f"Expected [('StationC', 'district', 'piccadilly')], got {line_switches}"
     )
