@@ -14,6 +14,7 @@ from s3_utils_sim import (
 # Here are some speeds of different methods of getting to the station.
 WALK_SPEED = 5 / 60
 BUS_SPEED = 30 / 60
+TRAIN_SPEED = 45 / 60  # Average speed of London Underground trains in km/min
 
 
 def load_user_information(file_path: str) -> pd.DataFrame:
@@ -59,46 +60,54 @@ def add_station_to_network(
 ) -> None:
     """Add a station to the network graph."""
     graph.add_node(station_id, name=station_name)
-    closest_stations = find_closest_consecutive_stations(graph, lat, lng, station_data)
+    closest_stations = find_closest_consecutive_stations(
+        graph, lat, lng, station_data, station_id
+    )
     if closest_stations is not None:
         closest_station, neighbor_station = closest_stations
-
-        time_between_stations = graph.get_edge_data(
-            closest_station, neighbor_station
-        ).get("duration", 0)
+        print(
+            f"Connecting new station {station_id} to closest station {closest_station} and its neighbor {neighbor_station}"
+        )
+        distance_to_closest = get_station_distance(
+            closest_station, lat, lng, station_data
+        )
+        distance_to_neighbor = get_station_distance(
+            neighbor_station, lat, lng, station_data
+        )
         graph.add_edge(
             station_id,
             closest_station,
             line_id=line,
-            duration=time_between_stations / 2,
+            duration=distance_to_closest
+            / TRAIN_SPEED,  # assuming train speed of 40 km/h, convert to minutes
         )
         graph.add_edge(
             station_id,
             neighbor_station,
             line_id=line,
-            duration=time_between_stations / 2,
+            duration=distance_to_neighbor / TRAIN_SPEED,
         )
         graph.remove_edge(closest_station, neighbor_station)  # Remove the original edge
 
 
 def find_closest_consecutive_stations(
-    graph: nx.Graph, lat: float, lng: float, station_data: pd.DataFrame
+    graph: nx.Graph, lat: float, lng: float, station_data: pd.DataFrame, station_id: str
 ) -> tuple[str, str] | None:
     """Find the closest consecutive stations in the graph to a given latitude and longitude."""
     closest_station = None
     closest_distance = float("inf")
 
     for node in graph.nodes(data=True):
-        if node[0].startswith("user_station"):
-            continue  # Skip user-added stations to avoid connecting to them
-        station_id = node[0]
-        station_latlong = get_station_latlong(station_id, station_data)
+        current_station_id = node[0]
+        if current_station_id == station_id:
+            continue  # Skip the station itself
+        station_latlong = get_station_latlong(current_station_id, station_data)
         if station_latlong is not None:
             station_lat, station_lng = station_latlong
             distance = haversine_distance(lat, lng, station_lat, station_lng)
             if distance < closest_distance:
                 closest_distance = distance
-                closest_station = station_id
+                closest_station = current_station_id
     if closest_station is not None:
         neighbors = list(graph.neighbors(closest_station))
         if neighbors:
@@ -548,9 +557,9 @@ if __name__ == "__main__":
     new_station = {
         "UniqueId": "user_station_1",
         "Name": "User Station",
-        "Latitude": 51.5175221,
-        "Longitude": -0.0532169,
-        "Line_id": "district",
+        "Latitude": 51.519425328081894,
+        "Longitude": -0.09887695312500001,
+        "Line_id": "bakerloo",
     }
 
     run_simulation_with_user_station(

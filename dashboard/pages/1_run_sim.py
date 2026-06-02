@@ -53,6 +53,22 @@ TUBE_AND_RAIL_LINES = [
     "Elizabeth line",
 ]
 
+line_to_id_mapping = {
+    "Bakerloo": "bakerloo",
+    "Central": "central",
+    "Circle": "circle",
+    "District": "district",
+    "Hammersmith & City": "hammersmith-city",
+    "Jubilee": "jubilee",
+    "Metropolitan": "metropolitan",
+    "Northern": "northern",
+    "Piccadilly": "piccadilly",
+    "Victoria": "victoria",
+    "Waterloo & City": "waterloo-city",
+    "DLR": "dlr",
+    "Elizabeth line": "elizabeth",
+}
+
 
 # Helper to look for simulation outputs without downloading full payloads
 def check_s3_for_completion(bucket, key):
@@ -73,6 +89,9 @@ if "proposed_lon" not in st.session_state:
 
 if "selected_line" not in st.session_state:
     st.session_state.selected_line = TUBE_AND_RAIL_LINES[0]
+    st.session_state.selected_line_id = line_to_id_mapping[
+        st.session_state.selected_line
+    ]
 
 if "simulation_running" not in st.session_state:
     st.session_state.simulation_running = False
@@ -162,9 +181,11 @@ selected_line = st.selectbox(
     index=TUBE_AND_RAIL_LINES.index(st.session_state.selected_line),
     disabled=INPUT_DISABLED,
 )
+print(f"Selected line: {selected_line}")
 
 if not INPUT_DISABLED and selected_line != st.session_state.selected_line:
     st.session_state.selected_line = selected_line
+    st.session_state.selected_line_id = line_to_id_mapping[selected_line]
     st.session_state.simulation_finished = False
     st.session_state.pdf_bytes = None
 
@@ -197,6 +218,16 @@ else:
         current_time = int(time.time())
         unique_id = str(uuid.uuid4())
         st.session_state.target_key = f"raw/{unique_id}/simulation_comparison.csv"  # Adjust this path based on your Lambda's output structure
+        print("Running following station")
+        print(
+            {
+                "UniqueId": unique_id,
+                "Latitude": st.session_state.proposed_lat,
+                "Longitude": st.session_state.proposed_lon,
+                "Line_id": st.session_state.selected_line_id,
+                "Name": "User Proposed Station",
+            }
+        )
         with st.spinner("Invoking remote AWS Lambda engine..."):
             lambda_client.invoke(
                 FunctionName=os.environ.get("SIMULATION_LAMBDA_ARN"),
@@ -206,7 +237,7 @@ else:
                         "UniqueId": unique_id,
                         "Latitude": st.session_state.proposed_lat,
                         "Longitude": st.session_state.proposed_lon,
-                        "Line_id": st.session_state.selected_line,
+                        "Line_id": st.session_state.selected_line_id,
                         "Name": "User Proposed Station",
                     }
                 ),
@@ -273,7 +304,7 @@ if st.session_state.simulation_finished:
         metadata = {
             "Latitude": st.session_state.proposed_lat,
             "Longitude": st.session_state.proposed_lon,
-            "Line_id": st.session_state.selected_line,
+            "Line_id": st.session_state.selected_line_id,
             "Name": "User Proposed Station",
             "number_of_passengers": 32000,  # Placeholder, replace with actual metadata
         }

@@ -19,7 +19,7 @@ def compare_simulations(
     )
 
     # You can add more comparisons as needed (e.g., number of line switches, routes taken, etc.)
-    return comparison_df[comparison_df["time_spent_diff"] != 0][
+    return comparison_df[abs(comparison_df["time_spent_diff"]) > 0.1][
         [
             "route_id",
             "origin_lat_baseline",
