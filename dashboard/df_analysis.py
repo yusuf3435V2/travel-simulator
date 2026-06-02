@@ -5,7 +5,7 @@ import numpy as np
 
 
 def logistic(x: float) -> float:
-    """Logistic function to scale time spent differences for color coding."""
+    """Logistic function used to map time differences to switching probabilities."""
     return 1 / (1 + np.exp(-x))
 
 
