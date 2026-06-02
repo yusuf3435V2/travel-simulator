@@ -70,6 +70,11 @@ def load_boundaries_s3(
         raise RuntimeError(f"Failed to load boundaries from S3: {e}")
 
 
+def clean_boundary_data(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    gdf = gdf[gdf["CTYUA25CD"].str.startswith("E09")]
+    gdf = gdf[["CTYUA25NM", "geometry"]]
+    gdf.columns = ["borough_name", "geometry"]
+    return gdf
 
 
 def file_exists_in_s3(bucket_name: str, file_path: str) -> bool:
@@ -245,3 +250,5 @@ if __name__ == "__main__":
     # gets the stop positions
     # stations = get_normalised_stops(STOPS_URL)
     # save_normalised_stops(stations)
+    gdf = load_boundaries_s3(BUCKET_NAME, f"processed/{BOUNDARY_FILE}")
+    print(gdf.head())
