@@ -16,3 +16,5 @@ reportlab
 earthengine-api
 simplekml
 openai
+matplotlib
+mapclassify
