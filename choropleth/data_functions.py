@@ -24,11 +24,12 @@ def create_stations_geodataframe(df: pd.DataFrame) -> gpd.GeoDataFrame:
     )
 
 
-def load_boundaries_local(filepath: str) -> gpd.GeoDataFrame:
+def load_boundaries_local(filepath: str = BOUNDARY_FILE) -> gpd.GeoDataFrame:
     """Load boundary data from cache or geojson file."""
     script_dir = Path(__file__).parent
     cache_file = script_dir / filepath
     geojson_file = script_dir / "boundaryData.geojson"
+    clean_cache_file = script_dir / "boundaryClean.pkl"
 
     if cache_file.exists():
         with open(cache_file, "rb") as f:
@@ -42,7 +43,12 @@ def load_boundaries_local(filepath: str) -> gpd.GeoDataFrame:
             "Boundary data not found. Please download from ONS and save as 'boundaryData.geojson'.")
 
     # Filter to E09 areas (london)
-    gdf = gdf[gdf["CTYUA25CD"].str.startswith("E09")]
+    gdf = clean_boundary_data(gdf)
+
+    # Store clean boundary data if not already locally cached as "boundaryClean.pkl"
+    if not clean_cache_file.exists():
+        with open(clean_cache_file, "wb") as f:
+            pickle.dump(gdf, f)
     return gdf
 
 
@@ -78,6 +84,7 @@ def load_boundaries_s3(
 
 
 def clean_boundary_data(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Filter boundary data to London boroughs and select relevant columns."""
     logger.info(
         "Cleaning boundary data - filtering to London boroughs and selecting relevant columns.")
     gdf = gdf[gdf["CTYUA25CD"].str.startswith("E09")]
