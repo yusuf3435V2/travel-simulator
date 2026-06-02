@@ -81,21 +81,17 @@ def add_dataframes(df1, df2, fill_value=0):
 
 def get_demand_impact_ranges(comparison_df) -> pd.DataFrame:
     """Get the range of demand impacts across all stations."""
-    comparison_df["switch_prob"] = logistic(-comparison_df["time_spent_diff"])
-    station_impact_alighting = (
-        comparison_df.groupby("alighting_station_altered")["switch_prob"]
-        .agg(["sum", "std"])
-        .reset_index()
+    df = comparison_df.assign(switch_prob=logistic(-comparison_df["time_spent_diff"]))[
+        ["alighting_station_altered", "nearest_station_baseline", "switch_prob"]
+    ]
+    station_probs = df.melt(
+        id_vars="switch_prob",
+        value_vars=["alighting_station_altered", "nearest_station_baseline"],
+        value_name="Station",
+    )[["Station", "switch_prob"]]
+    station_impact = (
+        station_probs.groupby("Station")["switch_prob"].agg(["sum", "std"]).reset_index()
     )
-    station_impact_baseline = (
-        comparison_df.groupby("nearest_station_baseline")["switch_prob"]
-        .agg(["sum", "std"])
-        .reset_index()
-    )
-    station_impact = add_dataframes(
-        station_impact_alighting.set_index("alighting_station_altered"),
-        station_impact_baseline.set_index("nearest_station_baseline"),
-    ).reset_index()
     station_impact = change_standard_deviation_to_zero_if_nan(station_impact, "std")
     station_impact["lower_bound"] = station_impact["sum"] - 1.96 * station_impact["std"]
     station_impact["upper_bound"] = station_impact["sum"] + 1.96 * station_impact["std"]
