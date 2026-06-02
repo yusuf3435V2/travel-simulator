@@ -192,7 +192,7 @@ selected_line = st.selectbox(
     index=TUBE_AND_RAIL_LINES.index(st.session_state.selected_line),
     disabled=INPUT_DISABLED,
 )
-print("Selected line: %s" % selected_line)
+# Debug logging removed (Streamlit reruns frequently).
 
 if not INPUT_DISABLED and selected_line != st.session_state.selected_line:
     st.session_state.selected_line = selected_line
