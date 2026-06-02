@@ -48,21 +48,28 @@ def load_boundaries_local(filepath: str) -> gpd.GeoDataFrame:
 
 def load_boundaries_s3(
     bucket_name: str,
-    file_path: str
+    file_path: str,
+    filtered_file_path: str = "processed/boundaryClean.pkl"
 ) -> gpd.GeoDataFrame:
     """Load boundary data from S3 bucket, caching filtered London data."""
     s3 = boto3.client('s3')
     try:
-        response = s3.get_object(
-            Bucket=bucket_name, Key=file_path)
-        gdf = pickle.loads(response['Body'].read())
-        gdf = clean_boundary_data(gdf)
+        if file_exists_in_s3(bucket_name, filtered_file_path):
+            logger.info("Loading filtered boundary data from S3: %s",
+                        filtered_file_path)
+            gdf = get_file_from_s3(bucket_name, filtered_file_path)
+            return pickle.loads(gdf)
+        else:
+            response = s3.get_object(
+                Bucket=bucket_name, Key=file_path)
+            gdf = pickle.loads(response['Body'].read())
+            gdf = clean_boundary_data(gdf)
         # Only upload if filtered cache doesn't exist
-        if not file_exists_in_s3(bucket_name, file_path):
+        if not file_exists_in_s3(bucket_name, filtered_file_path):
             logger.info("Caching filtered boundary data to S3: %s",
-                        file_path)
+                        filtered_file_path)
             upload_file_to_s3(
-                bucket_name, file_path, pickle.dumps(gdf))
+                bucket_name, filtered_file_path, pickle.dumps(gdf))
         logger.info("Boundary data loaded successfully from S3: %s", file_path)
         return gdf
     except Exception as e:
@@ -71,6 +78,8 @@ def load_boundaries_s3(
 
 
 def clean_boundary_data(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    logger.info(
+        "Cleaning boundary data - filtering to London boroughs and selecting relevant columns.")
     gdf = gdf[gdf["CTYUA25CD"].str.startswith("E09")]
     gdf = gdf[["CTYUA25NM", "geometry"]]
     gdf.columns = ["borough_name", "geometry"]
@@ -130,6 +139,8 @@ def get_normalised_stops(stops_url: str) -> gpd.GeoDataFrame:
     # Fetch from API if no cache
     try:
         logger.info("Fetching stops from TFL API.")
+        logger.warning(
+            "Using outdated TFL API - consider updating to current API version")
         response = requests.get(stops_url, timeout=10)
         response.raise_for_status()
     except requests.RequestException as e:
