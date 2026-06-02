@@ -30,6 +30,7 @@ resource "aws_apigatewayv2_integration" "c23-travel-simulation-integration" {
 }
 
 resource "aws_apigatewayv2_stage" "c23-travel-simulation-stage" {
-  api_id = aws_apigatewayv2_api.c23-travel-simulation-api.id
-  name   = "c23-travel-simulation-stage"
+  api_id      = aws_apigatewayv2_api.c23-travel-simulation-api.id
+  name        = "c23-travel-simulation-stage"
+  auto_deploy = true
 }
