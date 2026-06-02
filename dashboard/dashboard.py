@@ -227,7 +227,6 @@ else:
 
     # Passive Background Polling Engine Execution Block
     if st.session_state.simulation_running and not st.session_state.simulation_finished:
-        current_time = int(time.time())
         unique_id = str(uuid.uuid4())
         st.session_state.target_key = (
             "raw/%s/simulation_comparison.csv" % unique_id
