@@ -105,8 +105,8 @@ resource "aws_lambda_function" "c23_travel_simulator_simulation" {
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.c23_travel_simulator_attach_s3_policy,
-    aws_iam_role_policy_attachment.c23_travel_simulator_attach_logs_policy
+    aws_iam_role_policy_attachment.c23_travel_simulator_simulation_attach_s3_policy,
+    aws_iam_role_policy_attachment.c23_travel_simulator_simulation_attach_logs_policy
   ]
 }
 
