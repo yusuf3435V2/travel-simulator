@@ -20,6 +20,8 @@ from df_analysis import (
     get_total_time_spent_diff,
     get_greatest_time_spent_diff,
     get_percentage_of_affected_routes,
+    get_affected_routes,
+    get_demand_impact_ranges,
 )
 from folium_functions import plot_original_station_point, create_folium_map
 from kml_export import generate_kmz_bytes
@@ -267,7 +269,7 @@ else:
 
         for attempt in range(max_retries):
             status_message.text(
-                f"⏳ Processing simulation pipeline... Checking S3 for outputs (Attempt {attempt + 1}/{max_retries})"
+                f"⏳ Checking S3 for outputs (Attempt {attempt + 1}/{max_retries})"
             )
             progress_bar.progress(min((attempt + 1) / max_retries, 0.95))
 
@@ -351,6 +353,19 @@ if st.session_state.simulation_finished:
         st.session_state.simulation_running = False
         st.session_state.pdf_bytes = None
         st.rerun()
+
+    st.subheader("Affected Routes Summary")
+    if not comparison_df.empty:
+        affected_routes_summary = get_affected_routes(comparison_df)
+        st.dataframe(affected_routes_summary)
+    else:
+        st.warning("No comparison data available to summarize affected routes.")
+    st.subheader("Estimated Demand Impact Ranges")
+    if not comparison_df.empty:
+        demand_impact_ranges = get_demand_impact_ranges(comparison_df)
+        st.dataframe(demand_impact_ranges)
+    else:
+        st.warning("No comparison data available to calculate demand impact ranges.")
 
     st.subheader("Simulation Impact Map")
 

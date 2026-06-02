@@ -17,6 +17,8 @@ from df_analysis import (
     get_total_time_spent_diff,
     get_greatest_time_spent_diff,
     get_percentage_of_affected_routes,
+    get_affected_routes,
+    get_demand_impact_ranges,
 )
 from folium_functions import plot_original_station_point, create_folium_map
 
@@ -64,6 +66,18 @@ else:
         else:
             st.warning("No comparison data available.")
 
+    st.subheader("Affected Routes Summary")
+    if not comparison_df.empty:
+        affected_routes_summary = get_affected_routes(comparison_df)
+        st.dataframe(affected_routes_summary)
+    else:
+        st.warning("No comparison data available to summarize affected routes.")
+    st.subheader("Estimated Demand Impact Ranges")
+    if not comparison_df.empty:
+        demand_impact_ranges = get_demand_impact_ranges(comparison_df)
+        st.dataframe(demand_impact_ranges)
+    else:
+        st.warning("No comparison data available to calculate demand impact ranges.")
     st.subheader("Simulation Impact Map")
     if not comparison_df.empty:
         station_data = get_station_data(BUCKET_NAME)

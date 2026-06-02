@@ -1,6 +1,12 @@
 import pandas as pd
+import numpy as np
 
 # Create a color scale based on the time spent difference
+
+
+def logistic(x: float) -> float:
+    """Logistic function used to map time differences to switching probabilities."""
+    return 1 / (1 + np.exp(-x))
 
 
 def get_color(time_spent_diff, greatest_timesave):
@@ -23,6 +29,82 @@ def remove_uninfluenced_stations(comparison_df) -> pd.DataFrame:
         (comparison_df["nearest_station_altered"] != "User Station")
         & (comparison_df["alighting_station_altered"] != "User Station")
     ].copy()
+
+
+def get_affected_routes(comparison_df) -> pd.DataFrame:
+    """Get all affected routes by proposed station. We also want to combine backwards and forwards affected routes to get a full picture of the impact."""
+    comparison_df = comparison_df.copy()
+    comparison_df[["station_alpha", "station_omega"]] = np.sort(
+        comparison_df[["nearest_station_baseline", "alighting_station_baseline"]],
+        axis=1,
+    )
+
+    # 2. Combine them into a single clean route identifier string
+    comparison_df["bidirectional_route"] = (
+        comparison_df["station_alpha"] + " ⇄ " + comparison_df["station_omega"]
+    )
+
+    # 3. Now perform your standard groupby on the unified key!
+    summary_df = (
+        comparison_df.groupby("bidirectional_route")
+        .agg(
+            total_impacted_routes=("route_id", "count"),
+            avg_time_difference=("time_spent_diff", "mean"),
+            std_time_difference=("time_spent_diff", "std"),
+            upper_bound_time_difference=(
+                "time_spent_diff",
+                lambda x: x.mean() + 1.96 * x.std(ddof=1) / np.sqrt(len(x)),
+            ),
+            lower_bound_time_difference=(
+                "time_spent_diff",
+                lambda x: x.mean() - 1.96 * x.std(ddof=1) / np.sqrt(len(x)),
+            ),
+            maximum_time_difference=("time_spent_diff", "max"),
+            minimum_time_difference=("time_spent_diff", "min"),
+        )
+        .reset_index()
+    )
+    return summary_df
+
+
+def change_standard_deviation_to_zero_if_nan(df, column_name):
+    """Replace NaN standard deviation values with zero."""
+    df[column_name] = df[column_name].fillna(0)
+    return df
+
+
+def add_dataframes(df1, df2, fill_value=0):
+    """Add two DataFrames together, filling missing values with a specified fill_value."""
+    return df1.add(df2, fill_value=fill_value)
+
+
+def get_demand_impact_ranges(comparison_df) -> pd.DataFrame:
+    """Get the range of demand impacts across all stations."""
+    df = comparison_df.assign(switch_prob=logistic(-comparison_df["time_spent_diff"]))[
+        ["alighting_station_altered", "nearest_station_baseline", "switch_prob"]
+    ]
+    station_probs = df.melt(
+        id_vars="switch_prob",
+        value_vars=["alighting_station_altered", "nearest_station_baseline"],
+        value_name="Station",
+    )[["Station", "switch_prob"]]
+    station_impact = (
+        station_probs.groupby("Station")["switch_prob"]
+        .agg(["sum", "std"])
+        .reset_index()
+    )
+    station_impact = change_standard_deviation_to_zero_if_nan(station_impact, "std")
+    station_impact["lower_bound"] = station_impact["sum"] - 1.96 * station_impact["std"]
+    station_impact["upper_bound"] = station_impact["sum"] + 1.96 * station_impact["std"]
+    station_impact["Demand Change Range"] = station_impact.apply(
+        lambda row: f"{row['lower_bound']:.2f} - {row['upper_bound']:.2f}",
+        axis=1,
+    )
+    station_impact.drop(
+        columns=["sum", "std", "lower_bound", "upper_bound"], inplace=True
+    )
+
+    return station_impact
 
 
 def get_total_time_spent_diff(comparison_df):
