@@ -33,7 +33,7 @@ from stations_choropleth import create_choropleth
 # Helper to look for simulation outputs without downloading full payloads
 def check_s3_for_completion(bucket, key):
     try:
-        print(f"Checking S3 for key: {key}")
+        print("Checking S3 for key: %s" % key)
         s3_client.head_object(Bucket=bucket, Key=key)
         return True
     except ClientError:
@@ -198,7 +198,7 @@ selected_line = st.selectbox(
     index=TUBE_AND_RAIL_LINES.index(st.session_state.selected_line),
     disabled=INPUT_DISABLED,
 )
-print(f"Selected line: {selected_line}")
+print("Selected line: %s" % selected_line)
 
 if not INPUT_DISABLED and selected_line != st.session_state.selected_line:
     st.session_state.selected_line = selected_line
@@ -235,7 +235,9 @@ else:
     if st.session_state.simulation_running and not st.session_state.simulation_finished:
         current_time = int(time.time())
         unique_id = str(uuid.uuid4())
-        st.session_state.target_key = f"raw/{unique_id}/simulation_comparison.csv"  # Adjust this path based on your Lambda's output structure
+        st.session_state.target_key = (
+            "raw/%s/simulation_comparison.csv" % unique_id
+        )  # Adjust this path based on your Lambda's output structure
         print("Running following station")
         print(
             {
