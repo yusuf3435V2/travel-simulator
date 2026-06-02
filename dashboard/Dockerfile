@@ -8,7 +8,11 @@ COPY coverage_context.py .
 COPY analysis.py .
 COPY kml_export.py .
 COPY pages/ pages/
+COPY stations_choropleth.py .
+COPY folium_functions.py .
+COPY s3_utils.py .
 COPY dashboard.py .
+
 
 CMD ["streamlit", "run", "dashboard.py"]
 

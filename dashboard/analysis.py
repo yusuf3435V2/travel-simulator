@@ -1,5 +1,6 @@
 """Analysis and report generation for the Travel Simulation dashboard."""
 from io import BytesIO
+import json
 import ee
 import pandas as pd
 from reportlab.lib.pagesizes import A4
@@ -24,17 +25,36 @@ def get_google_cloud_project() -> str:
 
     return project_id
 
+
 def initialise_earth_engine() -> None:
-    """Initialise Google Earth Engine."""
+    """Initialise Google Earth Engine locally or in ECS."""
 
-    project_id = get_google_cloud_project()
+    load_dotenv()
 
-    try:
-        ee.Initialize(project=project_id)
+    project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
 
-    except Exception:
-        ee.Authenticate()
-        ee.Initialize(project=project_id)
+    if not project_id:
+        raise ValueError("GOOGLE_CLOUD_PROJECT not found.")
+
+    service_account_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+    if service_account_json:
+        service_account_info = json.loads(service_account_json)
+        service_account_email = service_account_info["client_email"]
+
+        credentials = ee.ServiceAccountCredentials(
+            service_account_email,
+            key_data=service_account_json,
+        )
+
+        ee.Initialize(
+            credentials,
+            project=project_id,
+        )
+
+        return
+
+    ee.Initialize(project=project_id)
 
 
 def get_land_use_percentages(

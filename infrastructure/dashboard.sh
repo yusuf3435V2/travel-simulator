@@ -39,6 +39,16 @@ docker push ${ECR_REPO_URL}:latest
 echo "✓ Image pushed successfully"
 echo ""
 
+echo "Step 5: Forcing ECS service redeployment..."
+
+aws ecs update-service \
+  --cluster c23-ecs-cluster \
+  --service c23_travel_simulator_dashboard_service \
+  --force-new-deployment \
+  --region eu-west-2
+
+echo "✓ ECS service redeployment started"
+
 echo "=========================================="
 echo "✓ All steps completed successfully!"
 echo "=========================================="
