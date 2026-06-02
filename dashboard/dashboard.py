@@ -269,7 +269,7 @@ else:
 
         for attempt in range(max_retries):
             status_message.text(
-                f"⏳ Processing simulation pipeline... Checking S3 for outputs (Attempt {attempt + 1}/{max_retries})"
+                f"⏳ Checking S3 for outputs (Attempt {attempt + 1}/{max_retries})"
             )
             progress_bar.progress(min((attempt + 1) / max_retries, 0.95))
 

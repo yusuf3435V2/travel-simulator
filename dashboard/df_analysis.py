@@ -38,7 +38,6 @@ def get_affected_routes(comparison_df) -> pd.DataFrame:
         comparison_df[["nearest_station_baseline", "alighting_station_baseline"]],
         axis=1,
     )
-    )
 
     # 2. Combine them into a single clean route identifier string
     comparison_df["bidirectional_route"] = (
@@ -90,7 +89,9 @@ def get_demand_impact_ranges(comparison_df) -> pd.DataFrame:
         value_name="Station",
     )[["Station", "switch_prob"]]
     station_impact = (
-        station_probs.groupby("Station")["switch_prob"].agg(["sum", "std"]).reset_index()
+        station_probs.groupby("Station")["switch_prob"]
+        .agg(["sum", "std"])
+        .reset_index()
     )
     station_impact = change_standard_deviation_to_zero_if_nan(station_impact, "std")
     station_impact["lower_bound"] = station_impact["sum"] - 1.96 * station_impact["std"]
