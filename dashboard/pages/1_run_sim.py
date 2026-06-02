@@ -7,7 +7,6 @@ import streamlit as st
 from streamlit_folium import st_folium
 from analysis import generate_recommendation_pdf
 from botocore.exceptions import ClientError
-import requests as req
 import boto3
 import os
 import dotenv
