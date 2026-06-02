@@ -319,16 +319,16 @@ if st.session_state.simulation_finished:
 
     if st.session_state.target_key is None:
         st.error("Target key not found. Please run the simulation again.")
-    else:
-        metadata = {
-            "Latitude": st.session_state.proposed_lat,
-            "Longitude": st.session_state.proposed_lon,
-            "Line_id": st.session_state.selected_line_id,
-            "Name": "User Proposed Station",
-            "number_of_passengers": 32000,  # Placeholder, replace with actual metadata
-        }
-        comparison_df = get_comparison_csv(BUCKET_NAME, st.session_state.target_key)
+        st.stop()
 
+    metadata = {
+        "Latitude": st.session_state.proposed_lat,
+        "Longitude": st.session_state.proposed_lon,
+        "Line_id": st.session_state.selected_line_id,
+        "Name": "User Proposed Station",
+        "number_of_passengers": 32000,  # Placeholder, replace with actual metadata
+    }
+    comparison_df = get_comparison_csv(BUCKET_NAME, st.session_state.target_key)
     if st.session_state.pdf_bytes:
         st.download_button(
             label="Download recommendation report",
