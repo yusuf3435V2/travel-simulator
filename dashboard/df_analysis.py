@@ -54,11 +54,11 @@ def get_affected_routes(comparison_df) -> pd.DataFrame:
             std_time_difference=("time_spent_diff", "std"),
             upper_bound_time_difference=(
                 "time_spent_diff",
-                lambda x: np.mean(x) + 1.96 * np.std(x) / np.sqrt(len(x)),
+                lambda x: x.mean() + 1.96 * x.std(ddof=1) / np.sqrt(len(x)),
             ),
             lower_bound_time_difference=(
                 "time_spent_diff",
-                lambda x: np.mean(x) - 1.96 * np.std(x) / np.sqrt(len(x)),
+                lambda x: x.mean() - 1.96 * x.std(ddof=1) / np.sqrt(len(x)),
             ),
             maximum_time_difference=("time_spent_diff", "max"),
             minimum_time_difference=("time_spent_diff", "min"),
