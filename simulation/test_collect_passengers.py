@@ -44,7 +44,7 @@ def sample_stations() -> nx.Graph:
     graph.add_edge("StationB", "StationC", duration=10, line="piccadilly")
     graph.add_edge("StationC", "StationD", duration=15, line="piccadilly")
     graph.add_edge("StationD", "StationE", duration=20, line="piccadilly")
-    graph.add_edge("StationA", "StationC", duration=12, line="district")
+    graph.add_edge("StationA", "StationC", duration=7, line="district")
     return graph
 
 
@@ -86,8 +86,8 @@ def test_shortest_path(sample_stations):
     path, duration, line_switches = shortest_path_between_stations(
         sample_stations, "StationA", "StationD"
     )
-    assert path == ["StationA", "StationB", "StationC", "StationD"], (
-        f"Expected ['StationA', 'StationB', 'StationC', 'StationD'], got {path}"
+    assert path == ["StationA", "StationC", "StationD"], (
+        f"Expected ['StationA', 'StationC', 'StationD'], got {path}"
     )
 
 
@@ -159,7 +159,7 @@ def test_shortest_path_length(sample_stations):
     length = shortest_path_length_between_stations(
         sample_stations, "StationA", "StationD"
     )
-    assert length == 27, f"Expected 27, got {length}"
+    assert length == 22, f"Expected 22, got {length}"
 
 
 def test_check_line_switches(sample_stations):

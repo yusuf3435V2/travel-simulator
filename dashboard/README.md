@@ -1,3 +1,3 @@
 # Dashboard
 
-Run using `streamlit run travel-dashboard.py`
+Run using `streamlit run dashboard.py`
