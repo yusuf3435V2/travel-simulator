@@ -3,6 +3,7 @@
 __pycache__/
 *.pyc
 boundaryData.*
+boundaryClean.*
 *.csv
 *.graphml
 *.html
