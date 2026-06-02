@@ -1,6 +1,6 @@
 """This script will connect stations based on the condition that they have the same name, ensuring that the graph is able to account for tube/non-tube connections."""
 
-from s3_utils import fetch_file_from_s3, upload_file_to_s3
+from s3_utils import upload_file_to_s3
 import networkx as nx
 import pandas as pd
 import dotenv
@@ -16,10 +16,10 @@ def fetch_df_from_s3(bucket_name: str, s3_key: str) -> pd.DataFrame:
     try:
         obj = s3_client.get_object(Bucket=bucket_name, Key=s3_key)
         df = pd.read_csv(obj["Body"])
-        logging.info(f"File {s3_key} loaded from S3 bucket {bucket_name}.")
+        logging.info("File %s loaded from S3 bucket %s.", s3_key, bucket_name)
         return df
     except Exception as e:
-        logging.error(f"Error loading file {s3_key} from S3: {e}")
+        logging.error("Error loading file %s from S3: %s", s3_key, e)
         return pd.DataFrame()  # Return empty DataFrame on error
 
 
@@ -33,7 +33,7 @@ def fetch_graph_from_s3(bucket_name: str) -> nx.Graph:
         file_content = graph_file["Body"].read().decode("utf-8").strip()
         return nx.parse_graphml(file_content)
     except Exception as e:
-        logging.error(f"Error parsing graph from S3 file: {e}")
+        logging.error("Error parsing graph from S3 file: %s", e)
         return nx.Graph()  # Return empty graph on error
 
 
