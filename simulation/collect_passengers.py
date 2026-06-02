@@ -65,9 +65,7 @@ def add_station_to_network(
     )
     if closest_stations is not None:
         closest_station, neighbor_station = closest_stations
-        print(
-            f"Connecting new station {station_id} to closest station {closest_station} and its neighbor {neighbor_station}"
-        )
+        # Connected new station to closest station and a neighboring station
         distance_to_closest = get_station_distance(
             closest_station, lat, lng, station_data
         )
