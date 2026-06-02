@@ -294,7 +294,7 @@ if st.session_state.simulation_finished:
         st.session_state.pdf_bytes = None
         st.rerun()
 
-        st.subheader("Simulation Impact Map")
+    st.subheader("Simulation Impact Map")
 
     if not comparison_df.empty:
         station_data = get_station_data(BUCKET_NAME)
