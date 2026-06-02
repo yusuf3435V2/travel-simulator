@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from s3_utils import get_passengers_csv
 
 # Create a color scale based on the time spent difference
 
@@ -31,6 +32,16 @@ def remove_uninfluenced_stations(comparison_df) -> pd.DataFrame:
     ].copy()
 
 
+def get_passenger_station_counts(comparison_df) -> pd.DataFrame:
+    """Get the count of passengers associated with each station."""
+    print(comparison_df.head())
+    origin_counts = comparison_df["nearest_station_baseline"].value_counts()
+    destination_counts = comparison_df["alighting_station_baseline"].value_counts()
+    station_counts = origin_counts.add(destination_counts, fill_value=0).reset_index()
+    station_counts.columns = ["Station", "Passenger Count"]
+    return station_counts
+
+
 def get_affected_routes(comparison_df) -> pd.DataFrame:
     """Get all affected routes by proposed station. We also want to combine backwards and forwards affected routes to get a full picture of the impact."""
     comparison_df = comparison_df.copy()
@@ -45,25 +56,38 @@ def get_affected_routes(comparison_df) -> pd.DataFrame:
     )
 
     # 3. Now perform your standard groupby on the unified key!
-    summary_df = (
-        comparison_df.groupby("bidirectional_route")
-        .agg(
-            total_impacted_routes=("route_id", "count"),
-            avg_time_difference=("time_spent_diff", "mean"),
-            std_time_difference=("time_spent_diff", "std"),
-            upper_bound_time_difference=(
-                "time_spent_diff",
-                lambda x: x.mean() + 1.96 * x.std(ddof=1) / np.sqrt(len(x)),
-            ),
-            lower_bound_time_difference=(
-                "time_spent_diff",
-                lambda x: x.mean() - 1.96 * x.std(ddof=1) / np.sqrt(len(x)),
-            ),
-            maximum_time_difference=("time_spent_diff", "max"),
-            minimum_time_difference=("time_spent_diff", "min"),
-        )
-        .reset_index()
+    summary_df = comparison_df.groupby("bidirectional_route").agg(
+        total_impacted_routes=("route_id", "count"),
+        avg_time_difference=("time_spent_diff", "mean"),
+        std_time_difference=("time_spent_diff", "std"),
+        upper_bound_time_difference=(
+            "time_spent_diff",
+            lambda x: x.mean() + 1.96 * x.std(ddof=1) / np.sqrt(len(x)),
+        ),
+        lower_bound_time_difference=(
+            "time_spent_diff",
+            lambda x: x.mean() - 1.96 * x.std(ddof=1) / np.sqrt(len(x)),
+        ),
+        maximum_time_difference=("time_spent_diff", "max"),
+        minimum_time_difference=("time_spent_diff", "min"),
     )
+    summary_df = summary_df.drop(
+        [
+            "std_time_difference",
+            "upper_bound_time_difference",
+            "lower_bound_time_difference",
+        ],
+        axis=1,
+    )
+    summary_df = summary_df.rename(
+        columns={
+            "total_impacted_routes": "Total Affected Routes",
+            "avg_time_difference": "Average Time Spent Difference (mins)",
+            "maximum_time_difference": "Maximum Time Spent Difference (mins)",
+            "minimum_time_difference": "Minimum Time Spent Difference (mins)",
+        }
+    )
+    summary_df.index.name = "Route"
     return summary_df
 
 
@@ -78,8 +102,27 @@ def add_dataframes(df1, df2, fill_value=0):
     return df1.add(df2, fill_value=fill_value)
 
 
+def unsuffix_name(station_name: str) -> str:
+    """Remove suffixes like ' Underground Station' from station names."""
+    suffixes = [
+        " Underground Station",
+        " DLR Station",
+        " Elizabeth Line Station",
+        " Rail Station",
+        " Underground",
+    ]
+    # If station name contains a "(", remove this and everything after it as well
+    if "(" in station_name:
+        station_name = station_name.split("(")[0].strip()
+    for suffix in suffixes:
+        if station_name.lower().endswith(suffix.lower()):
+            return station_name[: -len(suffix)].strip()
+    return station_name
+
+
 def get_demand_impact_ranges(comparison_df) -> pd.DataFrame:
     """Get the range of demand impacts across all stations."""
+    passenger_station_counts = get_passenger_station_counts(comparison_df)
     df = comparison_df.assign(switch_prob=logistic(-comparison_df["time_spent_diff"]))[
         ["alighting_station_altered", "nearest_station_baseline", "switch_prob"]
     ]
@@ -93,16 +136,39 @@ def get_demand_impact_ranges(comparison_df) -> pd.DataFrame:
         .agg(["sum", "std"])
         .reset_index()
     )
+    total_passengers = passenger_station_counts["Passenger Count"].sum()
+
     station_impact = change_standard_deviation_to_zero_if_nan(station_impact, "std")
     station_impact["lower_bound"] = station_impact["sum"] - 1.96 * station_impact["std"]
     station_impact["upper_bound"] = station_impact["sum"] + 1.96 * station_impact["std"]
-    station_impact["Demand Change Range"] = station_impact.apply(
-        lambda row: f"{row['lower_bound']:.2f} - {row['upper_bound']:.2f}",
+    station_impact["lower_bound_percentage"] = (
+        station_impact["lower_bound"] / total_passengers
+    )
+    station_impact["upper_bound_percentage"] = (
+        station_impact["upper_bound"] / total_passengers
+    )
+    station_impact["Demand Change Range (%)"] = station_impact.apply(
+        lambda row: (
+            f"{row['lower_bound_percentage']:.4%} - {row['upper_bound_percentage']:.4%}"
+        ),
         axis=1,
     )
+    station_impact = station_impact[
+        station_impact["Station"] != "User Proposed Station"
+    ]
+    station_impact = station_impact[station_impact["upper_bound_percentage"] != np.inf]
     station_impact.drop(
-        columns=["sum", "std", "lower_bound", "upper_bound"], inplace=True
+        columns=[
+            "sum",
+            "std",
+            "lower_bound",
+            "upper_bound",
+            "lower_bound_percentage",
+            "upper_bound_percentage",
+        ],
+        inplace=True,
     )
+    station_impact = station_impact.set_index("Station")
 
     return station_impact
 
