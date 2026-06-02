@@ -9,6 +9,7 @@ import networkx as nx
 import folium
 import boto3
 from botocore.exceptions import ClientError
+from functools import lru_cache
 
 
 def setup_logger(log_level: str = "INFO") -> None:
@@ -39,6 +40,7 @@ def create_colour_scheme() -> dict:
     }
 
 
+@lru_cache(maxsize=1)
 def extract_station_network() -> nx.MultiGraph:
     """Extract the station network from S3 bucket."""
     try:
@@ -58,6 +60,7 @@ def extract_station_network() -> nx.MultiGraph:
         return nx.MultiGraph()
 
 
+@lru_cache(maxsize=1)
 def extract_boundaries() -> gpd.GeoDataFrame:
     """Extract boundary data from S3 bucket."""
     try:
@@ -75,6 +78,7 @@ def extract_boundaries() -> gpd.GeoDataFrame:
         return gpd.GeoDataFrame()
 
 
+@lru_cache(maxsize=1)
 def extract_stations() -> pd.DataFrame:
     """Extract the stations data from S3 bucket."""
     try:

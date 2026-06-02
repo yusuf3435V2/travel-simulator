@@ -5,11 +5,13 @@ import streamlit as st
 from streamlit_folium import st_folium
 from analysis import generate_recommendation_pdf
 from kml_export import generate_kmz_bytes
+from stations_choropleth import create_choropleth
 
 st.set_page_config(
     page_title="Travel Simulation Dashboard",
     layout="wide"
 )
+
 
 st.title("Travel Simulation Dashboard")
 st.write(
@@ -94,10 +96,13 @@ if input_method == "Type latitude/longitude":
 else:
     st.write("Click on the map to set the proposed station location.")
 
-    m = folium.Map(
-        location=[51.5072, -0.1276],
-        zoom_start=11,
-    )
+    with st.spinner("Loading map..."):
+        m = create_choropleth()
+
+    if m is None:
+        st.error("Could not load choropleth map.")
+        st.stop()
+
 
     if st.session_state.proposed_lat is not None:
         folium.Marker(
@@ -114,6 +119,7 @@ else:
         height=600,
         width=1200,
         key="location_picker_map",
+        returned_objects=["last_clicked"]
     )
 
     if (
