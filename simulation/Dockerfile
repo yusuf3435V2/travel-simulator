@@ -11,7 +11,6 @@ COPY distance_maths.py ${LAMBDA_TASK_ROOT}
 COPY run_sim_and_save.py ${LAMBDA_TASK_ROOT}
 COPY result_analysis.py ${LAMBDA_TASK_ROOT}
 COPY s3_utils_sim.py ${LAMBDA_TASK_ROOT}
-COPY collect_passengers.py ${LAMBDA_TASK_ROOT}
 
 
 
