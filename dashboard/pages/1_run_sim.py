@@ -218,16 +218,7 @@ else:
         current_time = int(time.time())
         unique_id = str(uuid.uuid4())
         st.session_state.target_key = f"raw/{unique_id}/simulation_comparison.csv"  # Adjust this path based on your Lambda's output structure
-        print("Running following station")
-        print(
-            {
-                "UniqueId": unique_id,
-                "Latitude": st.session_state.proposed_lat,
-                "Longitude": st.session_state.proposed_lon,
-                "Line_id": st.session_state.selected_line_id,
-                "Name": "User Proposed Station",
-            }
-        )
+        # Debug logging removed to avoid leaking user-provided coordinates to stdout
         with st.spinner("Invoking remote AWS Lambda engine..."):
             lambda_client.invoke(
                 FunctionName=os.environ.get("SIMULATION_LAMBDA_ARN"),
