@@ -76,7 +76,8 @@ def add_station_to_network(
             station_id,
             closest_station,
             line_id=line,
-            duration=distance_to_closest / TRAIN_SPEED,  # minutes = km / (km/min)
+            duration=distance_to_closest / TRAIN_SPEED,
+        )  # minutes = km / (km/min)
         graph.add_edge(
             station_id,
             neighbor_station,
