@@ -28,3 +28,9 @@ variable "S3_BUCKET_NAME" {
   description = "Name of the S3 bucket for the dashboard"
   type        = string
 }
+
+variable "GOOGLE_APPLICATION_CREDENTIALS_JSON"{
+  description = "Google Cloud service account credentials in JSON format for the dashboard"
+  type        = string
+  sensitive   = true
+}
