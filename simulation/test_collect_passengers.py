@@ -172,10 +172,9 @@ def test_check_line_switches(sample_stations):
         f"Expected list of line switches, got {type(line_switches)}"
     )
     # The path from A to D via C has a line switch at C
-    assert (
-        any(switch[0] == "StationC" for switch in line_switches)
-        or len(line_switches) == 0
-    ), f"Expected line switch at StationC or no switches, got {line_switches}"
+    assert line_switches == [("StationC", "district", "piccadilly")], (
+        f"Expected [('StationC', 'district', 'piccadilly')], got {line_switches}"
+    )
 
 
 def test_total_switch_time():
