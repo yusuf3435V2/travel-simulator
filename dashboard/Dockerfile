@@ -11,6 +11,7 @@ COPY pages/ pages/
 COPY stations_choropleth.py .
 COPY folium_functions.py .
 COPY s3_utils.py .
+COPY df_analysis.py .
 COPY dashboard.py .
 
 

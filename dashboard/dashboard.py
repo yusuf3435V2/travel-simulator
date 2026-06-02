@@ -160,13 +160,26 @@ else:
         st.stop()
 
     if st.session_state.proposed_lat is not None:
+        proposed_location = [
+            st.session_state.proposed_lat,
+            st.session_state.proposed_lon,
+        ]
+
         folium.Marker(
-            [
-                st.session_state.proposed_lat,
-                st.session_state.proposed_lon,
-            ],
+            proposed_location,
             popup="Proposed Station",
             icon=folium.Icon(color="green", icon="star"),
+        ).add_to(m)
+
+        folium.Circle(
+            location=proposed_location,
+            radius=800,
+            popup="800m walking catchment",
+            color="green",
+            fill=True,
+            fill_color="green",
+            fill_opacity=0.15,
+            weight=2,
         ).add_to(m)
 
     map_data = st_folium(

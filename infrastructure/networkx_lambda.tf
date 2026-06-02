@@ -88,14 +88,14 @@ resource "aws_lambda_function" "c23_travel_simulator_networkx_pipeline" {
   role          = aws_iam_role.c23_travel_simulator_networkx_lambda_role.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.c23_travel_simulator_networkx_pipeline.repository_url}:latest"
-  
+
   image_config {
     entry_point = ["/lambda-entrypoint.sh"]
     command     = ["create_stations_network.lambda_handler"]
   }
 
-  memory_size = 3008  # Maximum memory for better performance
-  timeout     = 900   # 15 minutes for network creation
+  memory_size = 3008 # Maximum memory for better performance
+  timeout     = 900  # 15 minutes for network creation
 
   architectures = ["x86_64"]
 
@@ -109,7 +109,7 @@ resource "aws_lambda_function" "c23_travel_simulator_networkx_pipeline" {
 resource "aws_cloudwatch_event_rule" "c23_travel_simulator_networkx_schedule" {
   name                = "c23-travel-simulator-networkx-schedule"
   description         = "Trigger networkx pipeline daily"
-  schedule_expression = "cron(0 9 1 * ? *)"  # Monthly on 1st at 9 AM UTC (to get daytime journey data)
+  schedule_expression = "cron(0 9 1 * ? *)" # Monthly on 1st at 9 AM UTC (to get daytime journey data)
 }
 
 resource "aws_cloudwatch_event_target" "c23_travel_simulator_networkx_lambda" {

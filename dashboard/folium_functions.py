@@ -5,17 +5,36 @@ from df_analysis import get_color
 
 
 def plot_original_station_point(metadata, folium_map):
-    """Plots the proposed station location on the map."""
+    """Plots the proposed station location and 800m catchment on the map."""
+
     if "Latitude" not in metadata or "Longitude" not in metadata:
         st.warning(
             "Metadata does not contain Latitude and Longitude for the proposed station."
         )
         return folium_map
+
     lat = metadata.get("Latitude")
     lon = metadata.get("Longitude")
+
+    proposed_location = [lat, lon]
+
     folium.Marker(
-        location=[lat, lon], icon=folium.Icon(color="purple"), popup="Proposed Station"
+        location=proposed_location,
+        icon=folium.Icon(color="purple"),
+        popup="Proposed Station",
     ).add_to(folium_map)
+
+    folium.Circle(
+        location=proposed_location,
+        radius=800,
+        popup="800m walking catchment",
+        color="purple",
+        fill=True,
+        fill_color="purple",
+        fill_opacity=0.15,
+        weight=2,
+    ).add_to(folium_map)
+
     return folium_map
 
 
