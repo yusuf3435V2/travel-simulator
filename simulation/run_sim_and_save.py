@@ -23,7 +23,7 @@ import os
 def lambda_handler(event, context):
     # Run the baseline simulation and save results
     proposed_station_info = event
-    print(proposed_station_info)
+    # Avoid printing user-provided payloads to stdout; rely on structured logging below.
     station_keyname = proposed_station_info.get(
         "UniqueId", f"user_station_{int(time.time())}"
     )
