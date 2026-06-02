@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from s3_utils import get_passengers_csv
 
 # Create a color scale based on the time spent difference
 
