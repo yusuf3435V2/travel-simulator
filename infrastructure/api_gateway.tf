@@ -4,7 +4,7 @@ resource "aws_lambda_permission" "apigw_c23_travel_simulation_lambda" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.c23_travel_simulator_simulation.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn = "${aws_apigatewayv2_api.c23-travel-simulation-api.execution_arn}/*/*"
+  source_arn    = "${aws_apigatewayv2_api.c23-travel-simulation-api.execution_arn}/*/*"
 }
 
 resource "aws_apigatewayv2_route" "c23-travel-simulation-route" {
@@ -21,12 +21,12 @@ resource "aws_apigatewayv2_api" "c23-travel-simulation-api" {
 
 # lambda integration
 resource "aws_apigatewayv2_integration" "c23-travel-simulation-integration" {
-  api_id           = aws_apigatewayv2_api.c23-travel-simulation-api.id
-  integration_type = "AWS_PROXY"
-  description               = "Lambda example"
-  integration_method        = "POST"
-  integration_uri           = aws_lambda_function.c23_travel_simulator_simulation.invoke_arn
-  payload_format_version   = "2.0"
+  api_id                 = aws_apigatewayv2_api.c23-travel-simulation-api.id
+  integration_type       = "AWS_PROXY"
+  description            = "Lambda example"
+  integration_method     = "POST"
+  integration_uri        = aws_lambda_function.c23_travel_simulator_simulation.invoke_arn
+  payload_format_version = "2.0"
 }
 
 resource "aws_apigatewayv2_stage" "c23-travel-simulation-stage" {

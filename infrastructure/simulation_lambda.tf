@@ -88,14 +88,14 @@ resource "aws_lambda_function" "c23_travel_simulator_simulation" {
   role          = aws_iam_role.c23_travel_simulator_simulation_lambda_role.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.c23_travel_simulator_simulation.repository_url}:latest"
-  
+
   image_config {
     entry_point = ["/lambda-entrypoint.sh"]
     command     = ["run_sim_and_save.lambda_handler"]
   }
 
-  memory_size = 3008  # Maximum memory for better performance
-  timeout     = 900   # 15 minutes for simulation
+  memory_size = 3008 # Maximum memory for better performance
+  timeout     = 900  # 15 minutes for simulation
 
   architectures = ["x86_64"]
   environment {
