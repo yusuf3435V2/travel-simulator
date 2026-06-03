@@ -117,7 +117,7 @@ Edit `terraform.tfvars` to customize:
 terraform destroy
 
 # Remove local Docker image
-docker rmi c23-travel_simulation_networkx_pipeline
+docker rmi c23-travel-simulator-networkx-pipeline
 ```
 
 ### Outputs
