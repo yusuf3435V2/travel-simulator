@@ -24,11 +24,12 @@ def create_stations_geodataframe(df: pd.DataFrame) -> gpd.GeoDataFrame:
     )
 
 
-def load_boundaries_local(filepath: str) -> gpd.GeoDataFrame:
+def load_boundaries_local(filepath: str = BOUNDARY_FILE) -> gpd.GeoDataFrame:
     """Load boundary data from cache or geojson file."""
     script_dir = Path(__file__).parent
     cache_file = script_dir / filepath
     geojson_file = script_dir / "boundaryData.geojson"
+    clean_cache_file = script_dir / "boundaryClean.pkl"
 
     if cache_file.exists():
         with open(cache_file, "rb") as f:
@@ -41,28 +42,56 @@ def load_boundaries_local(filepath: str) -> gpd.GeoDataFrame:
         raise FileNotFoundError(
             "Boundary data not found. Please download from ONS and save as 'boundaryData.geojson'.")
 
-    # Filter to E09 areas (london)
-    gdf = gdf[gdf["CTYUA25CD"].str.startswith("E09")]
+    # Filter and clean boundary data
+    gdf = clean_boundary_data(gdf)
+
+    # Store clean boundary data if not already locally cached as "boundaryClean.pkl"
+    if not clean_cache_file.exists():
+        with open(clean_cache_file, "wb") as f:
+            pickle.dump(gdf, f)
     return gdf
+
+
+def upload_cleaned_boundaries_to_s3(
+    bucket_name: str,
+    local_filepath: str = "boundaryClean.pkl",
+    s3_path: str = "processed/boundaryClean.pkl"
+) -> None:
+    """Load cleaned boundary data from local files and upload to S3."""
+    logger.info("Loading boundaries from local file: %s", local_filepath)
+    gdf = load_boundaries_local(local_filepath)
+    gdf = clean_boundary_data(gdf)
+
+    logger.info("Uploading cleaned boundaries to S3: %s", s3_path)
+    data = pickle.dumps(gdf)
+    upload_file_to_s3(bucket_name, s3_path, data)
+    logger.info("Cleaned boundary data uploaded successfully to S3: %s", s3_path)
 
 
 def load_boundaries_s3(
     bucket_name: str,
-    file_path: str
+    file_path: str,
+    filtered_file_path: str = "processed/boundaryClean.pkl"
 ) -> gpd.GeoDataFrame:
     """Load boundary data from S3 bucket, caching filtered London data."""
     s3 = boto3.client('s3')
     try:
-        response = s3.get_object(
-            Bucket=bucket_name, Key=file_path)
-        gdf = pickle.loads(response['Body'].read())
-        gdf = clean_boundary_data(gdf)
+        if file_exists_in_s3(bucket_name, filtered_file_path):
+            logger.info("Loading filtered boundary data from S3: %s",
+                        filtered_file_path)
+            gdf = get_file_from_s3(bucket_name, filtered_file_path)
+            return pickle.loads(gdf)
+        else:
+            response = s3.get_object(
+                Bucket=bucket_name, Key=file_path)
+            gdf = pickle.loads(response['Body'].read())
+            gdf = clean_boundary_data(gdf)
         # Only upload if filtered cache doesn't exist
-        if not file_exists_in_s3(bucket_name, file_path):
+        if not file_exists_in_s3(bucket_name, filtered_file_path):
             logger.info("Caching filtered boundary data to S3: %s",
-                        file_path)
+                        filtered_file_path)
             upload_file_to_s3(
-                bucket_name, file_path, pickle.dumps(gdf))
+                bucket_name, filtered_file_path, pickle.dumps(gdf))
         logger.info("Boundary data loaded successfully from S3: %s", file_path)
         return gdf
     except Exception as e:
@@ -71,6 +100,14 @@ def load_boundaries_s3(
 
 
 def clean_boundary_data(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Filter boundary data to London boroughs and select relevant columns."""
+    # Check if already cleaned
+    if "borough_name" in gdf.columns and "geometry" in gdf.columns and len(gdf.columns) == 2:
+        logger.info("Boundary data already cleaned, skipping cleaning steps.")
+        return gdf
+
+    logger.info(
+        "Cleaning boundary data - filtering to London boroughs and selecting relevant columns.")
     gdf = gdf[gdf["CTYUA25CD"].str.startswith("E09")]
     gdf = gdf[["CTYUA25NM", "geometry"]]
     gdf.columns = ["borough_name", "geometry"]
@@ -130,6 +167,8 @@ def get_normalised_stops(stops_url: str) -> gpd.GeoDataFrame:
     # Fetch from API if no cache
     try:
         logger.info("Fetching stops from TFL API.")
+        logger.warning(
+            "Using outdated TFL API - consider updating to current API version")
         response = requests.get(stops_url, timeout=10)
         response.raise_for_status()
     except requests.RequestException as e:
@@ -247,8 +286,8 @@ if __name__ == "__main__":
     # # list contents of s3 bucket to check if file exists
     # check_s3_contents(BUCKET_NAME)
 
-    # gets the stop positions
-    # stations = get_normalised_stops(STOPS_URL)
-    # save_normalised_stops(stations)
-    gdf = load_boundaries_s3(BUCKET_NAME, f"processed/{BOUNDARY_FILE}")
-    print(gdf.head())
+    boundary = load_boundaries_local()
+    upload_cleaned_boundaries_to_s3(BUCKET_NAME)
+
+    # gdf = load_boundaries_s3(BUCKET_NAME, f"processed/{BOUNDARY_FILE}")
+    # print(gdf.head())

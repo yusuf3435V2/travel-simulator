@@ -2,6 +2,29 @@
 
 This module creates interactive choropleth maps of London showing tube station density by administrative boundary.
 
+
+## Usage
+
+### Prerequisites:
+
+If working with an empty S3 bucket, follow these steps:
+1. Download GeoJson data from:
+    - https://geoportal.statistics.gov.uk/datasets/a5c9ff451d9a4ba08d9680b3869c9d8f_0/explore?location=51.495104%2C-0.108864%2C10
+    in order to get initial boundary data. Save as boundaryData.geojson locally.
+2. Run the data_functions.py file to make use of the boundaryData.geojson and upload it to the cloud.
+3. Ensure the S3 bucket contains stations.csv from the tfl_data_and_network folder ETL.
+
+Those are the two data files required to allow the entire endmap.py script pipeline to work.
+
+### Quick Start
+
+```bash
+python endmap.py
+```
+
+Generates `choropleth_cloud.html` using data from S3 (with API fallback for stations).
+
+
 ## File Structure
 
 ### Core Modules
@@ -12,7 +35,7 @@ This module creates interactive choropleth maps of London showing tube station d
 
 - **`data_functions.py`**: Data loading and processing utilities
   - Boundary data loading (local cache or GeoJSON → pickle)
-  - Station data fetching (TFL API, CSV cache, S3 integration)
+  - Station data fetching (Mainly through S3, there is an API however it is outdated)
   - S3 operations (upload/download boundary, station, and choropleth data)
   - GeoDataFrame helpers
 
@@ -49,28 +72,17 @@ The cloud pipeline requires AWS S3 access. Configure credentials via one of:
    aws_secret_access_key = your_secret
    ```
 
-3. **IAM role** (if running on EC2/Lambda)
-
 ### S3 Bucket Structure
 
 ```
 s3://c23-travel-simulation-bucket/
 ├── processed/
 │   ├── boundaryData.pkl
+│   ├── boundaryClean.pkl
 │   └── stations.csv
 └── outputs/
     └── choropleth.geojson
 ```
-
-## Usage
-
-### Quick Start
-
-```bash
-python endmap.py
-```
-
-Generates `choropleth_cloud.html` using data from S3 (with API fallback for stations).
 
 ### Local Pipeline
 
@@ -102,17 +114,10 @@ See `requirements.txt` for full list. Key packages:
 - `pandas`: Data processing
 - `requests`: API calls
 
-## Pipeline Overview
-
-1. **Load boundaries**: From local cache or S3 (filtered to London E09 areas)
-2. **Load stations**: From CSV cache or S3 (fetches from TFL API if unavailable)
-3. **Spatial join**: Count stations within each boundary zone
-4. **Save result**: GeoDataFrame persisted to S3 as GeoJSON
-5. **Visualize**: Create Folium choropleth map (colored by station count)
-6. **Export**: Save interactive HTML map
-
 ## Notes
 
+- Boundary data is required to be downloaded from the ONS website first.
+- Stations csv are loaded primarily from the S3. API gives different data.
 - TFL API endpoint used is deprecated; consider updating to current version
 - Station coordinates are averaged by `commonName` (handles duplicate stop IDs)
 - All geometries use EPSG:4326 (WGS84) CRS
