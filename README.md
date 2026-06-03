@@ -60,7 +60,6 @@ Utilities for fetching real TFL API data, constructing the network graph, and ma
 ### Prerequisites
 
 1. **Terraform** installed (v1.0+)
-1. **Terraform** installed (v1.0+)
 2. **AWS CLI** configured with credentials
 3. **Docker** image built locally
 4. **S3 bucket** will be created by Terraform: `c23-travel-simulation-bucket`
