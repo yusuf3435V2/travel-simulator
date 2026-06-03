@@ -14,12 +14,12 @@ from api_utils import setup_logger
 
 
 def add_edge_between_stations(
-    G: nx.MultiGraph, station1: str, station2: str, line_id: str, duration: int
+    graph: nx.MultiGraph, station1: str, station2: str, line_id: str, duration: int
 ) -> None:
     """
-    Add an edge between two stations in the graph G
+    Add an edge between two stations in the graph
     with the line_id and duration as attributes."""
-    G.add_edge(station1, station2, line_id=line_id, duration=duration)
+    graph.add_edge(station1, station2, line_id=line_id, duration=duration)
 
 
 def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
@@ -93,31 +93,8 @@ def create_station_network() -> dict[str, pd.DataFrame | nx.MultiGraph]:
     return {"stops_df": stops_df, "network": network}
 
 
-def load_station_network_local(
-    network_file_path: str = "stations/tube_network.graphml",
-    station_file_path: str = "stations/Stations.csv",
-) -> bool:
-    """Load the station network data to the local directory."""
-    try:
-        stations_network_data = create_station_network()
-        nx.write_graphml(
-            stations_network_data.get(
-                "network", nx.MultiGraph()), network_file_path
-        )
-        stations_network_data.get("stops_df", pd.DataFrame()).to_csv(
-            station_file_path, index=False
-        )
-        logging.info(
-            "Successfully loaded station network and data to local files")
-        return True
-    except Exception as e:
-        logging.error(
-            "Failed to load station network data to local files: %s", e)
-        return False
-
-
 def track_network_creation_time() -> None:
-    """Track the time taken to create the station network."""
+    """Track the time taken to create the station network to locally test run time for lambda."""
     start_time = time.time()
     create_station_network()
     end_time = time.time()
@@ -157,7 +134,7 @@ def lambda_handler(event: dict = None, context: dict = None) -> dict:
         logging.error("Failed to run pipeline and save to S3: %s", e)
         return {
             "statusCode": 500,
-            "body": "Failed to run pipeline and save to S3: %s" % str(e),
+            "body": f"Failed to run pipeline and save to S3: {str(e)}",
         }
 
 
