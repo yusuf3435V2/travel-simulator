@@ -18,3 +18,4 @@ simplekml
 openai
 matplotlib
 mapclassify
+altair

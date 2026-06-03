@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import altair as alt
 
 # Create a color scale based on the time spent difference
 
@@ -160,3 +161,167 @@ def get_percentage_of_affected_routes(comparison_df, number_of_routes: int) -> f
         return 0.0
     affected_routes = comparison_df.shape[0]
     return (affected_routes / number_of_routes) * 100
+
+
+def create_top_affected_routes_chart(comparison_df: pd.DataFrame) -> alt.Chart:
+    """Create a bar chart showing the routes with the most affected passenger journeys."""
+
+    df = comparison_df.copy()
+
+    df[["station_alpha", "station_omega"]] = pd.DataFrame(
+        sorted([a, b])
+        for a, b in zip(
+            df["nearest_station_baseline"],
+            df["alighting_station_baseline"],
+        )
+    )
+
+    df["route"] = df["station_alpha"] + " ⇄ " + df["station_omega"]
+
+    route_summary = (
+        df.groupby("route")
+        .size()
+        .reset_index(name="affected_journeys")
+        .sort_values("affected_journeys", ascending=False)
+        .head(10)
+    )
+
+    return (
+        alt.Chart(route_summary)
+        .mark_bar()
+        .encode(
+            x=alt.X("affected_journeys:Q", title="Affected journeys"),
+            y=alt.Y("route:N", sort="-x", title="Route"),
+            tooltip=["route", "affected_journeys"],
+        )
+        .properties(
+            title="Top 10 Most Affected Routes",
+            height=350,
+        )
+    )
+
+
+def create_top_time_saving_routes_chart(comparison_df: pd.DataFrame) -> alt.Chart:
+    """Create a bar chart showing bidirectional routes with the largest average time saving."""
+
+    df = comparison_df.copy()
+
+    df[["station_alpha", "station_omega"]] = np.sort(
+        df[["nearest_station_baseline", "alighting_station_baseline"]],
+        axis=1,
+    )
+
+    df["route"] = (
+        df["station_alpha"].astype(str)
+        + " ⇄ "
+        + df["station_omega"].astype(str)
+    )
+
+    route_summary = (
+        df.groupby("route")
+        .agg(
+            average_time_difference_mins=("time_spent_diff", "mean"),
+            affected_journeys=("route", "count"),
+        )
+        .reset_index()
+    )
+
+    # Negative time_spent_diff means time saved.
+    route_summary["average_time_saved_mins"] = (
+        -route_summary["average_time_difference_mins"]
+    )
+
+    route_summary = (
+        route_summary[route_summary["average_time_saved_mins"] > 0]
+        .sort_values("average_time_saved_mins", ascending=False)
+        .head(10)
+    )
+
+    return (
+        alt.Chart(route_summary)
+        .mark_bar()
+        .encode(
+            x=alt.X(
+                "average_time_saved_mins:Q",
+                title="Average time saved minutes",
+            ),
+            y=alt.Y(
+                "route:N",
+                sort="-x",
+                title="Route",
+            ),
+            tooltip=[
+                "route",
+                "average_time_saved_mins",
+                "affected_journeys",
+            ],
+        )
+        .properties(
+            title="Bidirectional Routes With Highest Average Time Saving",
+            height=350,
+        )
+    )
+
+
+def create_station_demand_impact_chart(comparison_df: pd.DataFrame) -> alt.Chart:
+    """Create a bar chart showing stations with the highest total time impact."""
+
+    df = comparison_df.copy()
+
+    origin_impact = (
+        df.groupby("nearest_station_baseline")["time_spent_diff"]
+        .sum()
+        .reset_index()
+        .rename(
+            columns={
+                "nearest_station_baseline": "station",
+                "time_spent_diff": "total_time_impact_mins",
+            }
+        )
+    )
+
+    destination_impact = (
+        df.groupby("alighting_station_baseline")["time_spent_diff"]
+        .sum()
+        .reset_index()
+        .rename(
+            columns={
+                "alighting_station_baseline": "station",
+                "time_spent_diff": "total_time_impact_mins",
+            }
+        )
+    )
+
+    station_summary = (
+        pd.concat([origin_impact, destination_impact])
+        .groupby("station")["total_time_impact_mins"]
+        .sum()
+        .reset_index()
+    )
+
+    station_summary["absolute_impact"] = station_summary[
+        "total_time_impact_mins"
+    ].abs()
+
+    station_summary = (
+        station_summary.sort_values("absolute_impact", ascending=False)
+        .head(10)
+    )
+
+    return (
+        alt.Chart(station_summary)
+        .mark_bar()
+        .encode(
+            x=alt.X("total_time_impact_mins:Q",
+                    title="Total time impact minutes"),
+            y=alt.Y("station:N", sort="-x", title="Station"),
+            tooltip=[
+                "station",
+                "total_time_impact_mins",
+            ],
+        )
+        .properties(
+            title="Stations With Highest Overall Impact",
+            height=350,
+        )
+    )

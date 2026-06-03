@@ -22,6 +22,9 @@ from df_analysis import (
     get_percentage_of_affected_routes,
     get_affected_routes,
     get_demand_impact_ranges,
+    create_top_affected_routes_chart,
+    create_station_demand_impact_chart,
+    create_top_time_saving_routes_chart
 )
 from folium_functions import plot_original_station_point, create_folium_map
 from kml_export import generate_kmz_bytes
@@ -344,6 +347,7 @@ if st.session_state.simulation_finished:
         "number_of_passengers": 32000,  # Placeholder, replace with actual metadata
     }
     comparison_df = get_comparison_csv(BUCKET_NAME, st.session_state.target_key)
+
     if st.session_state.pdf_bytes:
         st.download_button(
             label="Download recommendation report",
@@ -366,6 +370,24 @@ if st.session_state.simulation_finished:
         st.session_state.simulation_running = False
         st.session_state.pdf_bytes = None
         st.rerun()
+
+    if not comparison_df.empty:
+        st.subheader("Simulation Visualisations")
+
+        st.altair_chart(
+            create_top_affected_routes_chart(comparison_df),
+            use_container_width=True,
+        )
+
+        st.altair_chart(
+            create_top_time_saving_routes_chart(comparison_df),
+            use_container_width=True,
+        )
+
+        st.altair_chart(
+            create_station_demand_impact_chart(comparison_df),
+            use_container_width=True,
+        )
 
     st.subheader("Affected Routes Summary")
     if not comparison_df.empty:
