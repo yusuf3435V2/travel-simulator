@@ -33,9 +33,8 @@ def clean_boundary_data(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
             f"Required columns not found. Available columns: {gdf.columns.tolist()}")
 
     gdf = gdf[["BOROUGH", "geometry"]]
-    gdf.columns = ["borough_name", "geometry"]
-    logging.info("Cleaned %s boroughs: %s", len(
-        gdf), gdf["borough_name"].tolist())
+    gdf.columns = ["Borough Name", "geometry"]
+    logging.info("Cleaned %s boroughs", len(gdf))
     return gdf
 
 
@@ -128,13 +127,13 @@ def lambda_handler(event: dict = None, context: dict = None) -> dict:
         station_counts = get_stations_per_boundary(gdf, stations_gdf)
 
         # Merge counts back to gdf
-        gdf['station_count'] = gdf.index.map(
+        gdf['Station Count'] = gdf.index.map(
             station_counts).fillna(0).astype(int)
 
         # Save processed choropleth GeoDataFrame to S3
         save_choropleth_to_s3(gdf, choropleth_s3_path)
 
-        m = gdf.explore(column='station_count', cmap='YlOrRd', legend=True)
+        m = gdf.explore(column='Station Count', cmap='YlOrRd', legend=True)
         m.save("choropleth_local.html")
 
         return {"statusCode": 200, "body": "Choropleth created and saved to S3 successfully."}
@@ -145,23 +144,6 @@ def lambda_handler(event: dict = None, context: dict = None) -> dict:
             "statusCode": 500,
             "body": f"Failed to run pipeline and save choropleth to S3: {str(e)}",
         }
-
-
-def load_choropleth_from_s3(s3_path: str = 'outputs/choropleth.geojson') -> gpd.GeoDataFrame:
-    """Load choropleth GeoDataFrame from S3 GeoJSON."""
-    logging.info("Loading choropleth GeoDataFrame from S3: %s", s3_path)
-    try:
-        s3 = boto3.client('s3')
-        response = s3.get_object(
-            Bucket='c23-travel-simulation-bucket', Key=s3_path)
-        data = response['Body'].read()
-        gdf = gpd.read_file(BytesIO(data))
-        logging.info(
-            "Choropleth GeoDataFrame loaded successfully from S3: %s", s3_path)
-        return gdf
-    except Exception as e:
-        logging.error("Error loading choropleth from S3: %s", e)
-        raise RuntimeError(f"Failed to load choropleth from S3: {e}")
 
 
 if __name__ == "__main__":
