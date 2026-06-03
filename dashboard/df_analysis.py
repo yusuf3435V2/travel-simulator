@@ -101,22 +101,6 @@ def add_dataframes(df1, df2, fill_value=0):
     return df1.add(df2, fill_value=fill_value)
 
 
-def unsuffix_name(station_name: str) -> str:
-    """Remove suffixes like ' Underground Station' from station names."""
-    suffixes = [
-        " Underground Station",
-        " DLR Station",
-        " Elizabeth Line Station",
-        " Rail Station",
-        " Underground",
-    ]
-    # If station name contains a "(", remove this and everything after it as well
-    if "(" in station_name:
-        station_name = station_name.split("(")[0].strip()
-    for suffix in suffixes:
-        if station_name.lower().endswith(suffix.lower()):
-            return station_name[: -len(suffix)].strip()
-    return station_name
 
 
 def get_demand_impact_ranges(comparison_df) -> pd.DataFrame:
