@@ -81,7 +81,6 @@ s3://c23-travel-simulation-bucket/
 │   ├── boundaryClean.pkl
 │   └── stations.csv
 └── outputs/
-    ├── choropleth_cloud.html
     └── choropleth.geojson
 ```
 
