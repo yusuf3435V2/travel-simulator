@@ -57,25 +57,8 @@ def get_affected_routes(comparison_df) -> pd.DataFrame:
     summary_df = comparison_df.groupby("bidirectional_route").agg(
         total_impacted_routes=("route_id", "count"),
         avg_time_difference=("time_spent_diff", "mean"),
-        std_time_difference=("time_spent_diff", "std"),
-        upper_bound_time_difference=(
-            "time_spent_diff",
-            lambda x: x.mean() + 1.96 * x.std(ddof=1) / np.sqrt(len(x)),
-        ),
-        lower_bound_time_difference=(
-            "time_spent_diff",
-            lambda x: x.mean() - 1.96 * x.std(ddof=1) / np.sqrt(len(x)),
-        ),
         maximum_time_difference=("time_spent_diff", "max"),
         minimum_time_difference=("time_spent_diff", "min"),
-    )
-    summary_df = summary_df.drop(
-        [
-            "std_time_difference",
-            "upper_bound_time_difference",
-            "lower_bound_time_difference",
-        ],
-        axis=1,
     )
     summary_df = summary_df.rename(
         columns={
