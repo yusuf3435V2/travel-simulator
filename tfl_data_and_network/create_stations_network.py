@@ -14,12 +14,12 @@ from api_utils import setup_logger
 
 
 def add_edge_between_stations(
-    G: nx.MultiGraph, station1: str, station2: str, line_id: str, duration: int
+    graph: nx.MultiGraph, station1: str, station2: str, line_id: str, duration: int
 ) -> None:
     """
-    Add an edge between two stations in the graph G
+    Add an edge between two stations in the graph
     with the line_id and duration as attributes."""
-    G.add_edge(station1, station2, line_id=line_id, duration=duration)
+    graph.add_edge(station1, station2, line_id=line_id, duration=duration)
 
 
 def get_stops_from_line(line_data: dict, line_id: str) -> list[dict]:
@@ -134,7 +134,7 @@ def lambda_handler(event: dict = None, context: dict = None) -> dict:
         logging.error("Failed to run pipeline and save to S3: %s", e)
         return {
             "statusCode": 500,
-            "body": "Failed to run pipeline and save to S3: %s" % str(e),
+            "body": f"Failed to run pipeline and save to S3: {str(e)}",
         }
 
 
