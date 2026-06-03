@@ -138,7 +138,7 @@ Once deployed, the Streamlit dashboard will be accessible on port 8501 from the 
 
 The dashboard requires these environment variables:
 - `GOOGLE_CLOUD_PROJECT`: Google Cloud project ID for Earth Engine
-
+- `OPENAI_API_KEY`: OpenAI API key (used for report generation)
 AWS access to S3 should be provided via the ECS task role (no `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` env vars needed).
 
 
