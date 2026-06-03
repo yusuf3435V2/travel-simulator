@@ -93,31 +93,8 @@ def create_station_network() -> dict[str, pd.DataFrame | nx.MultiGraph]:
     return {"stops_df": stops_df, "network": network}
 
 
-def load_station_network_local(
-    network_file_path: str = "stations/tube_network.graphml",
-    station_file_path: str = "stations/Stations.csv",
-) -> bool:
-    """Load the station network data to the local directory."""
-    try:
-        stations_network_data = create_station_network()
-        nx.write_graphml(
-            stations_network_data.get(
-                "network", nx.MultiGraph()), network_file_path
-        )
-        stations_network_data.get("stops_df", pd.DataFrame()).to_csv(
-            station_file_path, index=False
-        )
-        logging.info(
-            "Successfully loaded station network and data to local files")
-        return True
-    except Exception as e:
-        logging.error(
-            "Failed to load station network data to local files: %s", e)
-        return False
-
-
 def track_network_creation_time() -> None:
-    """Track the time taken to create the station network."""
+    """Track the time taken to create the station network to locally test run time for lambda."""
     start_time = time.time()
     create_station_network()
     end_time = time.time()
