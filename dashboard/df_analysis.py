@@ -153,9 +153,9 @@ def get_demand_impact_ranges(comparison_df) -> pd.DataFrame:
         axis=1,
     )
     station_impact = station_impact[
-        station_impact["Station"] != "User Proposed Station"
+        ~station_impact["Station"].isin(["User Station", "User Proposed Station"])
     ]
-    station_impact = station_impact[station_impact["upper_bound_percentage"] != np.inf]
+    station_impact = station_impact[np.isfinite(station_impact["upper_bound_percentage"])]
     station_impact.drop(
         columns=[
             "sum",
