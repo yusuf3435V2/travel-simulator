@@ -92,6 +92,48 @@ def choropleth_creation_cloud(
         f"Map created with {len(stations_gdf)} tube stops across {gdf['station_count'].astype(bool).sum()} zones")
 
 
+def choropleth_creation_cloud(
+    stops_url: str,
+    boundary_s3_path: str = "processed/boundaries.pkl",
+    station_s3_path: str = "processed/stations.pkl"
+):
+    """Create choropleth map using boundary and station data from S3."""
+    from data_functions import load_boundaries_s3, upload_file_to_s3
+
+    # STEP 1: Load boundary data from S3
+    logger.info("Loading boundaries from S3: %s", boundary_s3_path)
+    gdf = load_boundaries_s3(BUCKET_NAME, boundary_s3_path)
+
+    # STEP 2: Load or fetch tube stops
+    try:
+        logger.info("Attempting to load stations from S3: %s", station_s3_path)
+        with open(station_s3_path, "rb") as f:
+            import pickle
+            stations_gdf = pickle.load(f)
+    except FileNotFoundError:
+        logger.info("Stations not found in S3, fetching from API.")
+        stations_gdf = get_normalised_stops(stops_url)
+        # Save fetched data to S3 for future use
+        import pickle
+        data = pickle.dumps(stations_gdf)
+        upload_file_to_s3(BUCKET_NAME, station_s3_path, data)
+        logger.info("Stations uploaded to S3: %s", station_s3_path)
+
+    # STEP 3: Spatial join - count stations in each boundary zone
+    station_counts = get_stations_per_boundary(gdf, stations_gdf)
+
+    # Merge counts back to gdf
+    gdf['station_count'] = gdf.index.map(station_counts).fillna(0).astype(int)
+
+    # STEP 4: Create the map coloured by station count
+    m = create_choropleth(gdf)
+
+    # STEP 5: Save the map
+    m.save("choropleth_cloud.html")
+    logger.info(
+        f"Map created with {len(stations_gdf)} tube stops across {gdf['station_count'].astype(bool).sum()} zones")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)

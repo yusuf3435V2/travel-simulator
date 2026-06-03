@@ -1,5 +1,6 @@
 """Plot the stations network using NetworkX and Folium."""
 
+import io
 import logging
 from io import BytesIO
 import pickle
@@ -252,27 +253,58 @@ def create_combined_base_map(gdf: gpd.GeoDataFrame, station_data: pd.DataFrame) 
     return m
 
 
+def load_choropleth_from_s3_safe(bucket_name: str, s3_path: str) -> gpd.GeoDataFrame | None:
+    """Load choropleth from S3 GeoJSON. Returns None if not found or on error."""
+    try:
+        logging.info("Loading choropleth from S3: %s", s3_path)
+        s3 = boto3.client('s3')
+        response = s3.get_object(Bucket=bucket_name, Key=s3_path)
+        data = response['Body'].read()
+        gdf = gpd.read_file(io.BytesIO(data))
+        # Standardize column names for consistency with local pipeline
+        if 'borough_name' in gdf.columns:
+            gdf = gdf.rename(columns={'borough_name': 'CTYUA25NM'})
+        logging.info("Choropleth loaded successfully from S3: %s", s3_path)
+        return gdf
+    except Exception as e:
+        logging.info("Choropleth not found in S3, will compute locally: %s", e)
+        return None
+
+
 def create_choropleth() -> folium.Map | None:
     """Create a choropleth map with station counts and station markers."""
     setup_logger()
     logging.info("Starting choropleth creation")
 
+    # Always load network and stations (needed for overlay regardless)
     network = extract_station_network()
-    gdf = extract_boundaries()
     stations_df = extract_stations()
 
-    if gdf.empty or stations_df.empty:
-        logging.error("Failed to load required data")
+    if stations_df.empty:
+        logging.error("Failed to load stations data")
         return None
-    stations_gdf = convert_stations_to_geodataframe(stations_df)
-    station_counts = get_stations_per_boundary(gdf, stations_gdf)
-    gdf['station_count'] = gdf.index.map(station_counts).fillna(0).astype(int)
 
+    # Try loading cached choropleth from S3
+    gdf = load_choropleth_from_s3_safe(
+        'c23-travel-simulation-bucket', 'outputs/choropleth.geojson')
+
+    # If not cached, compute locally
+    if gdf is None:
+        logging.info("Computing choropleth locally")
+        gdf = extract_boundaries()
+        if gdf.empty:
+            logging.error("Failed to load boundary data")
+            return None
+        stations_gdf = convert_stations_to_geodataframe(stations_df)
+        station_counts = get_stations_per_boundary(gdf, stations_gdf)
+        gdf['station_count'] = gdf.index.map(
+            station_counts).fillna(0).astype(int)
+
+    # Both paths converge here
     m = create_combined_base_map(gdf, stations_df)
 
     color_scheme = create_colour_scheme()
     line_groups = create_line_feature_groups(stations_df, m)
-
     add_station_markers(stations_df, m, color_scheme)
     add_network_edges(network, stations_df, m, line_groups, color_scheme)
 
