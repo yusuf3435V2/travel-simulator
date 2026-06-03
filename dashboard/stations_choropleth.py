@@ -253,6 +253,23 @@ def create_combined_base_map(gdf: gpd.GeoDataFrame, station_data: pd.DataFrame) 
     return m
 
 
+def load_choropleth_from_s3(s3_path: str = 'outputs/choropleth.geojson') -> gpd.GeoDataFrame:
+    """Load choropleth GeoDataFrame from S3 GeoJSON."""
+    logging.info("Loading choropleth GeoDataFrame from S3: %s", s3_path)
+    try:
+        s3 = boto3.client('s3')
+        response = s3.get_object(
+            Bucket='c23-travel-simulation-bucket', Key=s3_path)
+        data = response['Body'].read()
+        gdf = gpd.read_file(BytesIO(data))
+        logging.info(
+            "Choropleth GeoDataFrame loaded successfully from S3: %s", s3_path)
+        return gdf
+    except Exception as e:
+        logging.error("Error loading choropleth from S3: %s", e)
+        raise RuntimeError(f"Failed to load choropleth from S3: {e}")
+
+
 def load_choropleth_from_s3_safe(bucket_name: str, s3_path: str) -> gpd.GeoDataFrame | None:
     """Load choropleth from S3 GeoJSON. Returns None if not found or on error."""
     try:
