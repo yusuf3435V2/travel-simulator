@@ -33,7 +33,6 @@ def remove_uninfluenced_stations(comparison_df) -> pd.DataFrame:
 
 def get_passenger_station_counts(comparison_df) -> pd.DataFrame:
     """Get the count of passengers associated with each station."""
-    print(comparison_df.head())
     origin_counts = comparison_df["nearest_station_baseline"].value_counts()
     destination_counts = comparison_df["alighting_station_baseline"].value_counts()
     station_counts = origin_counts.add(destination_counts, fill_value=0).reset_index()
