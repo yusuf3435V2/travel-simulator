@@ -130,12 +130,6 @@ def lambda_handler(event: dict = None, context: dict = None) -> dict:
         gdf['Station Count'] = gdf.index.map(
             station_counts).fillna(0).astype(int)
 
-        # Save processed choropleth GeoDataFrame to S3
-        save_choropleth_to_s3(gdf, choropleth_s3_path)
-
-        m = gdf.explore(column='Station Count', cmap='YlOrRd', legend=True)
-        m.save("choropleth_local.html")
-
         return {"statusCode": 200, "body": "Choropleth created and saved to S3 successfully."}
     except Exception as e:
         logging.error(
