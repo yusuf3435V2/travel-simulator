@@ -1,8 +1,7 @@
-pandas
-geopandas
-matplotlib
-folium
-mapclassify
-pylint
-pytest
+numpy==1.24.3
+pandas==2.0.3
+fiona==1.9.6
+pyproj==3.6.1
+shapely==2.0.2
+geopandas==0.13.2
 boto3

@@ -104,3 +104,14 @@ resource "aws_lambda_function" "c23_travel_simulator_choropleth_pipeline" {
     aws_iam_role_policy_attachment.c23_travel_simulator_choropleth_attach_logs_policy
   ]
 }
+
+# Outputs for deploy script
+output "ecr_repository_url_choropleth" {
+  value       = aws_ecr_repository.c23_travel_simulator_choropleth_pipeline.repository_url
+  description = "URL of the choropleth ECR repository"
+}
+
+output "ecr_repository_name_choropleth" {
+  value       = aws_ecr_repository.c23_travel_simulator_choropleth_pipeline.name
+  description = "Name of the choropleth ECR repository"
+}
