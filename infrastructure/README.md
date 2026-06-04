@@ -80,12 +80,11 @@ Usage:
 ```
 
 #### **deploy_simulation.sh**
-Focused deployment script for the simulation Lambda infrastructure only. Performs:
-- Builds and pushes simulation Docker image to ECR
-- Deploys or updates the simulation Lambda function
-- Configures S3 triggers and IAM permissions
-- Updates Lambda environment variables
-- Validates Lambda function configuration
+Docker build-and-push script for the simulation image. It:
+- Reads the simulation ECR repository outputs from Terraform
+- Logs into ECR
+- Builds the Docker image (linux/amd64) from `../simulation`
+- Tags and pushes the image to ECR
 
 Usage:
 ```bash
