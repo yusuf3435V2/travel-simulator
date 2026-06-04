@@ -227,15 +227,14 @@ def set_input_method(method):
     st.session_state.kmz_bytes = None
 
 
-left, centre, right = st.columns([3, 4, 2])
+unused_left, centre, unused_right = st.columns([3, 4, 2])
 with centre:
     st.markdown(
         '<h3 class="section-title">1. Choose proposed station location</h3>',
         unsafe_allow_html=True,
     )
 
-left, centre, right = st.columns([3, 4, 2])
-
+unused_left, centre, unused_right = st.columns([3, 4, 2])
 with centre:
 
     method_col1, method_col2 = st.columns(2)
