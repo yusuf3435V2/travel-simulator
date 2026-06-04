@@ -2,7 +2,7 @@
 # Docker build and push script for c23-travel-simulator-choropleth-pipeline
 # Gets values from Terraform outputs and builds from parent directory
 
-set -e
+set -euo pipefail
 
 # Get outputs from Terraform (in current directory)
 ECR_REPO_URL=$(terraform output -raw ecr_repository_url_choropleth)
