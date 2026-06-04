@@ -151,7 +151,7 @@ Usage:
 1. **Terraform** installed (v1.0+)
 2. **AWS CLI** configured with appropriate credentials
 3. **Docker** installed locally for building container images
-4. **AWS Account** with permissions to create Lambda, EC2, S3, ECR, and API Gateway resources
+4. **AWS Account** with permissions to create Lambda, ECS, S3, ECR, API Gateway, IAM, and CloudWatch resources
 5. **S3 Bucket** for storing reference data and simulation results (created automatically)
 
 ## Deployment Steps
