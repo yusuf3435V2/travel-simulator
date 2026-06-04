@@ -86,7 +86,7 @@ This creates the ECR repository where the Docker image will be stored.
 #### 2. Build and Push Docker Image
 
 ```bash
-./deploy.sh
+./deploy_networkx.sh
 ```
 
 This script handles:
