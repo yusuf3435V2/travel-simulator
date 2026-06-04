@@ -15,11 +15,10 @@ The infrastructure creates a fully automated, serverless system for:
 ### Terraform Configuration Files
 
 #### **main.tf**
-Primary Terraform entry point and orchestration file. Defines:
+Terraform backend/provider configuration and shared foundational resources. Defines:
+- S3 backend configuration for Terraform state
 - AWS provider configuration
-- Root module structure and resource composition
-- Output values for deployed infrastructure endpoints
-- Integration points between all infrastructure components
+- Shared S3 bucket used for reference data and simulation outputs
 
 #### **variables.tf**
 Input variables required by the Terraform configuration. Includes:
