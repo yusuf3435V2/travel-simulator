@@ -1,11 +1,7 @@
-import boto3
 import streamlit as st
 import json
 import dotenv
 import os
-import pandas as pd
-from io import StringIO
-import folium
 from streamlit_folium import st_folium
 from s3_utils import (
     get_station_data,
