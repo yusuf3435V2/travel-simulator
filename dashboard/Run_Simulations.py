@@ -51,7 +51,10 @@ st.set_page_config(
     layout="wide",
 )
 
-st.logo("dashboard/lss_logo.png", size="large")
+# Construct logo path relative to this script's location
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logo_path = os.path.join(script_dir, "lss_logo.png")
+st.logo(logo_path, size="large")
 
 dotenv.load_dotenv()
 
@@ -128,7 +131,7 @@ def set_input_method(method):
     st.session_state.kmz_bytes = None
 
 
-st.sidebar.image("dashboard/lss_logo.png", width=500)
+st.sidebar.image(logo_path, width=500)
 
 st.sidebar.divider()
 
