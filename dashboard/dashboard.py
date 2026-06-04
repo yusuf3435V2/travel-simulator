@@ -32,7 +32,7 @@ from s3_utils import (
     get_station_data,
     get_comparison_csv,
 )
-from new_stations_choropleth import create_choropleth
+from stations_choropleth import create_choropleth
 
 
 # Helper to look for simulation outputs without downloading full payloads
