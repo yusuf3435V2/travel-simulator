@@ -248,7 +248,7 @@ To tear down all provisioned resources:
 terraform destroy
 ```
 
-**Warning**: This will delete all infrastructure including S3 buckets and Lambda functions. Ensure data is backed up before destruction.
+**Warning**: `terraform destroy` may fail if the S3 bucket is not empty (and this project also uses that bucket as the Terraform backend). Empty the bucket and migrate state to a different backend before attempting to delete the bucket, and back up any required data first.
 
 ## Configuration
 
