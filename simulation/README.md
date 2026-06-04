@@ -35,8 +35,8 @@ The Mesa model container that:
    - Updates network structure based on new calculated station distances, assuming a train speed of 45km/h
 
 3. **Multi-Mode Transportation**
-   - Walking: For short distances (< 1.6 km)
-   - Bus/Public Transit: For long distances (> 5 km)
+   - Walking: For short distances (=< 1.6 km)
+   - Bus/Public Transit: For long distances (> 1.6 km)
 
 4. **Travel Time Tracking**
    - Total journey time
