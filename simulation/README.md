@@ -165,16 +165,15 @@ UniqueId,Name,Latitude,Longitude,Line_id
 **Format**
 A dictionary with keys `["UniqueId", "Name", "Latitude", "Longitude", "Line_id"]` 
 
-**Example**
-```
-{
-  "UniqueId": "user_station_1",
-  "Name": "User Station",
-  "Latitude": 51.519425328081894,
-  "Longitude": -0.09887695312500001,
-  "Line_id": "bakerloo",
-}
-```
+**Example** (JSON)
+
+    {
+      "UniqueId": "user_station_1",
+      "Name": "User Station",
+      "Latitude": 51.519425328081894,
+      "Longitude": -0.09887695312500001,
+      "Line_id": "bakerloo"
+    }
 
 ## Output Format
 
