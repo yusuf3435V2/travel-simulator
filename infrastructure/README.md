@@ -1,53 +1,254 @@
-# Networkx Lambda Terraform Configuration
+# Travel Simulator Infrastructure
 
-This Terraform configuration creates an AWS Lambda function that runs your Docker container for the travel simulator network pipeline.
+This directory contains Terraform configurations and deployment scripts for provisioning the complete cloud infrastructure for the Travel Simulator dashboard and simulation pipeline on AWS.
 
-## Prerequisites
+## Overview
 
-1. **Terraform** installed (v1.0+)
-1. **Terraform** installed (v1.0+)
-2. **AWS CLI** configured with credentials
-3. **Docker** image built locally
-4. **S3 bucket** will be created by Terraform: `c23-travel-simulation-bucket`
-## What Gets Created
+The infrastructure creates a fully automated, serverless system for:
+- **Data Pipeline**: Automated TFL network data collection and processing via Lambda
+- **Simulation Engine**: Discrete event simulation of passenger journeys via Lambda
+- **Dashboard**: Streamlit-based interactive dashboard for results visualisation
+- **API Layer**: API Gateway for exposing the simulation invocation endpoint
 
-- **ECR Repository**: Docker image registry
-- **Lambda Function**: Runs your pipeline with 15-minute timeout and 3GB memory
-- **IAM Role**: Permissions for Lambda to write logs and S3
-- **EventBridge Rule**: Optional monthly schedule trigger (2 AM UTC on the 1st)
-- **CloudWatch Log Group**: 7-day retention logs
+## Files and Their Functions
 
-## Deployment Steps
+### Terraform Configuration Files
 
-### 1. Create ECR Repository First
+#### **main.tf**
+Terraform backend/provider configuration and shared foundational resources. Defines:
+- S3 backend configuration for Terraform state
+- AWS provider configuration
+- Shared S3 bucket used for reference data and simulation outputs
 
-```bash
-cd infrastructure
-terraform init
-terraform apply -target aws_ecr_repository.c23_travel_simulator_networkx_pipeline
-```
+#### **variables.tf**
+Input variables required by the Terraform configuration. Includes:
+- AWS region (`aws_region`)
+- AWS credentials for the Terraform AWS provider (`aws_access_key_id`, `aws_secret_access_key`)
+- Dashboard configuration (`GOOGLE_CLOUD_PROJECT`, `OPENAI_API_KEY`, `S3_BUCKET_NAME`)
 
-This creates the ECR repository where the Docker image will be stored.
+#### **terraform.tfvars** (local only)
+Local values assigned to the variables defined in `variables.tf`.
 
-### 2. Build and Push Docker Image
+> Note: this repository ignores `*.tfvars` files (see `/.gitignore`), so create `terraform.tfvars` locally (or provide values via `TF_VAR_...` environment variables). Do not commit credentials or API keys.
 
+#### **networkx_lambda.tf**
+#### **networkx_lambda.tf**
+Infrastructure for the TFL network data pipeline Lambda function. Provisions:
+- ECR (Elastic Container Registry) repository for Docker images
+- Lambda function for network graph creation and processing
+- IAM role with S3 and CloudWatch permissions
+- EventBridge scheduled trigger for monthly data updates
+- CloudWatch log group for Lambda execution logs
+
+#### **simulation_lambda.tf**
+Infrastructure for the simulation engine Lambda function. Provisions:
+- ECR (Elastic Container Registry) repository for the simulation Docker image
+- Lambda function for running simulations (container image)
+- IAM role with S3 and CloudWatch Logs permissions
+- CloudWatch log group for Lambda execution logs
+- `S3_BUCKET_NAME` environment variable for writing results
+
+#### **dashboard.tf**
+Infrastructure for the Streamlit dashboard deployment on ECS Fargate. Creates:
+- ECR repository for the dashboard image
+- ECS task definition and ECS service (Fargate)
+- IAM task roles for S3 access and Lambda invocation
+- CloudWatch log group for container logs
+- Security group/network configuration (port 8501)
+
+> Note: this file references an existing ECS cluster, VPC, and public subnets via Terraform `data` sources.
+
+#### **api_gateway.tf**
+API Gateway v2 (HTTP API) configuration for invoking the simulation Lambda. Defines:
+- HTTP API (`aws_apigatewayv2_api`)
+- `POST /simulate` route
+- AWS_PROXY Lambda integration
+- Stage with `auto_deploy = true`
+- Lambda permission allowing API Gateway invocation
+
+### Deployment Scripts
+
+#### **deploy.sh**
+Docker build-and-push script for the NetworkX data pipeline image. It:
+- Reads ECR repository outputs from Terraform (`terraform output ...`)
+- Logs into ECR
+- Builds the Docker image (linux/amd64) from `../tfl_data_and_network`
+- Tags and pushes the image to ECR
+Usage:
 ```bash
 ./deploy.sh
 ```
 
-This script handles:
-- ECR login
-- Docker build with platform=linux/amd64
-- Image tagging
-- Push to ECR
+#### **deploy_simulation.sh**
+Docker build-and-push script for the simulation image. It:
+- Reads the simulation ECR repository outputs from Terraform
+- Logs into ECR
+- Builds the Docker image (linux/amd64) from `../simulation`
+- Tags and pushes the image to ECR
 
-### 3. Deploy Remaining Infrastructure
-
+Usage:
 ```bash
-terraform apply
+./deploy_simulation.sh
 ```
 
-This creates the Lambda function, IAM roles, EventBridge schedule, and CloudWatch logs.
+#### **dashboard.sh**
+Docker build-and-push script for the dashboard image. It:
+- Reads the dashboard ECR repository outputs from Terraform
+- Logs into ECR
+- Builds the Docker image (linux/amd64) from `../dashboard`
+- Tags and pushes the image to ECR
+- Forces a new deployment of the existing ECS service
+
+Usage:
+```bash
+./dashboard.sh
+```
+
+## Architecture Flow
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  AWS Infrastructure Overview                             │
+├─────────────────────────────────────────────────────────┤
+│                                                           │
+│  ┌──────────────────────┐   ┌──────────────────────┐   │
+│  │ TFL Data Pipeline    │   │ Simulation Engine    │   │
+│  │ (networkx_lambda)    │   │ (simulation_lambda)  │   │
+│  │                      │   │                      │   │
+│  │ - ECR Repository     │   │ - ECR Repository     │   │
+│  │ - Lambda Function    │   │ - Lambda Function    │   │
+│  │ - EventBridge        │   │                      │   │
+│  │   (monthly schedule) │   │                      │   │
+│  └──────────┬───────────┘   └──────────┬───────────┘   │
+│             │                          │                 │
+│             └──────────┬───────────────┘                 │
+│                        ▼                                  │
+│              ┌──────────────────┐                        │
+│              │  S3 Storage      │                        │
+│              │  (Results & Data)│                        │
+│              └────────┬─────────┘                        │
+│                       ▼                                   │
+│  ┌────────────────────────────────────────────┐         │
+│  │  API Gateway                               │         │
+│  │  (REST API Endpoints)                      │         │
+│  │  - /simulate                               │         │
+│  │  - /results                                │         │
+│  │  - /analysis                               │         │
+│  └──────────────────────┬─────────────────────┘         │
+│                         ▼                                 │
+│  ┌────────────────────────────────────────────┐         │
+│  │  Dashboard (Streamlit on EC2/ECS)          │         │
+│  │  - Interactive Results Visualisation       │         │
+│  │  - Simulation History                      │         │
+│  │  - Coverage Analysis                       │         │
+│  └────────────────────────────────────────────┘         │
+│                                                           │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Deployment Prerequisites
+
+1. **Terraform** installed (v1.0+)
+2. **AWS CLI** configured with appropriate credentials
+3. **Docker** installed locally for building container images
+4. **AWS Account** with permissions to create Lambda, ECS, S3, ECR, API Gateway, IAM, and CloudWatch resources
+5. **S3 Bucket** for storing reference data and simulation results (created automatically)
+
+## Deployment Steps
+
+### Initial Setup
+
+1. **Initialise Terraform:**
+   ```bash
+   cd infrastructure
+   terraform init
+   ```
+
+2. **Review planned infrastructure:**
+   ```bash
+   terraform plan
+   ```
+
+### Full Deployment
+
+Deploy all infrastructure components:
+```bash
+./deploy.sh
+```
+
+This creates:
+- S3 buckets for results and data storage
+- ECR repositories for Docker images
+- Network pipeline Lambda function with monthly schedule
+- Simulation engine Lambda with S3 triggers
+- Dashboard infrastructure (EC2/ECS)
+- API Gateway with endpoints
+- IAM roles and security groups
+- CloudWatch logging and monitoring
+
+### Selective Deployment
+
+Deploy only specific components:
+
+**Network Pipeline Only:**
+```bash
+terraform apply -target=module.networkx_lambda
+```
+
+**Simulation Engine Only:**
+terraform apply -target=aws_lambda_function.c23_travel_simulator_simulation
+./deploy_simulation.sh
+
+**Dashboard Only:**
+terraform apply -target=aws_ecs_service.dashboard
+./dashboard.sh
+
+## Outputs
+
+After deployment, Terraform outputs the following endpoints:
+
+- **API Gateway Base URL**: For API integration
+- **Dashboard URL**: For accessing the interactive dashboard
+- **S3 Bucket Name**: For results storage and retrieval
+- **CloudWatch Log Groups**: For monitoring and debugging
+
+Access these values with:
+```bash
+terraform output
+```
+
+## Monitoring and Debugging
+
+### View Lambda Logs
+
+# Network pipeline logs
+aws logs tail /aws/lambda/c23-travel-simulator-networkx-pipeline --follow
+
+# Simulation engine logs
+aws logs tail /aws/lambda/c23-travel-simulator-simulation --follow
+
+### Check Lambda Executions
+
+```bash
+aws lambda list-functions
+aws lambda get-function-concurrency --function-name <function-name>
+```
+
+### Monitor S3 Activity
+
+```bash
+aws s3 ls s3://c23-travel-simulation-bucket --recursive
+```
+
+## Destroying Infrastructure
+
+To tear down all provisioned resources:
+
+```bash
+terraform destroy
+```
+
+**Warning**: `terraform destroy` may fail if the S3 bucket is not empty (and this project also uses that bucket as the Terraform backend). Empty the bucket and migrate state to a different backend before attempting to delete the bucket, and back up any required data first.
 
 ## Configuration
 
