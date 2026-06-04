@@ -8,7 +8,7 @@ Navigate to the choropleth directory to begin.
 
 1. Download boundary data:
 ```bash
-./download_boundaries.sh
+bash download_boundaries.sh
 ```
 
 2. Run the pipeline:
