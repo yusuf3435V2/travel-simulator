@@ -187,6 +187,10 @@ Proximity Impact = Neighbouring Station Count within 1.5km
 - Filters out stations with zero passenger impact
 - Highlights relevant network effects
 
+**Demand**:
+
+Demand change. coming from switching gets measured based on time savings (m) found for stations that are on altered routes. The probability of a switch can be calculated as follows: $D(m) = \frac{1}{1+e^{-m}}$. This will give a probability of switching between 0 and 1, and bringing different switch probabilities based on affected routes will lead to standard deviation estimates providing demand impact ranges.
+
 **Percentage Change**:
 ```
 Percent Change = (Altered - Baseline) / Baseline * 100%
