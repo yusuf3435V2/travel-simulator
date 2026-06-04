@@ -11,7 +11,6 @@ def load_env_variables() -> str:
     """Loads environment variables from a .env file."""
     dotenv.load_dotenv()
     bucket_name = os.getenv("S3_BUCKET_NAME")
-    print(bucket_name)
     if not bucket_name:
         raise ValueError("S3_BUCKET_NAME not found in environment variables.")
     return bucket_name
@@ -20,6 +19,7 @@ def load_env_variables() -> str:
 def fetch_file_from_s3(bucket_name: str, s3_key: str) -> pd.DataFrame:
     """Fetch passenger data from S3 and return as a DataFrame."""
     s3_client = boto3.client("s3")
+    print(s3_key)
     try:
         obj = s3_client.get_object(Bucket=bucket_name, Key=s3_key)
         df = pd.read_csv(obj["Body"])
@@ -69,10 +69,20 @@ def check_baseline_exists_in_s3() -> bool:
         return False
 
 
+def save_results_to_s3(file_path: str, bucket_name: str, s3_key: str):
+    """Saves a file to an S3 bucket."""
+    s3_client = boto3.client("s3")
+    try:
+        s3_client.upload_file(file_path, bucket_name, s3_key)
+        print(
+            f"File {file_path} uploaded to S3 bucket {bucket_name} with key {s3_key}."
+        )
+    except Exception as e:
+        print(f"Error uploading file to S3: {e}")
+
+
 def save_dataframe_to_s3(df: pd.DataFrame, bucket_name: str, s3_key: str):
     """Saves a DataFrame as a CSV file to an S3 bucket."""
-    if not isinstance(df, pd.DataFrame):
-        raise ValueError("Input must be a pandas DataFrame.")
     s3_client = boto3.client("s3")
     try:
         csv_buffer = df.to_csv(index=False)
@@ -82,7 +92,7 @@ def save_dataframe_to_s3(df: pd.DataFrame, bucket_name: str, s3_key: str):
         print(f"Error saving DataFrame to S3: {e}")
 
 
-def load_csv_results_from_s3(bucket_name: str, s3_key: str) -> pd.DataFrame:
+def load_results_from_s3(bucket_name: str, s3_key: str) -> pd.DataFrame:
     """Loads a CSV file from S3 into a DataFrame."""
     s3_client = boto3.client("s3")
     try:
