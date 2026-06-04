@@ -192,7 +192,7 @@ After simulation, `extract_agent_data()` returns a DataFrame with:
 | `nearest_station` | string | Name of boarding station |
 | `alighting_station` | string | Name of exit station |
 | `time_spent` | float | Total journey time in minutes |
-| `transit_time` | float | Time spent walking and waiting in minutes |
+| `walk_time` | float | Time spent travelling between origin/destination and their nearest stations (minutes) |
 
 ## Usage Example: Unmodified Network
 
