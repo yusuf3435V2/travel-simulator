@@ -205,9 +205,8 @@ terraform apply -target=aws_lambda_function.c23_travel_simulator_simulation
 ./deploy_simulation.sh
 
 **Dashboard Only:**
-```bash
+terraform apply -target=aws_ecs_service.dashboard
 ./dashboard.sh
-```
 
 ## Outputs
 
