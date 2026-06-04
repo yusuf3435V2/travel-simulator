@@ -221,13 +221,11 @@ terraform output
 
 ### View Lambda Logs
 
-```bash
 # Network pipeline logs
-aws logs tail /aws/lambda/travel-simulator-networkx --follow
+aws logs tail /aws/lambda/c23-travel-simulator-networkx-pipeline --follow
 
 # Simulation engine logs
-aws logs tail /aws/lambda/travel-simulator-simulation --follow
-```
+aws logs tail /aws/lambda/c23-travel-simulator-simulation --follow
 
 ### Check Lambda Executions
 
