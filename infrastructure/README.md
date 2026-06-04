@@ -126,8 +126,8 @@ Usage:
 │  │                      │   │                      │   │
 │  │ - ECR Repository     │   │ - ECR Repository     │   │
 │  │ - Lambda Function    │   │ - Lambda Function    │   │
-│  │ - EventBridge        │   │ - S3 Triggers        │   │
-│  │   (monthly schedule) │   │ - SNS Notifications  │   │
+│  │ - EventBridge        │   │                      │   │
+│  │   (monthly schedule) │   │                      │   │
 │  └──────────┬───────────┘   └──────────┬───────────┘   │
 │             │                          │                 │
 │             └──────────┬───────────────┘                 │
