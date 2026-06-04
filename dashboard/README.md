@@ -31,8 +31,10 @@ The dashboard will be available at `http://localhost:8501`
 Build and run the dashboard in a Docker container:
 ```bash
 docker build -f dashboard/Dockerfile -t travel-simulator-dashboard .
-docker run -p 8501:8501 travel-simulator-dashboard
+docker run -p 8501:8501 --env-file .env travel-simulator-dashboard
 ```
+
+Note: The `--env-file .env` flag is required to pass AWS and Google Cloud credentials to the container.
 
 ### Command-Line Options
 
@@ -44,160 +46,61 @@ streamlit run dashboard/dashboard.py --server.port 8000
 ## Dashboard Scripts
 
 ### **dashboard.py**
-Main dashboard application and entry point. Provides:
-- Multi-page interface using Streamlit pages
-- User input for proposed station locations (latitude, longitude, name)
-- Selection of baseline and altered simulation results for comparison
-- Main visualisation container and layout orchestration
-- Navigation between different analysis views
+Main entry point and orchestrator for the multi-page interface.
+- Handles user input for proposed station locations (latitude, longitude, name)
+- Manages simulation run selection and comparison (baseline vs. altered)
+- Orchestrates visualization layout and main dashboard rendering
 
 ### **analysis.py**
-Advanced analysis and report generation utilities. Includes:
+Advanced analysis and report generation utilities.
 - Google Earth Engine integration for environmental context analysis
-- OpenAI integration for generating analysis summaries and insights
-- PDF report generation using ReportLab
-- Coverage context analysis with GIS data
-- AI-powered interpretation of simulation results
+- OpenAI-powered generation of analysis summaries and recommendations
+- PDF report generation using ReportLab with coverage and land use context
 
 ### **coverage_context.py**
-Station coverage and accessibility analysis. Provides:
-- Calculates coverage areas around stations using 800m walking radius
-- Loads station data from S3
-- Performs spatial analysis using GeoPandas
-- Identifies stations within catchment areas
-- Generates coverage statistics and metrics
+Station coverage and accessibility analysis.
+- Calculates 800m walking radius catchment areas around stations
+- Performs spatial analysis using GeoPandas to identify accessible populations
+- Generates coverage statistics and accessibility metrics
 
 ### **df_analysis.py**
-DataFrame manipulation and comparison utilities. Handles:
-- Passenger impact analysis comparing baseline vs. altered simulations
-- Statistical calculations on journey times and passenger flows
-- Color-coding logic for visualising time savings (green) vs. increases (orange/red)
-- Station demand calculation by aggregating origin and destination flows
-- Filtering and transformation of comparison data
+DataFrame comparison and analysis utilities.
+- Compares passenger flows and journey times between baseline and altered simulations
+- Calculates time savings/degradation per route and station demand impacts
+- Provides color-coding logic (green for improvements, orange/red for degradation)
 
 ### **folium_functions.py**
-Interactive map visualisation utilities. Creates:
-- Folium-based interactive maps of the transport network
-- Proposed station markers and 800m catchment circles
-- Station markers colour-coded by passenger impact
-- Line network visualization
-- Click-enabled popups with station details and statistics
+Interactive map visualization components.
+- Creates Folium-based transport network maps with customizable layers
+- Overlays proposed station markers and 800m catchment circles
+- Color-codes stations by passenger impact with interactive popups
 
 ### **kml_export.py**
-KML file generation for external GIS applications. Provides:
-- Export of proposed station locations to KML format
-- Export of affected stations and coverage areas to KML
-- Support for custom styling and icons in KML output
-- Integration with external mapping tools (Google Earth, ArcGIS, etc.)
+KML file generation for external GIS applications.
+- Exports proposed stations, affected stations, and coverage areas to KML format
+- Supports custom styling and icons for Google Earth and ArcGIS visualization
 
 ### **s3_utils.py**
-AWS S3 integration for data access. Handles:
-- Loading simulation results from S3 buckets
-- Retrieving station reference data from cloud storage
-- Caching downloaded data for performance
-- Managing S3 authentication and error handling
+AWS S3 integration for cloud data access.
+- Loads simulation results and station reference data from S3 buckets
+- Caches downloaded data locally for improved performance
+- Handles S3 authentication and error handling
 
 ### **stations_choropleth.py**
-Choropleth map generation for geographic visualisation. Creates:
-- Heatmaps showing passenger density by station
-- Colour-scaled visualisations of impact metrics
-- Geographic boundary layers with station overlays
-- Interactive choropleth legends and controls
+Choropleth map generation for borough-level analysis.
+- Loads pre-generated choropleth GeoJSON from S3 with borough boundaries
+- Overlays station markers color-coded by impact metrics
+- Provides layer controls for filtering by line and impact magnitude
 
 ### **pages/2_previous_simulations.py**
-Multi-page dashboard section for historical analysis. Displays:
-- List of previous simulation runs with metadata
-- Comparison of results across different proposed stations
-- Historical trends in network impact
-- Archive of past analysis and reports
+Historical analysis and archival page (Streamlit multi-page feature).
+- Displays list of all previous simulation runs with metadata
+- Enables comparison of results across different proposed stations
+- Provides access to archived analysis reports and insights
 
 ## Metrics Calculation
 
-### Journey Time Metrics
-
-**Total Travel Time**: Sum of all time components
-```
-Total Time = Walking Time (Origin→Station) + 
-             Transit Time (Station→Station) + 
-             Walking Time (Station→Destination)
-```
-
-**Walking Time**: Calculated based on distance and fixed walking speed (5 km/h)
-```
-Walking Time (minutes) = Distance (km) / 5 * 60
-```
-
-**Transit Time**: 
-- Sum of edge durations along the path
-- Plus 5-minute penalty for each line change/transfer
-- Calculated using modified Dijkstra's algorithm
-
-### Passenger Impact Metrics
-
-**Baseline Journey Time**: Time spent without the proposed station
-- Recorded from baseline simulation results
-- Stored in `time_spent` field
-
-**Altered Journey Time**: Time spent with the proposed station
-- Recorded from altered simulation results
-- Passengers may use new station if it provides faster routing
-
-**Time Savings**: 
-```
-Time Savings = Baseline Time - Altered Time
-```
-- Positive values indicate improvement (passengers benefit)
-- Negative values indicate degradation (journey longer with new station)
-- Green visualisation for positive, orange/red for negative
-
-**Passenger Count**: Aggregation of station usage
-```
-Station Passenger Count = Origin Count + Destination Count
-```
-- Counts passengers boarding (boarding station) at each station
-- Counts passengers alighting (destination station) at each station
-- Total passenger throughput determines station importance
-
-### Coverage Metrics
-
-**Catchment Area**: 800m walking radius around each station
-- Uses Haversine distance formula
-- Identifies all locations within walkable range
-- Used to determine which passengers can access a station
-
-**Coverage Density**: 
-```
-Coverage Density = Population in Catchment / Catchment Area
-```
-- Indicates how many people are served per unit area
-- Higher density = more efficient station placement
-
-**Station Proximity**: Distance to nearest existing stations
-```
-Proximity Impact = Neighbouring Station Count within 1.5km
-```
-- Measures network redundancy
-- More neighbours = less unique contribution
-- Fewer neighbours = more novel coverage
-
-### Data Filtering and Display
-
-**Influenced Stations**: 
-- Only stations affected by the proposed station are visualised
-- Filters out stations with zero passenger impact
-- Highlights relevant network effects
-
-**Demand**:
-
-Demand change. coming from switching gets measured based on time savings (m) found for stations that are on altered routes. The probability of a switch can be calculated as follows: $D(m) = \frac{1}{1+e^{-m}}$. This will give a probability of switching between 0 and 1, and bringing different switch probabilities based on affected routes will lead to standard deviation estimates providing demand impact ranges.
-
-**Percentage Change**:
-```
-Percent Change = (Altered - Baseline) / Baseline * 100%
-```
-- Shows relative impact of the proposed station
-- Used for colour scaling in visualisations
-- Helps identify most and least impacted stations
+See [METRICS.md](METRICS.md) for detailed metrics calculations including journey time, coverage, passenger impact, and demand analysis.
 
 ## Data Flow
 
