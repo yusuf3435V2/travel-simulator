@@ -31,13 +31,10 @@ Configuration variables for the infrastructure. Includes:
 - S3 bucket naming and retention policies
 - Input variable definitions with default values and validation
 
-#### **terraform.tfvars**
-Actual values assigned to the variables defined in `variables.tf`. Contains:
-- Specific AWS region and environment settings
-- Custom resource names and tags
-- Lambda configuration overrides
-- S3 bucket names and policies
-- Environment-specific secrets and credentials
+#### **terraform.tfvars** (local only)
+Local values assigned to the variables defined in `variables.tf`.
+
+> Note: this repository ignores `*.tfvars` files (see `/.gitignore`), so create `terraform.tfvars` locally (or provide values via `TF_VAR_...` environment variables). Do not commit credentials or API keys.
 
 #### **networkx_lambda.tf**
 Infrastructure for the TFL network data pipeline Lambda function. Provisions:
