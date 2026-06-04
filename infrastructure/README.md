@@ -8,8 +8,7 @@ The infrastructure creates a fully automated, serverless system for:
 - **Data Pipeline**: Automated TFL network data collection and processing via Lambda
 - **Simulation Engine**: Discrete event simulation of passenger journeys via Lambda
 - **Dashboard**: Streamlit-based interactive dashboard for results visualisation
-- **Storage**: S3 buckets for persisting simulation results and reference data
-- **API Layer**: API Gateway for exposing simulation and analysis endpoints
+- **API Layer**: API Gateway for exposing the simulation invocation endpoint
 
 ## Files and Their Functions
 
