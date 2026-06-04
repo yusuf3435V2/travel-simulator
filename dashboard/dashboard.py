@@ -291,10 +291,9 @@ if st.session_state.input_method == "Type latitude/longitude":
             st.rerun()
 
 elif st.session_state.input_method == "Click on map":
-    left, centre, right = st.columns([3, 4, 2])
+    unused_left, centre, unused_right = st.columns([3, 4, 2])
 
     with centre:
-        st.write("Click on the map to set the proposed station location.")
 
     with st.spinner("Loading map..."):
         m = create_choropleth()
