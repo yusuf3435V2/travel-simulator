@@ -347,7 +347,7 @@ elif st.session_state.input_method == "Click on map":
     # Click handling is performed above; avoid duplicated state updates/reruns.
 
 
-left, centre, right = st.columns([3, 4, 2])
+unused_left, centre, unused_right = st.columns([3, 4, 2])
 
 with centre:
     st.markdown('<h3 class="section-title">2. Choose proposed train line</h3>',
