@@ -13,10 +13,11 @@ bash download_boundaries.sh
 
 2. Run the pipeline:
 ```bash
-python choropleth_pipline.py
+python choropleth_pipeline.py
 ```
 
-Output: `outputs/choropleth.geojson` saved to S3
+Output: GeoJSON saved to S3 at `s3://c23-travel-simulation-bucket/outputs/choropleth.geojson`
+
 
 ## What This Does
 
@@ -29,8 +30,13 @@ Output: `outputs/choropleth.geojson` saved to S3
 
 - AWS S3 access (configured via `~/.aws/credentials` or environment variables)
 - Tube station data must be in S3 at `processed/stations.csv`
+- S3 bucket path is hardcoded in `choropleth_pipeline.py` (update if needed)
+- Python dependencies: see `requirements.txt`
 
-## Files
+## File Structure
 
-- **`download_boundaries.sh`**: Downloads boundary data - run this first
-- **`choropleth_pipeline.py`**: Main pipeline - then run this
+- **`download_boundaries.sh`**: Bash script to download boundary data (run first)
+- **`choropleth_pipeline.py`**: Main Python pipeline (run after bash script)
+- **`requirements.txt`**: Python dependencies
+- **`Dockerfile`**: Container configuration for cloud deployment
+- **`boundaryData.geojson`**: Downloaded boundary data (created by bash script)
