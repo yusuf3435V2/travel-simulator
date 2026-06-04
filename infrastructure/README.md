@@ -69,13 +69,11 @@ API Gateway v2 (HTTP API) configuration for invoking the simulation Lambda. Defi
 ### Deployment Scripts
 
 #### **deploy.sh**
-Main deployment orchestration script. Handles:
-- Terraform initialisation (`terraform init`)
-- Infrastructure planning review (`terraform plan`)
-- Full infrastructure provisioning (`terraform apply`)
-- Post-deployment configuration and validation
-- Error handling and rollback support
-
+Docker build-and-push script for the NetworkX data pipeline image. It:
+- Reads ECR repository outputs from Terraform (`terraform output ...`)
+- Logs into ECR
+- Builds the Docker image (linux/amd64) from `../tfl_data_and_network`
+- Tags and pushes the image to ECR
 Usage:
 ```bash
 ./deploy.sh
