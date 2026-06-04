@@ -388,7 +388,7 @@ else:
 
     # Render Active or Disabled button based on execution locker
     if not st.session_state.simulation_running:
-        left, centre, right = st.columns([4.3, 4, 2])
+        unused_left, centre, unused_right = st.columns([4.3, 4, 2])
         with centre:
             if st.button("Confirm and run simulation", type="primary"):
                 st.session_state.simulation_running = True
