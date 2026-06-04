@@ -571,7 +571,32 @@ if st.session_state.simulation_finished:
         if not station_data.empty:
             folium_map = create_folium_map(station_data, comparison_df)
             folium_map = plot_original_station_point(metadata, folium_map)
-            st_folium(folium_map, width=700, height=500)
+            
+            map_col, legend_col = st.columns([3, 1])
+
+            with map_col:
+                st_folium(folium_map, width=700, height=500)
+
+            with legend_col:
+                st.markdown(
+                    """
+                    <div style="
+                        background-color:white;
+                        padding:15px;
+                        border-radius:10px;
+                        border:1px solid #ddd;
+                    ">
+                    <h4>Impact Legend</h4>
+                    <h5>Average time saved or lost by passengers passing through each station:</h5>
+
+                    <p>🔵 No Effect</p>
+                    <p>🟢 Time Saving</p>
+                    <p>🔴 Major Time Save</p>
+                    <p>🟠 Time Loss</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
         else:
             st.warning("Cannot create map without station data.")
     else:

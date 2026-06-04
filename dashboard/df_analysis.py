@@ -239,7 +239,7 @@ def create_top_time_saving_routes_chart(comparison_df: pd.DataFrame) -> alt.Char
 
     return (
         alt.Chart(route_summary)
-        .mark_bar()
+        .mark_bar(color="skyblue")
         .encode(
             x=alt.X(
                 "average_time_saved_mins:Q",
@@ -310,7 +310,7 @@ def create_station_demand_impact_chart(comparison_df: pd.DataFrame) -> alt.Chart
 
     return (
         alt.Chart(station_summary)
-        .mark_bar()
+        .mark_bar(color="#ADE8F4")
         .encode(
             x=alt.X("total_time_impact_mins:Q",
                     title="Total time impact minutes"),

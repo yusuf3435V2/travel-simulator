@@ -67,6 +67,7 @@ def create_folium_map(station_data, comparison_df):
             popup=f"{row['Name']} (Time Spent Difference: {row['Total Time Spent Difference']:.2f} mins)",
         ).add_to(m)
 
+    
     return m
 
 
