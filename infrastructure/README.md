@@ -23,13 +23,10 @@ Primary Terraform entry point and orchestration file. Defines:
 - Integration points between all infrastructure components
 
 #### **variables.tf**
-Configuration variables for the infrastructure. Includes:
-- AWS region and account settings
-- Environment-specific parameters
-- Naming conventions for resources
-- Lambda function configurations (memory, timeout, triggers)
-- S3 bucket naming and retention policies
-- Input variable definitions with default values and validation
+Input variables required by the Terraform configuration. Includes:
+- AWS region (`aws_region`)
+- AWS credentials for the Terraform AWS provider (`aws_access_key_id`, `aws_secret_access_key`)
+- Dashboard configuration (`GOOGLE_CLOUD_PROJECT`, `OPENAI_API_KEY`, `S3_BUCKET_NAME`)
 
 #### **terraform.tfvars** (local only)
 Local values assigned to the variables defined in `variables.tf`.
