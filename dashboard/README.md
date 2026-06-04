@@ -162,4 +162,3 @@ Environment variables (set in `.env`):
 - `GOOGLE_CLOUD_PROJECT`: Google Cloud project ID
 - `GOOGLE_APPLICATION_CREDENTIALS_JSON`: Service account JSON
 - `OPENAI_API_KEY`: OpenAI API key for analysis
-
