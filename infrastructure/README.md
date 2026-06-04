@@ -64,13 +64,12 @@ Infrastructure for the Streamlit dashboard deployment on ECS Fargate. Creates:
 > Note: this file references an existing ECS cluster, VPC, and public subnets via Terraform `data` sources.
 
 #### **api_gateway.tf**
-API Gateway configuration for exposing simulation and analysis endpoints. Defines:
-- REST API endpoints for triggering simulations
-- Integration with Lambda functions
-- Authentication and authorisation policies
-- Rate limiting and throttling
-- CORS configuration for dashboard integration
-- CloudWatch logging and request/response mapping
+API Gateway v2 (HTTP API) configuration for invoking the simulation Lambda. Defines:
+- HTTP API (`aws_apigatewayv2_api`)
+- `POST /simulate` route
+- AWS_PROXY Lambda integration
+- Stage with `auto_deploy = true`
+- Lambda permission allowing API Gateway invocation
 
 ### Deployment Scripts
 
