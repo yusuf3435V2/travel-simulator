@@ -34,13 +34,13 @@ Local values assigned to the variables defined in `variables.tf`.
 > Note: this repository ignores `*.tfvars` files (see `/.gitignore`), so create `terraform.tfvars` locally (or provide values via `TF_VAR_...` environment variables). Do not commit credentials or API keys.
 
 #### **networkx_lambda.tf**
+#### **networkx_lambda.tf**
 Infrastructure for the TFL network data pipeline Lambda function. Provisions:
 - ECR (Elastic Container Registry) repository for Docker images
 - Lambda function for network graph creation and processing
 - IAM role with S3 and CloudWatch permissions
 - EventBridge scheduled trigger for monthly data updates
 - CloudWatch log group for Lambda execution logs
-- Environment variables for Lambda function configuration
 
 #### **simulation_lambda.tf**
 Infrastructure for the simulation engine Lambda function. Provisions:
