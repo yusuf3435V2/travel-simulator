@@ -107,16 +107,18 @@ AWS S3 integration utilities for cloud storage operations. Enables:
 **Required Columns**:
 | Column | Type | Description |
 |--------|------|-------------|
+| `passenger_id` | string | Unique identifier for the passenger |
 | `origin_lat` | float | Latitude of starting location |
 | `origin_lng` | float | Longitude of starting location |
 | `destination_lat` | float | Latitude of ending location |
 | `destination_lng` | float | Longitude of ending location |
+| `day_type` | string | Type of day (e.g. `weekday`, `weekend`) |
 
 **Example**:
 ```csv
-passenger_id,origin_lat,origin_lng,destination_lat,destination_lng
-51.5074,-0.1278,51.5165,-0.1019
-51.4883,-0.3426,51.5175,-0.0532
+passenger_id,origin_lat,origin_lng,destination_lat,destination_lng,day_type
+P001,51.5074,-0.1278,51.5165,-0.1019,weekday
+P002,51.4883,-0.3426,51.5175,-0.0532,weekend
 ```
 
 ### 2. Station Data CSV
