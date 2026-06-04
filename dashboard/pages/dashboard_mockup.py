@@ -142,7 +142,7 @@ with method_col1:
     st.sidebar.button(
         "Type lat/lon",
         disabled=INPUT_DISABLED,
-        use_container_width=True,
+        width='stretch',
         on_click=set_input_method,
         args=("Type latitude/longitude",),
     )
@@ -151,7 +151,7 @@ with method_col2:
     st.sidebar.button(
         "Click map",
         disabled=INPUT_DISABLED,
-        use_container_width=True,
+        width='stretch',
         on_click=set_input_method,
         args=("Click on map",),
     )
@@ -187,8 +187,8 @@ elif st.session_state.input_method == "Click on map":
     st.sidebar.markdown("Select location on map to the right →")
 
 
-# Main content area - Map view
-st.markdown('## Map View')
+# Main content area - Interactive station selection map
+    st.markdown('## Click to Select Your Proposed Station')
 
 with st.spinner("Loading map..."):
     m = create_choropleth()
@@ -226,7 +226,7 @@ with centre:
     map_data = st_folium(
         m,
         height=600,
-        use_container_width=True,
+        width='stretch',
         key="location_picker_map",
         returned_objects=["last_clicked"],
     )
@@ -272,14 +272,14 @@ else:
 
     # Render Active or Disabled button based on execution locker
     if not st.session_state.simulation_running:
-        if st.sidebar.button("Run simulation", type="primary", use_container_width=True):
+        if st.sidebar.button("Run simulation", type="primary", width='stretch'):
             st.session_state.simulation_running = True
             st.session_state.simulation_finished = False
             st.session_state.pdf_bytes = None
             st.rerun()  # Instantly refreshes UI to gray out input components and lock button
     else:
         st.sidebar.button("Processing in AWS...",
-                          disabled=True, use_container_width=True)
+                          disabled=True, width='stretch')
 
     # Passive Background Polling Engine Execution Block
     if st.session_state.simulation_running and not st.session_state.simulation_finished:
@@ -315,28 +315,35 @@ else:
             st.toast("Lambda successfully triggered!")
 
         # Visual elements tracking progress loop
-        status_message = st.empty()
-        progress_bar = st.progress(0)
+        start_time = time.time()
+        status_placeholder = st.empty()
 
-        max_retries = 60  # 5 Minutes Max (60 attempts * 5 seconds sleep)
-        simulation_success = False
+        with st.spinner("Simulation running..."):
+            max_retries = 60  # 5 Minutes Max (60 attempts * 5 seconds sleep)
+            simulation_success = False
 
-        for attempt in range(max_retries):
-            status_message.text(
-                f"⏳ Checking S3 for outputs (Attempt {attempt + 1}/{max_retries})"
-            )
-            progress_bar.progress(min((attempt + 1) / max_retries, 0.95))
+            for attempt in range(max_retries):
+                elapsed = int(time.time() - start_time)
+                minutes = elapsed // 60
+                seconds = elapsed % 60
+                status_placeholder.text(
+                    f"⏱️ Running for {minutes}m {seconds}s")
 
-            if check_s3_for_completion(BUCKET_NAME, st.session_state.target_key):
-                simulation_success = True
-                break
+                if check_s3_for_completion(BUCKET_NAME, st.session_state.target_key):
+                    simulation_success = True
+                    break
 
-            time.sleep(5)
+                time.sleep(5)
 
-        status_message.empty()
-        progress_bar.empty()
+        status_placeholder.success(
+            f"✓ Simulation complete! Total time: {minutes}m {seconds}s")
 
-        if simulation_success:
+        if not simulation_success:
+            st.error(
+                "❌ Simulation timed out or failed to write results back to S3.")
+            st.session_state.simulation_running = False
+            st.rerun()
+        else:
             # Code block for compiling the final localized PDF report on completion
             st.session_state.pdf_bytes = generate_recommendation_pdf(
                 proposed_lat=st.session_state.proposed_lat,
@@ -354,11 +361,6 @@ else:
             st.success("Simulation finished successfully!")
             st.balloons()
             st.rerun()
-        else:
-            st.error(
-                "❌ Simulation timed out or failed to write results back to S3.")
-            st.session_state.simulation_running = False
-            st.rerun()
 
 
 if st.session_state.simulation_finished:
@@ -367,15 +369,13 @@ if st.session_state.simulation_finished:
 
         st.subheader("Simulation Results")
 
-        st.write("Results parsed directly from complete run metrics:")
-
-        st.write(
-            {
-                "proposed_lat": st.session_state.proposed_lat,
-                "proposed_lon": st.session_state.proposed_lon,
-                "selected_line": st.session_state.selected_line,
-            }
-        )
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.write(f"**Latitude**  \n{st.session_state.proposed_lat:.10f}")
+        with col2:
+            st.write(f"**Longitude**  \n{st.session_state.proposed_lon:.10f}")
+        with col3:
+            st.write(f"**Line**  \n{st.session_state.selected_line}")
 
         if st.session_state.target_key is None:
             st.error("Target key not found. Please run the simulation again.")
@@ -420,17 +420,17 @@ if st.session_state.simulation_finished:
 
         st.altair_chart(
             create_top_affected_routes_chart(comparison_df),
-            use_container_width=True,
+            width='stretch',
         )
 
         st.altair_chart(
             create_top_time_saving_routes_chart(comparison_df),
-            use_container_width=True,
+            width='stretch',
         )
 
         st.altair_chart(
             create_station_demand_impact_chart(comparison_df),
-            use_container_width=True,
+            width='stretch',
         )
 
     st.subheader("Affected Routes Summary")
@@ -454,7 +454,32 @@ if st.session_state.simulation_finished:
         if not station_data.empty:
             folium_map = create_folium_map(station_data, comparison_df)
             folium_map = plot_original_station_point(metadata, folium_map)
-            st_folium(folium_map, width=700, height=500)
+
+            map_col, legend_col = st.columns([3, 1])
+
+            with map_col:
+                st_folium(folium_map, width=700, height=500)
+
+            with legend_col:
+                st.markdown(
+                    """
+                    <div style="
+                        background-color:white;
+                        padding:15px;
+                        border-radius:10px;
+                        border:1px solid #ddd;
+                    ">
+                    <h4>Impact Legend</h4>
+                    <h5>Average time saved or lost by passengers passing through each station:</h5>
+
+                    <p>🔵 No Effect</p>
+                    <p>🟢 Time Saving</p>
+                    <p>🔴 Major Time Save</p>
+                    <p>🟠 Time Loss</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
         else:
             st.warning("Cannot create map without station data.")
     else:
