@@ -92,13 +92,13 @@ else:
     st.subheader("Affected Routes Summary")
     if not comparison_df.empty:
         affected_routes_summary = get_affected_routes(comparison_df)
-        st.dataframe(affected_routes_summary)
+        st.dataframe(affected_routes_summary, width='stretch')
     else:
         st.warning("No comparison data available to summarize affected routes.")
     st.subheader("Estimated Demand Impact Ranges")
     if not comparison_df.empty:
         demand_impact_ranges = get_demand_impact_ranges(comparison_df)
-        st.dataframe(demand_impact_ranges)
+        st.dataframe(demand_impact_ranges, width='stretch')
     else:
         st.warning(
             "No comparison data available to calculate demand impact ranges.")
