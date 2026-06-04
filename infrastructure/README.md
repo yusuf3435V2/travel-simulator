@@ -47,12 +47,11 @@ Infrastructure for the TFL network data pipeline Lambda function. Provisions:
 
 #### **simulation_lambda.tf**
 Infrastructure for the simulation engine Lambda function. Provisions:
-- Lambda function for running discrete event simulations
-- IAM role with S3, SNS, and CloudWatch permissions
-- S3 event triggers for automatic simulation execution
-- CloudWatch log group and alarms
-- Environment variables and resource constraints
-- Support for parallel simulation execution
+- ECR (Elastic Container Registry) repository for the simulation Docker image
+- Lambda function for running simulations (container image)
+- IAM role with S3 and CloudWatch Logs permissions
+- CloudWatch log group for Lambda execution logs
+- `S3_BUCKET_NAME` environment variable for writing results
 
 #### **dashboard.tf**
 Infrastructure for the Streamlit dashboard deployment. Creates:
