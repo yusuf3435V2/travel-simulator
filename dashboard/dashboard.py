@@ -475,7 +475,8 @@ else:
             st.balloons()
             st.rerun()
         else:
-            st.error("❌ Simulation timed out or failed to write results back to S3.")
+            st.error(
+                "❌ Simulation timed out or failed to write results back to S3.")
             st.session_state.simulation_running = False
             st.rerun()
 
@@ -562,7 +563,8 @@ if st.session_state.simulation_finished:
         demand_impact_ranges = get_demand_impact_ranges(comparison_df)
         st.dataframe(demand_impact_ranges)
     else:
-        st.warning("No comparison data available to calculate demand impact ranges.")
+        st.warning(
+            "No comparison data available to calculate demand impact ranges.")
 
     st.subheader("Simulation Impact Map")
 
@@ -584,7 +586,8 @@ if st.session_state.simulation_finished:
         comparison_df, metadata.get("number_of_passengers", 0)
     )
     st.metric("Total Time Spent Difference (mins)", f"{total_time_diff:.2f}")
-    st.metric("Greatest Time Spent Difference (mins)", f"{greatest_time_diff:.2f}")
+    st.metric("Greatest Time Spent Difference (mins)",
+              f"{greatest_time_diff:.2f}")
     st.metric("Percentage of Affected Routes", f"{percentage_affected:.2f}%")
 
 st.markdown("---")

@@ -2,14 +2,13 @@
 
 import logging
 from io import BytesIO
-import pickle
 import pandas as pd
 import geopandas as gpd
 import networkx as nx
 import folium
 import boto3
+import streamlit as st
 from botocore.exceptions import ClientError
-from functools import lru_cache
 
 
 def setup_logger(log_level: str = "INFO") -> None:
@@ -40,7 +39,7 @@ def create_colour_scheme() -> dict:
     }
 
 
-@lru_cache(maxsize=1)
+@st.cache_data(ttl=86400)  # 24 hours
 def extract_station_network() -> nx.MultiGraph:
     """Extract the station network from S3 bucket."""
     try:
@@ -60,25 +59,7 @@ def extract_station_network() -> nx.MultiGraph:
         return nx.MultiGraph()
 
 
-@lru_cache(maxsize=1)
-def extract_boundaries() -> gpd.GeoDataFrame:
-    """Extract boundary data from S3 bucket."""
-    try:
-        s3_client = boto3.client('s3')
-        response = s3_client.get_object(
-            Bucket='c23-travel-simulation-bucket',
-            Key='processed/boundaryData.pkl'
-        )
-        gdf = pickle.loads(response['Body'].read())
-        logging.info("Successfully loaded boundaries from S3")
-        gdf = gdf[gdf["CTYUA25CD"].str.startswith("E09")]
-        return gdf
-    except (ClientError, IOError, pickle.UnpicklingError) as e:
-        logging.error("Failed to extract boundaries from S3: %s", e)
-        return gpd.GeoDataFrame()
-
-
-@lru_cache(maxsize=1)
+@st.cache_data(ttl=86400)  # 24 hours
 def extract_stations() -> pd.DataFrame:
     """Extract the stations data from S3 bucket."""
     try:
@@ -96,27 +77,25 @@ def extract_stations() -> pd.DataFrame:
         return pd.DataFrame()
 
 
-def convert_stations_to_geodataframe(stations: pd.DataFrame) -> gpd.GeoDataFrame:
-    """Convert stations DataFrame to GeoDataFrame."""
-    logging.info("Converting stations to GeoDataFrame.")
-    stations_gdf = gpd.GeoDataFrame(
-        stations,
-        geometry=gpd.points_from_xy(
-            stations['Longitude'], stations['Latitude']),
-        crs='EPSG:4326'
-    )
-    return stations_gdf
-
-
-def get_stations_per_boundary(gdf: gpd.GeoDataFrame, stations_gdf: gpd.GeoDataFrame) -> pd.Series:
-    """Perform spatial join to count stations in each boundary zone."""
-    logging.info("Performing spatial join for %s stations and %s zones", len(
-        stations_gdf), len(gdf))
-    stations_in_zones = gpd.sjoin(
-        stations_gdf, gdf, how='left', predicate='within')
-    station_counts = stations_in_zones.groupby("index_right").size()
-    logging.info("Counted stations in %s zones", len(station_counts))
-    return station_counts
+@st.cache_data(ttl=86400)  # 24 hours
+def load_choropleth_from_s3(s3_path: str = 'outputs/choropleth.geojson') -> gpd.GeoDataFrame:
+    """Load choropleth GeoDataFrame from S3 GeoJSON."""
+    logging.info("Loading choropleth GeoDataFrame from S3: %s", s3_path)
+    try:
+        s3 = boto3.client('s3')
+        response = s3.get_object(
+            Bucket='c23-travel-simulation-bucket', Key=s3_path)
+        data = response['Body'].read()
+        gdf = gpd.read_file(BytesIO(data))
+        # Drop the id column that gets added when reading from GeoJSON
+        if 'id' in gdf.columns:
+            gdf = gdf.drop(columns=['id'])
+        logging.info(
+            "Choropleth GeoDataFrame loaded successfully from S3: %s", s3_path)
+        return gdf
+    except Exception as e:
+        logging.error("Error loading choropleth from S3: %s", e)
+        raise RuntimeError(f"Failed to load choropleth from S3: {e}")
 
 
 def create_line_feature_groups(station_data: pd.DataFrame, base_map: folium.Map) -> dict:
@@ -226,25 +205,13 @@ def add_network_edges(network: nx.MultiGraph, station_data: pd.DataFrame,
 def create_combined_base_map(gdf: gpd.GeoDataFrame, station_data: pd.DataFrame) -> folium.Map:
     """Create a choropleth map colored by station density as base for network overlay."""
     logging.info("Creating choropleth base map with %s zones", len(gdf))
-    m = gdf.explore(column='station_count', cmap='YlOrRd',
+    m = gdf.explore(column='Station Count', cmap='YlOrRd',
                     legend=True, name="Choropleth")
 
     # Center on stations for better UX
     center_lat = station_data['Latitude'].mean()
     center_lon = station_data['Longitude'].mean()
     m.location = [center_lat, center_lon]
-
-    # Add tooltip layer with no name
-    folium.GeoJson(
-        data=gdf.__geo_interface__,
-        style_function=lambda x: {'fillOpacity': 0,
-                                  'color': 'transparent', 'weight': 0},
-        tooltip=folium.features.GeoJsonTooltip(
-            fields=['CTYUA25NM', 'station_count'],
-            aliases=['Borough:', 'Station Count:']
-        ),
-        name='Borough Tooltips'
-    ).add_to(m)
 
     logging.info(
         "Choropleth map centered at (%.4f, %.4f)", center_lat, center_lon)
@@ -257,22 +224,24 @@ def create_choropleth() -> folium.Map | None:
     setup_logger()
     logging.info("Starting choropleth creation")
 
+    # Always load network and stations (needed for overlay regardless)
     network = extract_station_network()
-    gdf = extract_boundaries()
     stations_df = extract_stations()
 
-    if gdf.empty or stations_df.empty:
-        logging.error("Failed to load required data")
+    if stations_df.empty:
+        logging.error("Failed to load stations data")
         return None
-    stations_gdf = convert_stations_to_geodataframe(stations_df)
-    station_counts = get_stations_per_boundary(gdf, stations_gdf)
-    gdf['station_count'] = gdf.index.map(station_counts).fillna(0).astype(int)
 
+    # Try loading cached choropleth from S3
+    gdf = load_choropleth_from_s3('outputs/choropleth.geojson')
+
+    # If loading from S3 failed, invoke lambda?
+
+    # Both paths converge here
     m = create_combined_base_map(gdf, stations_df)
 
     color_scheme = create_colour_scheme()
     line_groups = create_line_feature_groups(stations_df, m)
-
     add_station_markers(stations_df, m, color_scheme)
     add_network_edges(network, stations_df, m, line_groups, color_scheme)
 
