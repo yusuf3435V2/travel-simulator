@@ -10,7 +10,7 @@ This folder contains a Mesa-based agent simulation module that models passenger 
 
 #### **PassengerAgent**
 Represents individual passengers who travel through the transit network. Each agent:
-- Starts at an origin location and aims to reach a destination (both (latitude/longitude)
+- Starts at an origin location and aims to reach a destination (both latitude/longitude)
 - Finds the nearest station to their origin and their destination
 - Works out optimal route to get between these stations via public transport
 
