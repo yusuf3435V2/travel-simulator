@@ -76,7 +76,7 @@ Docker build-and-push script for the NetworkX data pipeline image. It:
 - Tags and pushes the image to ECR
 Usage:
 ```bash
-./deploy.sh
+./deploy_networkx.sh
 ```
 
 #### **deploy_simulation.sh**
