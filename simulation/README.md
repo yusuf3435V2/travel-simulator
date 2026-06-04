@@ -2,7 +2,7 @@
 
 ## Overview
 
-`collect_passengers.py` is a Mesa-based agent simulation module that models passenger journeys through a transport network. The module simulates how passengers travel from origin to destination using public transit, with intelligent pathfinding that accounts for line transfers and mode choices.
+This folder contains a Mesa-based agent simulation module that models passenger journeys through a transport network. The module simulates how passengers travel from origin to destination using the station network, with intelligent pathfinding that accounts for line transfers and mode choices.
 
 ## Core Functionality
 
@@ -10,11 +10,9 @@
 
 #### **PassengerAgent**
 Represents individual passengers who travel through the transit network. Each agent:
-- Starts at an origin location (latitude/longitude)
-- Finds the nearest transit station
-- Plans an optimal route to their destination
-- Travels via public transit
-- Walks from the destination station to their final location
+- Starts at an origin location and aims to reach a destination (both (latitude/longitude)
+- Finds the nearest station to their origin and their destination
+- Works out optimal route to get between these stations via public transport
 
 #### **TravelModel**
 The Mesa model container that:
@@ -28,56 +26,78 @@ The Mesa model container that:
 
 1. **Intelligent Route Planning**
    - Uses modified Dijkstra's algorithm
-   - Considers line changes as a cost (penalizes transfers)
+   - Considers line changes as a cost (penalises transfers)
    - Calculates shortest paths by time, not distance
 
 2. **Dynamic Station Addition**
    - Add new stations to the existing network
    - Automatically connects new stations to closest consecutive stations
-   - Updates network structure intelligently
+   - Updates network structure based on new calculated station distances, assuming a train speed of 45km/h
 
 3. **Multi-Mode Transportation**
    - Walking: For short distances (< 1.6 km)
-   - Cycling: For medium distances (1.6 - 5 km)
    - Bus/Public Transit: For long distances (> 5 km)
 
 4. **Travel Time Tracking**
    - Total journey time
-   - Transit time (time on public transport)
+   - Transit time (time getting from origin to station, and station to destination)
    - Line change penalties
-   - Walking time
 
 ## Travel Assumptions
 
 ### Transportation Speeds
 Speeds are fixed and mode-dependent:
 - **Walking Speed**: 5 km/h (0.0833 km/min)
-- **Cycling Speed**: 20 km/h (0.333 km/min)
 - **Public Transit Speed**: 30 km/h (0.5 km/min)
-
-### Distance-Based Mode Selection
-```
-Distance < 1.6 km  → Walk
-1.6 km ≤ Distance < 5 km  → Bike
-Distance ≥ 5 km  → Public Transit
-```
 
 ### Travel Process
 For each passenger:
 1. **Origin to Nearest Station**: Mode chosen based on distance
-2. **Wait for Transit**: (Currently not simulated)
-3. **Transit Journey**: Along graph edges with line change penalties
-4. **Station to Destination**: Mode chosen based on distance
+2. **Transit Journey**: Along graph edges with line change penalties
+3. **Station to Destination**: Mode chosen based on distance
 
 ### Line Change Costs
 - Each line change adds 5 minutes to travel time
 - Line changes are detected when consecutive edges belong to different lines
-- Algorithm actively minimizes line changes in route planning
+- Algorithm actively minimises line changes in route planning
 
 ### Distance Calculations
 - Uses Haversine distance for geographic calculations
 - Automatically finds nearest stations using lat/long coordinates
-- Accurate for the London transit system scale
+
+## Files
+
+### **collect_passengers.py**
+Core module for passenger data collection and simulation setup. Contains the `TravelModel` class (Mesa simulation container) and utilities for:
+- Loading passenger data from CSV files
+- Creating passenger agents with origin/destination coordinates
+- Assigning unique IDs to passenger routes
+- Extracting agent trajectory data after simulation completes
+- Converting simulation results to DataFrames for analysis
+
+### **distance_maths.py**
+Mathematical utilities for calculating distances and finding nearest stations. Includes:
+- Haversine formula implementation for geographic distance calculation
+
+### **result_analysis.py**
+Post-simulation analysis and statistical utilities. Provides functions to:
+- Calculate aggregate journey statistics (mean, median, percentile travel times)
+- Analyse route characteristics and passenger flows
+- Generate summary reports of simulation results
+- Compare simulation outcomes across different network configurations
+
+### **run_sim_and_save.py**
+Orchestration script for executing complete simulation workflows. Handles:
+- Loading all required input data (passengers, stations, network graph)
+- Initialising and running the simulation model
+- Extracting results and performing post-simulation analysis
+- Saving outputs to local storage and AWS S3
+
+### **s3_utils_sim.py**
+AWS S3 integration utilities for cloud storage operations. Enables:
+- Uploading simulation results to S3 buckets
+- Downloading reference data from S3
+- Managing S3 file paths and naming conventions
 
 ## Input Format
 
@@ -87,18 +107,16 @@ For each passenger:
 **Required Columns**:
 | Column | Type | Description |
 |--------|------|-------------|
-| `passenger_id` | string | Unique identifier for the passenger |
 | `origin_lat` | float | Latitude of starting location |
 | `origin_lng` | float | Longitude of starting location |
 | `destination_lat` | float | Latitude of ending location |
 | `destination_lng` | float | Longitude of ending location |
-| `day_type` | string | Type of day (e.g., "weekday", "weekend") |
 
 **Example**:
 ```csv
-passenger_id,origin_lat,origin_lng,destination_lat,destination_lng,day_type
-P001,51.5074,-0.1278,51.5165,-0.1019,weekday
-P002,51.4883,-0.3426,51.5175,-0.0532,weekday
+passenger_id,origin_lat,origin_lng,destination_lat,destination_lng
+51.5074,-0.1278,51.5165,-0.1019
+51.4883,-0.3426,51.5175,-0.0532
 ```
 
 ### 2. Station Data CSV
@@ -107,7 +125,7 @@ P002,51.4883,-0.3426,51.5175,-0.0532,weekday
 **Required Columns**:
 | Column | Type | Description |
 |--------|------|-------------|
-| `UniqueId` | string | Unique station identifier |
+| `UniqueId` | string | Station NaPTAN ID |
 | `Name` | string | Human-readable station name |
 | `Latitude` | float | Station latitude |
 | `Longitude` | float | Station longitude |
@@ -127,7 +145,7 @@ UniqueId,Name,Latitude,Longitude,Line_id
 | Attribute | Type | Description |
 |-----------|------|-------------|
 | `duration` | float | Travel time in minutes between stations |
-| `line` or `line_id` | string | Transit line identifier |
+| `line_id` | string | Transit line identifier |
 
 **GraphML Structure Example**:
 ```xml
@@ -140,6 +158,22 @@ UniqueId,Name,Latitude,Longitude,Line_id
     <data key="line">northern</data>
   </edge>
 </graph>
+```
+
+### 4. New Proposed Station
+
+**Format**
+A dictionary with keys `["UniqueId", "Name", "Latitude", "Longitude", "Line_id"]` 
+
+**Example**
+```
+{
+  "UniqueId": "user_station_1",
+  "Name": "User Station",
+  "Latitude": 51.519425328081894,
+  "Longitude": -0.09887695312500001,
+  "Line_id": "bakerloo",
+}
 ```
 
 ## Output Format
@@ -161,7 +195,7 @@ After simulation, `extract_agent_data()` returns a DataFrame with:
 | `time_spent` | float | Total journey time in minutes |
 | `transit_time` | float | Time spent walking and waiting in minutes |
 
-## Usage Example
+## Usage Example: Unmodified Network
 
 ```python
 from collect_passengers import (
@@ -175,9 +209,9 @@ from collect_passengers import (
 import pandas as pd
 
 # Load data
-graph = load_graphml("stations/tube_network.graphml")
-station_data = pd.read_csv("stations/Stations.csv")
-passenger_data = load_user_information("passengers.csv")
+graph = load_graphml("test_data/tube_network.graphml")
+station_data = pd.read_csv("test_data/Stations.csv")
+passenger_data = load_user_information("test_data/passengers.csv")
 
 # Prepare passenger data
 passenger_data = assign_unique_id_to_routes(passenger_data)
@@ -192,9 +226,9 @@ results = extract_agent_data(model)
 results.to_csv("results.csv", index=False)
 ```
 
-## Advanced: Adding New Stations
+## Usage Example: Adding A New Station
 
-You can dynamically add new stations to the network:
+You can dynamically add a new station to the network:
 
 ```python
 from collect_passengers import add_station_to_stations_data, add_station_to_network
