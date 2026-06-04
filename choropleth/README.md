@@ -4,6 +4,8 @@ Creates an interactive choropleth map of London showing tube station density by 
 
 ## Quick Start
 
+Navigate to the choropleth directory to begin.
+
 1. Download boundary data:
 ```bash
 ./download_boundaries.sh
@@ -31,6 +33,4 @@ Output: `outputs/choropleth.geojson` saved to S3
 ## Files
 
 - **`download_boundaries.sh`**: Downloads boundary data - run this first
-- **`choropleth_pipline.py`**: Main pipeline - then run this
-- **`data_functions.py`**: Helper functions (used by other modules)
-- **`endmap.py`**: Alternative implementation (for reference)
+- **`choropleth_pipeline.py`**: Main pipeline - then run this
