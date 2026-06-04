@@ -1,0 +1,8 @@
+networkx
+mesa
+boto3
+python-dotenv
+numpy
+pandas
+pytest
+moto
