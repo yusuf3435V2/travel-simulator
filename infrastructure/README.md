@@ -201,9 +201,8 @@ terraform apply -target=module.networkx_lambda
 ```
 
 **Simulation Engine Only:**
-```bash
+terraform apply -target=aws_lambda_function.c23_travel_simulator_simulation
 ./deploy_simulation.sh
-```
 
 **Dashboard Only:**
 ```bash
