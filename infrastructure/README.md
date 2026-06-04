@@ -54,13 +54,14 @@ Infrastructure for the simulation engine Lambda function. Provisions:
 - `S3_BUCKET_NAME` environment variable for writing results
 
 #### **dashboard.tf**
-Infrastructure for the Streamlit dashboard deployment. Creates:
-- EC2 instance for dashboard hosting (or ECS Fargate cluster alternative)
-- Security groups and network configuration
-- IAM roles for EC2/ECS to access S3 and other services
-- Load balancer configuration for high availability
-- Auto-scaling policies based on traffic
-- CloudWatch monitoring and health checks
+Infrastructure for the Streamlit dashboard deployment on ECS Fargate. Creates:
+- ECR repository for the dashboard image
+- ECS task definition and ECS service (Fargate)
+- IAM task roles for S3 access and Lambda invocation
+- CloudWatch log group for container logs
+- Security group/network configuration (port 8501)
+
+> Note: this file references an existing ECS cluster, VPC, and public subnets via Terraform `data` sources.
 
 #### **api_gateway.tf**
 API Gateway configuration for exposing simulation and analysis endpoints. Defines:
