@@ -92,13 +92,12 @@ Usage:
 ```
 
 #### **dashboard.sh**
-Deployment script specifically for the dashboard infrastructure. Handles:
-- Dashboard application containerisation
-- EC2 or ECS cluster setup
-- Streamlit application deployment
-- Load balancer configuration
-- SSL/TLS certificate provisioning
-- Dashboard service healthchecks
+Docker build-and-push script for the dashboard image. It:
+- Reads the dashboard ECR repository outputs from Terraform
+- Logs into ECR
+- Builds the Docker image (linux/amd64) from `../dashboard`
+- Tags and pushes the image to ECR
+- Forces a new deployment of the existing ECS service
 
 Usage:
 ```bash
