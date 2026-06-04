@@ -1,7 +1,6 @@
 from collect_passengers import (
     run_simulation_baseline,
     run_simulation_with_user_station,
-    assign_unique_id_to_routes,
 )
 from result_analysis import compare_simulations
 from s3_utils_sim import (
@@ -17,7 +16,6 @@ from s3_utils_sim import (
 import time
 import logging
 import json
-import os
 
 
 def lambda_handler(event, context):

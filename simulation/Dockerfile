@@ -2,7 +2,7 @@ FROM public.ecr.aws/lambda/python:latest
 
 
 # install dependencies
-COPY ../requirements.txt ${LAMBDA_TASK_ROOT}
+COPY requirements.txt ${LAMBDA_TASK_ROOT}
 RUN pip install --no-cache-dir -r requirements.txt -t ${LAMBDA_TASK_ROOT}
 
 # Copy function code
