@@ -65,7 +65,7 @@ For each passenger:
 - Uses Haversine distance for geographic calculations
 - Automatically finds nearest stations using lat/long coordinates
 
-## Files
+## Files
 
 ### **collect_passengers.py**
 Core module for passenger data collection and simulation setup. Contains the `TravelModel` class (Mesa simulation container) and utilities for:
