@@ -6,7 +6,7 @@ from result_analysis import compare_simulations
 from s3_utils_sim import (
     load_env_variables,
     check_baseline_exists_in_s3,
-    load_results_from_s3,
+    load_csv_results_from_s3,
     save_dataframe_to_s3,
     fetch_graph_from_s3,
     fetch_station_data_from_s3,
@@ -44,7 +44,7 @@ def lambda_handler(event, context):
             "Baseline simulation results already exist in S3. Skipping baseline simulation."
         )
         logging.info("LOADING BASELINE FILE")
-        baseline_results = load_results_from_s3(
+        baseline_results = load_csv_results_from_s3(
             load_env_variables(), "raw/BASELINE.csv"
         )
     proposed_station_info["number_of_passengers"] = len(baseline_results)
