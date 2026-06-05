@@ -260,7 +260,6 @@ terraform apply
 
 ```bash
 aws lambda invoke --function-name c23-travel-simulator-choropleth-pipeline response.json
-aws logs tail /aws/lambda/c23-travel-simulator-choropleth-pipeline --follow
 ```
 
 The `deploy_choropleth.sh` script:
