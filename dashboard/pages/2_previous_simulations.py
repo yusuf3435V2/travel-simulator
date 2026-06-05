@@ -20,9 +20,6 @@ from df_analysis import (
     get_total_time_spent_diff,
     get_greatest_time_spent_diff,
     get_percentage_of_affected_routes,
-    create_top_affected_routes_chart,
-    create_station_demand_impact_chart,
-    create_top_time_saving_routes_chart,
 )
 from folium_functions import plot_original_station_point, create_folium_map
 from s3_utils import (
@@ -33,11 +30,6 @@ from s3_utils import (
 )
 
 # Import reusable render functions from main dashboard
-import sys
-from pathlib import Path
-
-parent_dir = Path(__file__).parent.parent
-sys.path.insert(0, str(parent_dir))
 
 
 # ============================================================================

@@ -2,8 +2,7 @@
 
 from pathlib import Path
 
-PREVIOUS_SIM_FILE = Path(__file__).resolve(
-).parents[1] / "pages" / "2_previous_simulations.py"
+PREVIOUS_SIM_FILE = Path(__file__).resolve().parents[1] / "pages" / "2_previous_simulations.py"
 
 
 def read_previous_sim_code() -> str:
