@@ -67,7 +67,7 @@ API Gateway v2 (HTTP API) configuration for invoking the simulation Lambda. Defi
 
 ### Deployment Scripts
 
-#### **deploy.sh**
+#### **deploy_networkx.sh**
 Docker build-and-push script for the NetworkX data pipeline image. It:
 - Reads ECR repository outputs from Terraform (`terraform output ...`)
 - Logs into ECR
