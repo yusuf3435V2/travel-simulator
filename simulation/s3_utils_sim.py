@@ -95,6 +95,20 @@ def load_csv_results_from_s3(bucket_name: str, s3_key: str) -> pd.DataFrame:
         return pd.DataFrame()  # Return empty DataFrame on error
 
 
+def load_results_from_s3(bucket_name: str, s3_key: str) -> pd.DataFrame:
+    """Backward-compatible alias for load_csv_results_from_s3."""
+    return load_csv_results_from_s3(bucket_name, s3_key)
+    s3_client = boto3.client("s3")
+    try:
+        obj = s3_client.get_object(Bucket=bucket_name, Key=s3_key)
+        df = pd.read_csv(obj["Body"])
+        print(f"File {s3_key} loaded from S3 bucket {bucket_name}.")
+        return df
+    except Exception as e:
+        print(f"Error loading file from S3: {e}")
+        return pd.DataFrame()  # Return empty DataFrame on error
+
+
 def save_json_to_s3(data: dict, bucket_name: str, s3_key: str):
     """Saves a JSON object to S3."""
     s3_client = boto3.client("s3")
