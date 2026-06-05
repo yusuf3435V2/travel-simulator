@@ -11,8 +11,8 @@ def load_env_variables() -> str:
     """Loads environment variables from a .env file."""
     dotenv.load_dotenv()
     bucket_name = os.getenv("S3_BUCKET_NAME")
-    print(bucket_name)
     if not bucket_name:
+        raise ValueError("S3_BUCKET_NAME not found in environment variables.")
         raise ValueError("S3_BUCKET_NAME not found in environment variables.")
     return bucket_name
 
