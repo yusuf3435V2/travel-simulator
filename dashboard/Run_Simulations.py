@@ -434,7 +434,7 @@ def render_results_header() -> None:
         with col2:
             st.write(f"**Longitude**  \n{st.session_state.proposed_lon:.10f}")
         with col3:
-            st.write(f"**Line**  \n{st.session_state.selected_line}")
+            st.write(f"**Line**  \n{st.session_state.selected_line.title()}")
 
 
 def render_download_buttons() -> None:
