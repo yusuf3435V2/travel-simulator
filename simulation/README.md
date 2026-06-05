@@ -16,7 +16,7 @@ See the [infrastructure README](../infrastructure/README.md#simulation-lambda) f
 
 **Lambda invocation**:
 ```bash
-aws lambda invoke --function-name c23-travel-simulator-simulation --payload '{"UniqueId": "test_station", "Name": "Test", "Latitude": 51.5, "Longitude": -0.1, "Line_id": "bakerloo"}' response.json
+aws lambda invoke --function-name c23-travel-simulator-simulation --cli-binary-format raw-in-base64-out --payload '{"UniqueId": "test_station", "Name": "Test", "Latitude": 51.5, "Longitude": -0.1, "Line_id": "bakerloo"}' response.json
 aws logs tail /aws/lambda/c23-travel-simulator-simulation --follow
 ```
 
