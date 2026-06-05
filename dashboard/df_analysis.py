@@ -195,7 +195,6 @@ def create_top_affected_routes_chart(comparison_df: pd.DataFrame) -> alt.Chart:
             tooltip=["route", "affected_journeys"],
         )
         .properties(
-            title="Top 10 Most Affected Routes",
             height=350,
         )
     )
@@ -257,7 +256,6 @@ def create_top_time_saving_routes_chart(comparison_df: pd.DataFrame) -> alt.Char
             ],
         )
         .properties(
-            title="Bidirectional Routes With Highest Average Time Saving",
             height=350,
         )
     )
@@ -321,7 +319,6 @@ def create_station_demand_impact_chart(comparison_df: pd.DataFrame) -> alt.Chart
             ],
         )
         .properties(
-            title="Stations With Highest Overall Impact",
             height=350,
         )
     )

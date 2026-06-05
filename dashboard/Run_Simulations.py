@@ -422,21 +422,21 @@ def execute_simulation() -> bool:
 
 def render_results_header() -> None:
     """Render the results header with proposed station details."""
-    left, centre, right = st.columns([3, 4, 2])
-    with centre:
-        st.subheader("Simulation Results")
+    
+    st.subheader("Simulation Results")
 
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.write(f"**Latitude**  \n{st.session_state.proposed_lat:.10f}")
-        with col2:
-            st.write(f"**Longitude**  \n{st.session_state.proposed_lon:.10f}")
-        with col3:
-            st.write(f"**Line**  \n{st.session_state.selected_line.title()}")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.write(f"**Latitude**  \n{st.session_state.proposed_lat:.10f}")
+    with col2:
+        st.write(f"**Longitude**  \n{st.session_state.proposed_lon:.10f}")
+    with col3:
+        st.write(f"**Line**  \n{st.session_state.selected_line.title()}")
 
 
 def render_download_buttons() -> None:
     """Render PDF and KMZ download buttons."""
+    
     if st.session_state.pdf_bytes:
         st.download_button(
             label="Download recommendation report",
@@ -473,14 +473,31 @@ def render_visualization_charts(comparison_df) -> None:
 
     st.subheader("Simulation Visualisations")
 
+    st.subheader("Top 10 Most Affected Routes")
+
+
+    st.caption(
+        "Shows the routes where the greatest number of passenger journeys were affected by the proposed station."
+    )
+
     st.altair_chart(
         create_top_affected_routes_chart(comparison_df),
         width='stretch',
     )
 
+    st.subheader("Routes With Highest Average Time Saving")
+    st.caption(
+        "Shows the routes that experience the largest average reduction in journey time due to the proposed station."
+    )
+
     st.altair_chart(
         create_top_time_saving_routes_chart(comparison_df),
         width='stretch',
+    )
+
+    st.subheader("Stations With Highest Overall Impact")
+    st.caption(
+        "Shows the stations that experience the largest total change in passenger travel time across all affected journeys. (Negative time = Saved Time, Positive time = Time Lost) "
     )
 
     st.altair_chart(
