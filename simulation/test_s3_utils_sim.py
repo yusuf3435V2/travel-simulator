@@ -12,7 +12,7 @@ from s3_utils_sim import (
     check_baseline_exists_in_s3,
     fetch_graph_from_s3,
     save_dataframe_to_s3,
-    load_csv_results_from_s3,
+    load_results_from_s3,
     save_json_to_s3,
 )
 
@@ -91,7 +91,11 @@ def test_baseline_exists(aws_credentials, monkeypatch) -> None:
     monkeypatch.setenv("S3_BUCKET_NAME", "test-bucket")
     s3_client = boto3.client("s3", region_name="us-east-1")
     s3_client.create_bucket(Bucket="test-bucket")
-    s3_client.put_object(Bucket="test-bucket", Key="raw/BASELINE.csv", Body=b"data")
+    s3_client.put_object(
+        Bucket="test-bucket",
+        Key="raw/BASELINE.csv",
+        Body=b"data",
+    )
 
     result = check_baseline_exists_in_s3()
     assert result is True
@@ -103,7 +107,11 @@ def test_baseline_does_not_exist(aws_credentials, monkeypatch) -> None:
     monkeypatch.setenv("S3_BUCKET_NAME", "test-bucket")
     s3_client = boto3.client("s3", region_name="us-east-1")
     s3_client.create_bucket(Bucket="test-bucket")
-    s3_client.put_object(Bucket="test-bucket", Key="raw/other_file.csv", Body=b"data")
+    s3_client.put_object(
+        Bucket="test-bucket",
+        Key="raw/other_file.csv",
+        Body=b"data",
+    )
 
     result = check_baseline_exists_in_s3()
     assert result is False
@@ -229,7 +237,8 @@ def test_save_dataframe_to_s3_empty_dataframe(aws_credentials) -> None:
     save_dataframe_to_s3(df, "test-bucket", "data/empty_results.csv")
 
     # Verify the file was saved to S3
-    obj = s3_client.get_object(Bucket="test-bucket", Key="data/empty_results.csv")
+    obj = s3_client.get_object(
+        Bucket="test-bucket", Key="data/empty_results.csv")
     saved_content = obj["Body"].read().decode("utf-8")
     assert saved_content == "\n"
 
@@ -245,12 +254,12 @@ def test_save_dataframe_to_s3_handles_incorrect_datatype(aws_credentials) -> Non
         save_dataframe_to_s3(df, "test-bucket", "data/error_results.csv")
 
 
-# Tests for load_csv_results_from_s3 function
+# Tests for load_results_from_s3 function
 
 
 @mock_aws
 def test_load_results_from_s3_success(aws_credentials, csv_content: str) -> None:
-    """Test that load_csv_results_from_s3 successfully loads a CSV file from S3."""
+    """Test that load_results_from_s3 successfully loads a CSV file from S3."""
     s3_client = boto3.client("s3", region_name="us-east-1")
     s3_client.create_bucket(Bucket="test-bucket")
     s3_client.put_object(
@@ -259,7 +268,7 @@ def test_load_results_from_s3_success(aws_credentials, csv_content: str) -> None
         Body=csv_content.encode("utf-8"),
     )
 
-    result = load_csv_results_from_s3("test-bucket", "data/results.csv")
+    result = load_results_from_s3("test-bucket", "data/results.csv")
 
     assert isinstance(result, pd.DataFrame)
     assert result.shape == (3, 2)
@@ -270,7 +279,7 @@ def test_load_results_from_s3_success(aws_credentials, csv_content: str) -> None
 
 @mock_aws
 def test_load_results_from_s3_empty_file(aws_credentials) -> None:
-    """Test that load_csv_results_from_s3 handles empty CSV files correctly."""
+    """Test that load_results_from_s3 handles empty CSV files correctly."""
     s3_client = boto3.client("s3", region_name="us-east-1")
     s3_client.create_bucket(Bucket="test-bucket")
     csv_content = "col1,col2\n"
@@ -280,7 +289,7 @@ def test_load_results_from_s3_empty_file(aws_credentials) -> None:
         Body=csv_content.encode("utf-8"),
     )
 
-    result = load_csv_results_from_s3("test-bucket", "data/empty.csv")
+    result = load_results_from_s3("test-bucket", "data/empty.csv")
 
     assert isinstance(result, pd.DataFrame)
     assert len(result) == 0
@@ -290,8 +299,8 @@ def test_load_results_from_s3_empty_file(aws_credentials) -> None:
 
 @mock_aws
 def test_load_results_from_s3_s3_error(aws_credentials) -> None:
-    """Test that load_csv_results_from_s3 returns empty DataFrame on S3 errors."""
-    result = load_csv_results_from_s3("nonexistent-bucket", "data/results.csv")
+    """Test that load_results_from_s3 returns empty DataFrame on S3 errors."""
+    result = load_results_from_s3("nonexistent-bucket", "data/results.csv")
 
     assert isinstance(result, pd.DataFrame)
     assert len(result) == 0
@@ -341,7 +350,8 @@ def test_save_json_to_s3_nested_dict(aws_credentials) -> None:
     s3_client = boto3.client("s3", region_name="us-east-1")
     s3_client.create_bucket(Bucket="test-bucket")
 
-    json_data = {"key": "value", "nested": {"inner": "data", "deep": {"level": 3}}}
+    json_data = {"key": "value", "nested": {
+        "inner": "data", "deep": {"level": 3}}}
     save_json_to_s3(json_data, "test-bucket", "data/results.json")
 
     # Verify the file was saved to S3
