@@ -106,9 +106,9 @@ After simulation, `extract_agent_data()` returns a DataFrame with:
 The Lambda function saves the following to S3:
 
 - **Baseline results**: `raw/BASELINE.csv` (created on first run)
-- **Simulation results**: `raw/{station_id}/simulation_comparison.csv`
+- **Altered simulation results**: `raw/{station_id}/simulation_results_with_user_station.csv`
+- **Comparison results**: `raw/{station_id}/simulation_comparison.csv`
 - **Metadata**: `raw/{station_id}/user_station.json` (the proposed station details)
-- **Summary**: `raw/{station_id}/summary.json` (comparison statistics)
 
 ## Key Functions Reference
 
