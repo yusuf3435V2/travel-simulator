@@ -57,14 +57,6 @@ Infrastructure for the Streamlit dashboard deployment on ECS Fargate. Creates:
 
 > Note: this file references an existing ECS cluster, VPC, and public subnets via Terraform `data` sources.
 
-#### **api_gateway.tf**
-API Gateway v2 (HTTP API) configuration for invoking the simulation Lambda. Defines:
-- HTTP API (`aws_apigatewayv2_api`)
-- `POST /simulate` route
-- AWS_PROXY Lambda integration
-- Stage with `auto_deploy = true`
-- Lambda permission allowing API Gateway invocation
-
 ### Deployment Scripts
 
 #### **deploy_networkx.sh**
@@ -204,39 +196,13 @@ terraform apply -target=aws_ecs_service.dashboard
 
 ## Outputs
 
-After deployment, Terraform outputs the following endpoints:
+After deployment, Terraform outputs the following:
 
-- **API Gateway Base URL**: For API integration
 - **Dashboard URL**: For accessing the interactive dashboard
-- **S3 Bucket Name**: For results storage and retrieval
-- **CloudWatch Log Groups**: For monitoring and debugging
 
 Access these values with:
 ```bash
 terraform output
-```
-
-## Monitoring and Debugging
-
-### View Lambda Logs
-
-# Network pipeline logs
-aws logs tail /aws/lambda/c23-travel-simulator-networkx-pipeline --follow
-
-# Simulation engine logs
-aws logs tail /aws/lambda/c23-travel-simulator-simulation --follow
-
-### Check Lambda Executions
-
-```bash
-aws lambda list-functions
-aws lambda get-function-concurrency --function-name <function-name>
-```
-
-### Monitor S3 Activity
-
-```bash
-aws s3 ls s3://c23-travel-simulation-bucket --recursive
 ```
 
 ## Destroying Infrastructure
@@ -271,12 +237,6 @@ The `deploy_simulation.sh` script:
 - Builds Docker image from `simulation/` with platform=linux/amd64
 - Tags and pushes image to ECR
 
-### Invoke Lambda
-
-```bash
-aws lambda invoke --function-name c23-travel-simulator-simulation response.json
-aws logs tail /aws/lambda/c23-travel-simulator-simulation --follow
-```
 
 ---
 
@@ -296,18 +256,16 @@ terraform apply -target aws_ecr_repository.c23_travel_simulator_choropleth_pipel
 # Step 3: Deploy Lambda function
 terraform apply
 ```
+### Invoke Lambda
+
+```bash
+aws lambda invoke --function-name c23-travel-simulator-choropleth-pipeline response.json
+```
 
 The `deploy_choropleth.sh` script:
 - Logs into ECR
 - Builds Docker image from `choropleth/` with platform=linux/amd64
 - Tags and pushes image to ECR
-
-### Invoke Lambda
-
-```bash
-aws lambda invoke --function-name c23-travel-simulator-choropleth-pipeline response.json
-aws logs tail /aws/lambda/c23-travel-simulator-choropleth-pipeline --follow
-```
 
 ---
 
@@ -349,21 +307,6 @@ Configure in ECS task definition:
 - `OPENAI_API_KEY`: OpenAI API key for analysis features (optional)
 
 AWS S3 access is provided via the ECS task role (no explicit AWS credentials needed).
-
----
-
-## Cleanup
-
-```bash
-# Destroy all AWS resources
-terraform destroy
-
-# Remove local Docker images
-docker rmi c23-travel-simulator-networkx-pipeline
-docker rmi c23-travel-simulator-simulation
-docker rmi c23-travel-simulator-choropleth-pipeline
-docker rmi c23_travel_simulator_dashboard_ecr
-```
 
 ---
 
