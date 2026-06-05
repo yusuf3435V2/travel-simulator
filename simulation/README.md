@@ -104,10 +104,10 @@ Testing should be done before deploying to Lambda. Comprehensive tests are provi
 
 ```bash
 # Run all tests
-pytest test_collect_passengers.py -v
+pytest simulation/test_collect_passengers.py -v
 
 # Run specific test
-pytest test_collect_passengers.py::test_station_lookup -v
+pytest simulation/test_collect_passengers.py::test_station_lookup -v
 
 # Run with coverage
 pytest test_collect_passengers.py --cov=. --cov-report=html
