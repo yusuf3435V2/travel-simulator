@@ -2,7 +2,7 @@ import sys
 import os
 import pytest
 import pandas as pd
-import networkx as nx
+
 
 # Add parent directory to path to import modules from tfl_data_and_network
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
