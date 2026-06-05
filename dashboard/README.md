@@ -1,15 +1,18 @@
 # Dashboard
 
-The Travel Simulator Dashboard is an interactive Streamlit multi-page application for visualising simulation results, analysing passenger flows, and evaluating the impact of proposed transit network changes.
+Interactive Streamlit application for visualizing simulation results, analyzing passenger flows, and evaluating the impact of proposed transit network changes.
 
-## Running the Dashboard
+**Primary deployment**: AWS ECS Fargate running Streamlit (see [infrastructure README](../infrastructure/README.md#dashboard-ecs-deployment))
 
-### Prerequisites
+**Local usage**: Direct Python execution for development
 
-- Python 3.8+
-- All dependencies from `requirements.txt` installed
-- AWS credentials configured (for S3 access to simulation results)
-- Environment variables set: `S3_BUCKET_NAME`, `SIMULATION_LAMBDA_ARN`
+## Quick Start
+
+### ECS Deployment
+
+See the [infrastructure README](../infrastructure/README.md#dashboard-ecs-deployment) for deployment steps.
+
+**Access dashboard**: Find the ECS service's public IP in the AWS console and navigate to `http://<public-ip>:8501`
 
 ### Local Execution
 
@@ -28,10 +31,10 @@ The dashboard will be available at `http://localhost:8501`
 
 ### Docker Execution
 
-Build and run the dashboard in a Docker container:
+Build and run locally:
 ```bash
 docker build -f dashboard/Dockerfile -t travel-simulator-dashboard .
-docker run -p 8501:8501 travel-simulator-dashboard
+docker run -p 8501:8501 --env-file .env travel-simulator-dashboard
 ```
 
 ### Command-Line Options
@@ -166,152 +169,86 @@ OPENAI_API_KEY=sk-proj-...
 ### OpenAI Requirements
 - Valid OpenAI API key for generating analysis summaries and insights
 
+## Key Features
+
+- **Visualization**: Multi-page interface displaying simulation results and network impact analysis
+- **User Input**: Accepts proposed station coordinates and metadata
+- **Simulation Selection**: Compares baseline vs. altered network scenarios
+- **Analysis**: Integrates Google Earth Engine for environmental context and OpenAI for report generation
+- **Export**: KML export for external GIS tools, PDF report generation
+- **Historical View**: Separate page for reviewing previous simulation runs
+
+## Module Overview
+
+**Run_Simulations.py**
+Main entry point and orchestrator for the multi-page interface. Handles user input for proposed stations, simulation selection, and layout orchestration.
+
+**analysis.py**
+Advanced analysis and report generation. Google Earth Engine integration, OpenAI-powered insights, and PDF report generation via ReportLab.
+
+**coverage_context.py**
+Station coverage and accessibility analysis using 800m walking radius. Performs spatial analysis with GeoPandas to identify catchment areas and generate coverage statistics.
+
+**df_analysis.py**
+DataFrame utilities for comparing baseline and altered simulations. Handles passenger impact analysis, journey time statistics, and color-coding logic for visualization.
+
+**folium_functions.py**
+Interactive map visualization using Folium. Creates station markers, 800m catchment circles, and network visualization with click-enabled popups.
+
+**kml_export.py**
+KML file generation for external GIS applications. Exports proposed stations, affected stations, and coverage areas with custom styling for Google Earth and ArcGIS.
+
+**s3_utils.py**
+AWS S3 integration for loading simulation results, station data, and simulation metadata from cloud storage with caching and error handling.
+
+**stations_choropleth.py**
+Choropleth map generation. Loads pre-generated choropleth GeoJSON from S3 and overlays station markers color-coded by impact metrics.
+
+**pages/2_previous_simulations.py**
+Historical analysis page. Lists previous simulation runs, enables comparison across proposed stations, and archives past analysis results.
+
 ## Metrics Calculation
 
-### Journey Time Metrics
+See [METRICS.md](METRICS.md) for detailed metrics calculations including journey time, coverage, passenger impact, and demand analysis.
 
-**Total Travel Time**: Sum of all time components
-```
-Total Time = Walking Time (Origin→Station) + 
-             Transit Time (Station→Station) + 
-             Walking Time (Station→Destination)
-```
+## Development & Testing
 
-**Walking Time**: Calculated based on distance and fixed walking speed (5 km/h)
-```
-Walking Time (minutes) = Distance (km) / 5 * 60
+Run tests to validate functionality before deployment:
+
+```bash
+pytest dashboard/tests/ -v
 ```
 
-**Transit Time**: 
-- Sum of edge durations along the path
-- Plus 5-minute penalty for each line change/transfer
-- Calculated using modified Dijkstra's algorithm
+Tests cover:
+- DataFrame analysis and comparison logic
+- S3 utilities and data loading
+- Map visualization and KML export
+- Coverage context calculations
 
-### Passenger Impact Metrics
+## Configuration
 
-**Baseline Journey Time**: Time spent without the proposed station
-- Recorded from baseline simulation results
-- Stored in `time_spent` field
+Environment variables (set in `.env` or container):
+- `AWS_REGION`: AWS region for S3 access
+- `S3_BUCKET_NAME`: S3 bucket containing simulation results
+- `GOOGLE_CLOUD_PROJECT`: Google Cloud project ID for Earth Engine
+- `GOOGLE_APPLICATION_CREDENTIALS_JSON`: Service account JSON (if using Earth Engine)
+- `OPENAI_API_KEY`: OpenAI API key for analysis features (optional)
 
-**Altered Journey Time**: Time spent with the proposed station
-- Recorded from altered simulation results
-- Passengers may use new station if it provides faster routing
-
-**Time Savings**: 
-```
-Time Savings = Baseline Time - Altered Time
-```
-- Positive values indicate improvement (passengers benefit)
-- Negative values indicate degradation (journey longer with new station)
-- Green visualisation for positive, orange/red for negative
-
-**Passenger Count**: Aggregation of station usage
-```
-Station Passenger Count = Origin Count + Destination Count
-```
-- Counts passengers boarding (boarding station) at each station
-- Counts passengers alighting (destination station) at each station
-- Total passenger throughput determines station importance
-
-### Coverage Metrics
-
-**Catchment Area**: 800m walking radius around each station
-- Uses Haversine distance formula
-- Identifies all locations within walkable range
-- Used to determine which passengers can access a station
-
-**Coverage Density**: 
-```
-Coverage Density = Population in Catchment / Catchment Area
-```
-- Indicates how many people are served per unit area
-- Higher density = more efficient station placement
-
-**Station Proximity**: Distance to nearest existing stations
-```
-Proximity Impact = Neighbouring Station Count within 1.5km
-```
-- Measures network redundancy
-- More neighbours = less unique contribution
-- Fewer neighbours = more novel coverage
-
-### Data Filtering and Display
-
-**Influenced Stations**: 
-- Only stations affected by the proposed station are visualised
-- Filters out stations with zero passenger impact
-- Highlights relevant network effects
-
-**Demand**:
-
-Demand change. coming from switching gets measured based on time savings (m) found for stations that are on altered routes. The probability of a switch can be calculated as follows: $D(m) = \frac{1}{1+e^{-m}}$. This will give a probability of switching between 0 and 1, and bringing different switch probabilities based on affected routes will lead to standard deviation estimates providing demand impact ranges.
-
-**Percentage Change**:
-```
-Percent Change = (Altered - Baseline) / Baseline * 100%
-```
-- Shows relative impact of the proposed station
-- Used for colour scaling in visualisations
-- Helps identify most and least impacted stations
-
-## Data Flow
-
-```
-┌──────────────────────┐
-│  Simulation Results  │
-│  (CSV from S3)       │
-└──────────┬───────────┘
-           │
-           ▼
-┌──────────────────────────┐
-│  DataFrame Analysis      │
-│  (df_analysis.py)        │
-│  - Comparison            │
-│  - Filtering             │
-│  - Calculations          │
-└──────────┬───────────────┘
-           │
-      ┌────┴─────┬─────────┬──────────┐
-      ▼          ▼         ▼          ▼
-  Maps      Metrics   Coverage    Reports
-(folium)   (analysis)(context)  (analysis.py)
-      │          │         │          │
-      └────┬─────┴─────────┴──────────┘
-           ▼
-    Dashboard UI
-    (Streamlit)
-```
-
-## Performance Optimization
-
-- **Caching**: Streamlit `@st.cache_data` for expensive computations
-- **S3 Caching**: Local file caching of downloaded simulation results
-- **Lazy Loading**: Only load data when user navigates to sections
-- **Data Sampling**: Option to sample large datasets for faster rendering
+AWS S3 access on ECS is provided via task role (no explicit AWS_ACCESS_KEY_ID/SECRET needed).
 
 ## Troubleshooting
 
-### Map Not Loading
+**Map not displaying**
 - Verify Folium installation: `pip install folium`
 - Check internet connection for tile loading
 - Ensure coordinates are valid (latitude: -90 to 90, longitude: -180 to 180)
 
-### S3 Connection Errors
+**S3 connection errors**
 - Verify AWS credentials: `aws configure`
 - Check S3 bucket name and permissions
-- Ensure bucket contains expected CSV files
+- Ensure bucket contains expected CSV files at correct paths
 
-### Analysis Features Not Working
+**Analysis features not working**
 - Verify Google Cloud credentials for Earth Engine
 - Check OpenAI API key for report generation
-- Ensure environment variables are set in `.env`
-
-## Configuration
-
-Environment variables (set in `.env`):
-- `AWS_REGION`: AWS region for S3 access
-- `S3_BUCKET`: S3 bucket containing simulation results
-- `GOOGLE_CLOUD_PROJECT`: Google Cloud project ID
-- `GOOGLE_APPLICATION_CREDENTIALS_JSON`: Service account JSON
-- `OPENAI_API_KEY`: OpenAI API key for analysis
-
+- Ensure all environment variables are set

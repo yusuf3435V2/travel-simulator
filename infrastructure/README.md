@@ -32,7 +32,6 @@ Local values assigned to the variables defined in `variables.tf`.
 > Note: this repository ignores `*.tfvars` files (see `/.gitignore`), so create `terraform.tfvars` locally (or provide values via `TF_VAR_...` environment variables). Do not commit credentials or API keys.
 
 #### **networkx_lambda.tf**
-#### **networkx_lambda.tf**
 Infrastructure for the TFL network data pipeline Lambda function. Provisions:
 - ECR (Elastic Container Registry) repository for Docker images
 - Lambda function for network graph creation and processing
@@ -250,12 +249,108 @@ terraform destroy
 
 **Warning**: `terraform destroy` may fail if the S3 bucket is not empty (and this project also uses that bucket as the Terraform backend). Empty the bucket and migrate state to a different backend before attempting to delete the bucket, and back up any required data first.
 
-## Configuration
+## Simulation Lambda
 
-Edit `terraform.tfvars` to customize:
-- `aws_region`: AWS region (default: eu-west-2)
-- `aws_access_key_id`: AWS access key ID for Terraform authentication
-- `aws_secret_access_key`: AWS secret access key for Terraform authentication
+Runs passenger flow simulations. ECR-backed Lambda with 15-minute timeout and 3GB memory.
+
+### Deployment
+
+```bash
+# Step 1: Create ECR repository
+terraform apply -target aws_ecr_repository.c23_travel_simulator_simulation
+
+# Step 2: Build and push Docker image
+./deploy_simulation.sh
+
+# Step 3: Deploy Lambda function
+terraform apply
+```
+
+The `deploy_simulation.sh` script:
+- Logs into ECR
+- Builds Docker image from `simulation/` with platform=linux/amd64
+- Tags and pushes image to ECR
+
+### Invoke Lambda
+
+```bash
+aws lambda invoke --function-name c23-travel-simulator-simulation response.json
+aws logs tail /aws/lambda/c23-travel-simulator-simulation --follow
+```
+
+---
+
+## Choropleth Pipeline Lambda
+
+Generates choropleth maps showing station density by borough. ECR-backed Lambda with 15-minute timeout and 3GB memory.
+
+### Deployment
+
+```bash
+# Step 1: Create ECR repository
+terraform apply -target aws_ecr_repository.c23_travel_simulator_choropleth_pipeline
+
+# Step 2: Build and push Docker image
+./deploy_choropleth.sh
+
+# Step 3: Deploy Lambda function
+terraform apply
+```
+
+The `deploy_choropleth.sh` script:
+- Logs into ECR
+- Builds Docker image from `choropleth/` with platform=linux/amd64
+- Tags and pushes image to ECR
+
+### Invoke Lambda
+
+```bash
+aws lambda invoke --function-name c23-travel-simulator-choropleth-pipeline response.json
+aws logs tail /aws/lambda/c23-travel-simulator-choropleth-pipeline --follow
+```
+
+---
+
+## Dashboard ECS Deployment
+
+Streamlit dashboard running on ECS Fargate. Accessible on port 8501.
+
+### Deployment
+
+```bash
+# Step 1: Create ECR repository and ECS infrastructure
+terraform apply -target aws_ecr_repository.c23_travel_simulator_dashboard_ecr
+
+# Step 2: Build and push Docker image
+./dashboard.sh
+
+# Step 3: Deploy ECS task definition and service
+terraform apply
+```
+
+The `dashboard.sh` script:
+- Logs into ECR
+- Builds Docker image from `dashboard/` with platform=linux/amd64
+- Tags and pushes image to ECR
+- Triggers ECS service redeployment to pull the new image
+
+### Access Dashboard
+
+Once deployed, find the running service in the AWS ECS console:
+- Go to `Clusters > c23-ecs-cluster > Services > c23_travel_simulator_dashboard_service`
+- Click the service and find its public IP address
+- Access dashboard at `http://<public-ip>:8501`
+
+### Environment Variables
+
+Configure in ECS task definition:
+- `GOOGLE_CLOUD_PROJECT`: Google Cloud project ID for Earth Engine
+- `GOOGLE_APPLICATION_CREDENTIALS_JSON`: Service account JSON (if using Earth Engine)
+- `OPENAI_API_KEY`: OpenAI API key for analysis features (optional)
+
+AWS S3 access is provided via the ECS task role (no explicit AWS credentials needed).
+
+---
 
 ## Cleanup
 
@@ -263,71 +358,23 @@ Edit `terraform.tfvars` to customize:
 # Destroy all AWS resources
 terraform destroy
 
-# Remove local Docker image
-docker rmi c23-travel_simulation_networkx_pipeline
+# Remove local Docker images
+docker rmi c23-travel-simulator-networkx-pipeline
+docker rmi c23-travel-simulator-simulation
+docker rmi c23-travel-simulator-choropleth-pipeline
+docker rmi c23_travel_simulator_dashboard_ecr
 ```
-
-## Outputs
-
-After deployment, Terraform will display:
-- ECR repository URL
-- Lambda function name and ARN
-
-Use these to:
-- Push new Docker images: `docker push <ECR_URL>:latest`
-- Invoke Lambda: `aws lambda invoke --function-name <LAMBDA_NAME>`
-
-## Notes
-
-- Lambda timeout set to 15 minutes (max for API rate limits)
-- Memory set to 3GB for better performance
-- S3 access required to upload processed data
 
 ---
 
-# Dashboard ECS Deployment
+## Troubleshooting
 
-This configuration also deploys a Streamlit dashboard to AWS ECS Fargate.
+**Lambda not starting after Docker push:**
+- Update Lambda configuration: `aws lambda update-function-code --function-name <name> --image-uri <ecr-url>:latest`
 
-## Deployment Steps
+**ECS service not updating after Docker push:**
+- `dashboard.sh` should trigger this automatically, or manually: `aws ecs update-service --cluster c23-ecs-cluster --service c23_travel_simulator_dashboard_service --force-new-deployment --region eu-west-2`
 
-### 1. Create Dashboard ECR Repository and Infrastructure
-
-```bash
-cd infrastructure
-terraform init # if not already done
-terraform apply -target=aws_ecr_repository.c23_travel_simulator_dashboard_ecr
-```
-
-This creates the ECR repository for the dashboard Docker image.
-
-### 2. Build and Push Dashboard Docker Image
-
-```bash
-./dashboard.sh
-```
-
-This script handles:
-- ECR login
-- Docker build from dashboard directory
-- Image tagging
-- Push to ECR
-
-### 3. Deploy ECS Task and Service
-
-```bash
-terraform apply
-```
-
-This creates the ECS task definition, service, security groups, IAM roles, and CloudWatch logs for the dashboard.
-
-## Dashboard Access
-
-Once deployed, the Streamlit dashboard will be accessible on port 8501 from the ECS service public IP. Check the AWS ECS console to find the running service and its public IP address.
-
-## Environment Variables
-
-The dashboard requires these environment variables:
-- `GOOGLE_CLOUD_PROJECT`: Google Cloud project ID for Earth Engine
-
-AWS access to S3 should be provided via the ECS task role (no `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` env vars needed).
+**ECR login fails:**
+- Verify AWS credentials: `aws sts get-caller-identity`
+- Check IAM permissions for ECR push/pull
