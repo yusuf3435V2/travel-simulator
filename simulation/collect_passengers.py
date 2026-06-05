@@ -22,9 +22,10 @@ def load_user_information(file_path: str) -> pd.DataFrame:
     return pd.read_csv(file_path)
 
 
-def load_graphml(file_path: str) -> nx.Graph:
+def load_graphml(file_path: str) -> nx.MultiGraph:
     """Load a graph from a GraphML file."""
-    return nx.read_graphml(file_path)
+    graph = nx.read_graphml(file_path)
+    return graph if isinstance(graph, nx.MultiGraph) else nx.MultiGraph(graph)
 
 
 def add_station_to_stations_data(
@@ -50,7 +51,7 @@ def add_station_to_stations_data(
 
 
 def add_station_to_network(
-    graph: nx.Graph,
+    graph: nx.MultiGraph,
     station_id: str,
     lat: float,
     lng: float,
@@ -84,11 +85,14 @@ def add_station_to_network(
             line_id=line,
             duration=distance_to_neighbor / TRAIN_SPEED,
         )
-        graph.remove_edge(closest_station, neighbor_station)  # Remove the original edge
+        # Remove the original edge(s)
+        if graph.has_edge(closest_station, neighbor_station):
+            for key in list(graph[closest_station][neighbor_station].keys()):
+                graph.remove_edge(closest_station, neighbor_station, key=key)
 
 
 def find_closest_consecutive_stations(
-    graph: nx.Graph, lat: float, lng: float, station_data: pd.DataFrame, station_id: str
+    graph: nx.MultiGraph, lat: float, lng: float, station_data: pd.DataFrame, station_id: str
 ) -> tuple[str, str] | None:
     """Find the closest consecutive stations in the graph to a given latitude and longitude."""
     closest_station = None
@@ -151,7 +155,8 @@ def get_nearest_station(
     # Vectorized haversine calculation
     lat_diff = (station_data["Latitude"].values - lat) ** 2
     lng_diff = (station_data["Longitude"].values - lng) ** 2
-    distances = (lat_diff + lng_diff) ** 0.5  # Approximate distance (much faster)
+    # Approximate distance (much faster)
+    distances = (lat_diff + lng_diff) ** 0.5
 
     nearest_idx = distances.argmin()
     return station_data.iloc[nearest_idx]["UniqueId"]
@@ -176,7 +181,7 @@ def total_switch_time(
 
 
 def shortest_path_between_stations(
-    graph: nx.Graph,
+    graph: nx.MultiGraph,
     origin: str,
     destination: str,
     line_change_penalty: float = 5.0,
@@ -211,7 +216,10 @@ def shortest_path_between_stations(
 
         # Explore all neighboring stations
         for neighbor in graph.neighbors(station):
-            edge_data = graph[station][neighbor]
+            # For MultiGraph, get_edge_data returns dict of dicts {0: {attrs}, 1: {attrs}, ...}
+            edge_data_dict = graph[station][neighbor]
+            edge_data = edge_data_dict[0] if isinstance(
+                edge_data_dict, dict) and 0 in edge_data_dict else edge_data_dict
             edge_line = edge_data.get("line") or edge_data.get("line_id")
             duration = float(edge_data.get("duration", 1))
 
@@ -233,18 +241,25 @@ def shortest_path_between_stations(
 
 
 def _extract_line_switches(
-    path: list[str], graph: nx.Graph
+    path: list[str], graph: nx.MultiGraph
 ) -> list[tuple[str, str, str]]:
     """Extract line switches from a path. Helper function for shortest_path_between_stations."""
     line_switches = []
     for i in range(len(path) - 1):
         station1 = path[i]
         station2 = path[i + 1]
-        edge_data = graph.get_edge_data(station1, station2)
+        edge_data_dict = graph.get_edge_data(station1, station2)
+        # For MultiGraph, extract first edge data from dict of dicts
+        edge_data = edge_data_dict[0] if isinstance(
+            edge_data_dict, dict) and 0 in edge_data_dict else edge_data_dict
         if edge_data:
             line = edge_data.get("line") or edge_data.get("line_id")
             if i > 0:
-                previous_edge_data = graph.get_edge_data(path[i - 1], station1)
+                previous_edge_data_dict = graph.get_edge_data(
+                    path[i - 1], station1)
+                # For MultiGraph, extract first edge data from dict of dicts
+                previous_edge_data = previous_edge_data_dict[0] if isinstance(
+                    previous_edge_data_dict, dict) and 0 in previous_edge_data_dict else previous_edge_data_dict
                 previous_line = (
                     (
                         previous_edge_data.get("line")
@@ -259,7 +274,7 @@ def _extract_line_switches(
 
 
 def shortest_path_length_between_stations(
-    graph: nx.Graph,
+    graph: nx.MultiGraph,
     origin: str,
     destination: str,
 ) -> int:
@@ -373,7 +388,8 @@ class PassengerAgent(mesa.Agent):
         distance_to_destination = haversine_distance(
             self.destination_lat, self.destination_lng, alighting_lat, alighting_lng
         )
-        get_to_destination_time = determine_travel_time(distance_to_destination)
+        get_to_destination_time = determine_travel_time(
+            distance_to_destination)
         self.transit_time += get_to_destination_time
         self.time_spent += get_to_destination_time
 

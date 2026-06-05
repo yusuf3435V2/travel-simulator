@@ -40,18 +40,22 @@ def fetch_station_data_from_s3(bucket_name: str) -> pd.DataFrame:
     return fetch_file_from_s3(bucket_name, "processed/stations.csv")
 
 
-def fetch_graph_from_s3(bucket_name: str) -> nx.Graph:
-    """Fetch graph data from S3 and return as a NetworkX graph."""
+def fetch_graph_from_s3(bucket_name: str) -> nx.MultiGraph:
+    """Fetch graph data from S3 and return as a NetworkX MultiGraph."""
     s3_client = boto3.client("s3")
     try:
         graph_file = s3_client.get_object(
             Bucket=bucket_name, Key="processed/stations_network.graphml"
         )
         file_content = graph_file["Body"].read().decode("utf-8").strip()
-        return nx.parse_graphml(file_content)
+        graph = nx.parse_graphml(file_content)
+        # Ensure it's a MultiGraph (in case file contains a simple graph)
+        if not isinstance(graph, nx.MultiGraph):
+            graph = nx.MultiGraph(graph)
+        return graph
     except Exception as e:
         logging.error(f"Error parsing graph from S3 file: {e}")
-        return nx.Graph()  # Return empty graph on error
+        return nx.MultiGraph()  # Return empty MultiGraph on error
 
 
 def check_baseline_exists_in_s3() -> bool:
@@ -77,27 +81,14 @@ def save_dataframe_to_s3(df: pd.DataFrame, bucket_name: str, s3_key: str):
     try:
         csv_buffer = df.to_csv(index=False)
         s3_client.put_object(Body=csv_buffer, Bucket=bucket_name, Key=s3_key)
-        print(f"DataFrame saved as CSV to S3 bucket {bucket_name} with key {s3_key}.")
+        print(
+            f"DataFrame saved as CSV to S3 bucket {bucket_name} with key {s3_key}.")
     except Exception as e:
         print(f"Error saving DataFrame to S3: {e}")
 
 
-def load_csv_results_from_s3(bucket_name: str, s3_key: str) -> pd.DataFrame:
-    """Loads a CSV file from S3 into a DataFrame."""
-    s3_client = boto3.client("s3")
-    try:
-        obj = s3_client.get_object(Bucket=bucket_name, Key=s3_key)
-        df = pd.read_csv(obj["Body"])
-        print(f"File {s3_key} loaded from S3 bucket {bucket_name}.")
-        return df
-    except Exception as e:
-        print(f"Error loading file from S3: {e}")
-        return pd.DataFrame()  # Return empty DataFrame on error
-
-
 def load_results_from_s3(bucket_name: str, s3_key: str) -> pd.DataFrame:
-    """Backward-compatible alias for load_csv_results_from_s3."""
-    return load_csv_results_from_s3(bucket_name, s3_key)
+    """Loads a CSV file from S3 into a DataFrame."""
     s3_client = boto3.client("s3")
     try:
         obj = s3_client.get_object(Bucket=bucket_name, Key=s3_key)
