@@ -377,7 +377,7 @@ docker rmi c23_travel_simulator_dashboard_ecr
 - Update Lambda configuration: `aws lambda update-function-code --function-name <name> --image-uri <ecr-url>:latest`
 
 **ECS service not updating after Docker push:**
-- Dashboard.sh should trigger this automatically, or manually: `aws ecs update-service --cluster c23-ecs-cluster --service c23_travel_simulator_dashboard_service --force-new-deployment --region eu-west-2`
+- `dashboard.sh` should trigger this automatically, or manually: `aws ecs update-service --cluster c23-ecs-cluster --service c23_travel_simulator_dashboard_service --force-new-deployment --region eu-west-2`
 
 **ECR login fails:**
 - Verify AWS credentials: `aws sts get-caller-identity`
