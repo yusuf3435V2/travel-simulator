@@ -169,7 +169,7 @@ OPENAI_API_KEY=sk-proj-...
 ### OpenAI Requirements
 - Valid OpenAI API key for generating analysis summaries and insights
 
-## Metrics Calculation
+## Key Features
 
 - **Visualization**: Multi-page interface displaying simulation results and network impact analysis
 - **User Input**: Accepts proposed station coordinates and metadata
