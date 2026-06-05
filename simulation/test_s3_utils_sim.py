@@ -91,8 +91,11 @@ def test_baseline_exists(aws_credentials, monkeypatch) -> None:
     monkeypatch.setenv("S3_BUCKET_NAME", "test-bucket")
     s3_client = boto3.client("s3", region_name="us-east-1")
     s3_client.create_bucket(Bucket="test-bucket")
-    s3_client.put_object(Bucket="test-bucket",
-                         Key="raw/BASELINE.csv", Body=b"data")
+    s3_client.put_object(
+        Bucket="test-bucket",
+        Key="raw/BASELINE.csv",
+        Body=b"data",
+    )
 
     result = check_baseline_exists_in_s3()
     assert result is True
@@ -104,8 +107,11 @@ def test_baseline_does_not_exist(aws_credentials, monkeypatch) -> None:
     monkeypatch.setenv("S3_BUCKET_NAME", "test-bucket")
     s3_client = boto3.client("s3", region_name="us-east-1")
     s3_client.create_bucket(Bucket="test-bucket")
-    s3_client.put_object(Bucket="test-bucket",
-                         Key="raw/other_file.csv", Body=b"data")
+    s3_client.put_object(
+        Bucket="test-bucket",
+        Key="raw/other_file.csv",
+        Body=b"data",
+    )
 
     result = check_baseline_exists_in_s3()
     assert result is False

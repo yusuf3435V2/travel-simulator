@@ -24,7 +24,8 @@ def load_user_information(file_path: str) -> pd.DataFrame:
 
 def load_graphml(file_path: str) -> nx.MultiGraph:
     """Load a graph from a GraphML file."""
-    return nx.read_graphml(file_path)
+    graph = nx.read_graphml(file_path)
+    return graph if isinstance(graph, nx.MultiGraph) else nx.MultiGraph(graph)
 
 
 def add_station_to_stations_data(
@@ -84,8 +85,10 @@ def add_station_to_network(
             line_id=line,
             duration=distance_to_neighbor / TRAIN_SPEED,
         )
-        # Remove the original edge
-        graph.remove_edge(closest_station, neighbor_station)
+        # Remove the original edge(s)
+        if graph.has_edge(closest_station, neighbor_station):
+            for key in list(graph[closest_station][neighbor_station].keys()):
+                graph.remove_edge(closest_station, neighbor_station, key=key)
 
 
 def find_closest_consecutive_stations(
