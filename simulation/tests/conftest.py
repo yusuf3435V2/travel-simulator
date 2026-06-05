@@ -7,7 +7,7 @@ import os
 import networkx as nx
 import pandas as pd
 
-# Add parent directory to path to import modules from tfl_data_and_network
+# Add the simulation module directory to sys.path so tests can import local modules
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from collect_passengers import load_graphml, assign_unique_id_to_routes, TravelModel
 
