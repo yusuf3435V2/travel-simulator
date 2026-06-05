@@ -22,7 +22,7 @@ provider "aws" {
 
 resource "aws_s3_bucket" "travel_simulation_bucket" {
   bucket = "c23-travel-simulation-bucket"
-
+  force_destroy = true
   tags = {
     Project = "Travel Simulation"
     Purpose = "Shared project data and outputs"
