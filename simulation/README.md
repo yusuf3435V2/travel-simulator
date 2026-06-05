@@ -110,7 +110,7 @@ pytest simulation/test_collect_passengers.py -v
 pytest simulation/test_collect_passengers.py::test_station_lookup -v
 
 # Run with coverage
-pytest test_collect_passengers.py --cov=. --cov-report=html
+pytest simulation/test_collect_passengers.py --cov=simulation --cov-report=html
 ```
 
 Tests cover:
