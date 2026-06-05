@@ -180,7 +180,7 @@ OPENAI_API_KEY=sk-proj-...
 
 ## Module Overview
 
-**dashboard.py**
+**Run_Simulations.py**
 Main entry point and orchestrator for the multi-page interface. Handles user input for proposed stations, simulation selection, and layout orchestration.
 
 **analysis.py**
