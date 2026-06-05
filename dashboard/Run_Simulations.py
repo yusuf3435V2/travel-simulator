@@ -5,7 +5,6 @@ import json
 import os
 import time
 import uuid
-from typing import Optional, Dict, Any
 
 # Third-party imports
 import boto3
