@@ -104,7 +104,7 @@ def render_metadata_display(metadata: Dict[str, Any]) -> None:
             st.write(f"**Longitude**  \n{lon_val}")
 
     with col3:
-        st.write(f"**Line**  \n{metadata.get('Line_id', 'N/A')}")
+        st.write(f"**Line**  \n{metadata.get('Line_id', 'N/A').title()}")
 
 
 # ============================================================================
