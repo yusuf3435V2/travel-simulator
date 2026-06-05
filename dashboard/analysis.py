@@ -276,7 +276,6 @@ def build_recommendation_text(
     - Coverage level is currently based on the number of existing stations within a 800m catchment.
     - Land-use data is based on broad satellite classification from Google Earth Engine Dynamic World.
     - Built-up land does not distinguish perfectly between residential, commercial and industrial use.
-    - This report should be updated once simulation demand impact results are available.
     """
 
 
