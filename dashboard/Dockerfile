@@ -17,8 +17,3 @@ COPY Run_Simulations.py .
 
 
 CMD ["streamlit", "run", "Run_Simulations.py"]
-
-
-# docker buildx build -t c23-travel_simulation_dashboard . 
-
-# docker run -p 8501:8501 --env-file .env c23-travel_simulation_dashboard
