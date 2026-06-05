@@ -386,8 +386,7 @@ def execute_simulation() -> bool:
     """Execute the complete simulation workflow."""
     st.session_state.target_key = trigger_lambda_simulation()
 
-    simulation_success = poll_simulation_completion(
-        BUCKET_NAME, st.session_state.target_key)
+    simulation_success = poll_simulation_completion(st.session_state.target_key)
 
     if not simulation_success:
         st.error("❌ Simulation timed out or failed to write results back to S3.")
