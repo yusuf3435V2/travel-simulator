@@ -32,9 +32,9 @@ aws logs tail /aws/lambda/c23-travel-simulator-simulation --follow
 ```
 
 **What it produces** (saved to S3):
-- `raw/{UniqueId}/simulation_comparison.csv` - Passenger journey data with baseline vs. altered comparison
+- `raw/{UniqueId}/simulation_results_with_user_station.csv` - Passenger journey data with the proposed station added
+- `raw/{UniqueId}/simulation_comparison.csv` - Passenger journey comparison vs. baseline
 - `raw/{UniqueId}/user_station.json` - The proposed station metadata
-- `raw/{UniqueId}/summary.json` - Comparison statistics and impacts
 
 ### Local Usage
 
