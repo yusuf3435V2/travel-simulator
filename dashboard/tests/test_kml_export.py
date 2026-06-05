@@ -19,38 +19,6 @@ from kml_export import (  # noqa: E402
 )
 
 
-@pytest.fixture
-def sample_stations_df():
-    return pd.DataFrame(
-        [
-            {
-                "Name": "Near Station",
-                "Latitude": 51.5075,
-                "Longitude": -0.1279,
-                "Line_id": "bakerloo",
-            },
-            {
-                "Name": "Far Station",
-                "Latitude": 51.7000,
-                "Longitude": -0.3000,
-                "Line_id": "central",
-            },
-        ]
-    )
-
-
-@pytest.fixture
-def mock_load_stations(monkeypatch, sample_stations_df):
-    def fake_load_stations_from_s3(bucket_name, key):
-        return sample_stations_df
-
-    monkeypatch.setattr(
-        kml_export,
-        "load_stations_from_s3",
-        fake_load_stations_from_s3,
-    )
-
-
 def test_get_affected_stations_returns_nearby_station_and_catchment(mock_load_stations):
     affected_stations, catchment_gdf = get_affected_stations(
         proposed_lat=51.5074,

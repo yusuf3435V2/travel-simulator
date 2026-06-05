@@ -28,37 +28,6 @@ from df_analysis import (  # noqa: E402
 )
 
 
-@pytest.fixture
-def comparison_df():
-    return pd.DataFrame(
-        [
-            {
-                "route_id": 1,
-                "nearest_station_baseline": "A",
-                "alighting_station_baseline": "B",
-                "nearest_station_altered": "User Station",
-                "alighting_station_altered": "B",
-                "time_spent_diff": -5.0,
-            },
-            {
-                "route_id": 2,
-                "nearest_station_baseline": "B",
-                "alighting_station_baseline": "A",
-                "nearest_station_altered": "B",
-                "alighting_station_altered": "User Station",
-                "time_spent_diff": -3.0,
-            },
-            {
-                "route_id": 3,
-                "nearest_station_baseline": "A",
-                "alighting_station_baseline": "C",
-                "nearest_station_altered": "A",
-                "alighting_station_altered": "C",
-                "time_spent_diff": 2.0,
-            },
-        ]
-    )
-
 @pytest.mark.parametrize(
     "time_spent_diff, greatest_timesave, expected_colour",
     [
@@ -72,15 +41,17 @@ def test_get_color(time_spent_diff, greatest_timesave, expected_colour):
     assert get_color(time_spent_diff, greatest_timesave) == expected_colour
 
 
-def test_remove_uninfluenced_stations_removes_user_station_rows(comparison_df):
-    result = remove_uninfluenced_stations(comparison_df)
+def test_remove_uninfluenced_stations_removes_user_station_rows(
+    comparison_df_df_analysis,
+):
+    result = remove_uninfluenced_stations(comparison_df_df_analysis)
 
     assert len(result) == 1
     assert result.iloc[0]["route_id"] == 3
 
 
-def test_get_passenger_station_counts(comparison_df):
-    result = get_passenger_station_counts(comparison_df)
+def test_get_passenger_station_counts(comparison_df_df_analysis):
+    result = get_passenger_station_counts(comparison_df_df_analysis)
 
     assert set(result.columns) == {"Station", "Passenger Count"}
     assert result.loc[result["Station"] == "A", "Passenger Count"].iloc[0] == 3
@@ -88,8 +59,8 @@ def test_get_passenger_station_counts(comparison_df):
     assert result.loc[result["Station"] == "C", "Passenger Count"].iloc[0] == 1
 
 
-def test_get_affected_routes_combines_bidirectional_routes(comparison_df):
-    result = get_affected_routes(comparison_df)
+def test_get_affected_routes_combines_bidirectional_routes(comparison_df_df_analysis):
+    result = get_affected_routes(comparison_df_df_analysis)
 
     assert "A ⇄ B" in result.index
     assert result.loc["A ⇄ B", "Total Affected Routes"] == 2
@@ -114,24 +85,24 @@ def test_add_dataframes_with_fill_value():
     assert result.loc["B", "value"] == 2
 
 
-def test_get_demand_impact_ranges_returns_station_ranges(comparison_df):
-    result = get_demand_impact_ranges(comparison_df)
+def test_get_demand_impact_ranges_returns_station_ranges(comparison_df_df_analysis):
+    result = get_demand_impact_ranges(comparison_df_df_analysis)
 
     assert "Demand Change Range (%)" in result.columns
     assert "User Station" not in result.index
     assert "User Proposed Station" not in result.index
 
 
-def test_total_time_spent_diff(comparison_df):
-    assert get_total_time_spent_diff(comparison_df) == -6.0
+def test_total_time_spent_diff(comparison_df_df_analysis):
+    assert get_total_time_spent_diff(comparison_df_df_analysis) == -6.0
 
 
 def test_total_time_spent_diff_empty_dataframe():
     assert get_total_time_spent_diff(pd.DataFrame()) == 0
 
 
-def test_greatest_time_spent_diff(comparison_df):
-    assert get_greatest_time_spent_diff(comparison_df) == -5.0
+def test_greatest_time_spent_diff(comparison_df_df_analysis):
+    assert get_greatest_time_spent_diff(comparison_df_df_analysis) == -5.0
 
 
 def test_greatest_time_spent_diff_empty_dataframe():
@@ -147,28 +118,36 @@ def test_greatest_time_spent_diff_empty_dataframe():
     ],
 )
 def test_get_percentage_of_affected_routes(
-    comparison_df,
+    comparison_df_df_analysis,
     number_of_routes,
     expected_percentage,
 ):
-    result = get_percentage_of_affected_routes(comparison_df, number_of_routes)
+    result = get_percentage_of_affected_routes(
+        comparison_df_df_analysis, number_of_routes
+    )
 
     assert result == expected_percentage
 
 
-def test_create_top_affected_routes_chart_returns_altair_chart(comparison_df):
-    result = create_top_affected_routes_chart(comparison_df)
+def test_create_top_affected_routes_chart_returns_altair_chart(
+    comparison_df_df_analysis,
+):
+    result = create_top_affected_routes_chart(comparison_df_df_analysis)
 
     assert isinstance(result, alt.Chart)
 
 
-def test_create_top_time_saving_routes_chart_returns_altair_chart(comparison_df):
-    result = create_top_time_saving_routes_chart(comparison_df)
+def test_create_top_time_saving_routes_chart_returns_altair_chart(
+    comparison_df_df_analysis,
+):
+    result = create_top_time_saving_routes_chart(comparison_df_df_analysis)
 
     assert isinstance(result, alt.Chart)
 
 
-def test_create_station_demand_impact_chart_returns_altair_chart(comparison_df):
-    result = create_station_demand_impact_chart(comparison_df)
+def test_create_station_demand_impact_chart_returns_altair_chart(
+    comparison_df_df_analysis,
+):
+    result = create_station_demand_impact_chart(comparison_df_df_analysis)
 
     assert isinstance(result, alt.Chart)

@@ -20,43 +20,9 @@ from s3_utils import (  # noqa: E402
 )
 
 
-class FakeBody:
-    def __init__(self, text):
-        self.text = text
-
-    def read(self):
-        return self.text.encode("utf-8")
-
-
-class FakeS3Client:
-    def __init__(self):
-        self.objects = {}
-        self.list_response = {}
-
-    def get_object(self, Bucket, Key):
-        if Key not in self.objects:
-            raise Exception("Object not found")
-
-        return {
-            "Body": FakeBody(self.objects[Key]),
-        }
-
-    def list_objects_v2(self, Bucket, Prefix, Delimiter):
-        return self.list_response
-
-
-@pytest.fixture
-def fake_s3(monkeypatch):
-    client = FakeS3Client()
-    monkeypatch.setattr(s3_utils, "s3_client", client)
-    return client
-
-
 def test_get_comparison_csv_returns_dataframe(fake_s3):
     fake_s3.objects["raw/test/simulation_comparison.csv"] = (
-        "route_id,time_spent_diff\n"
-        "1,-5\n"
-        "2,3\n"
+        "route_id,time_spent_diff\n1,-5\n2,3\n"
     )
 
     result = get_comparison_csv(
@@ -81,8 +47,7 @@ def test_get_comparison_csv_returns_empty_dataframe_on_error(fake_s3):
 
 def test_get_station_data_returns_dataframe(fake_s3):
     fake_s3.objects["processed/stations.csv"] = (
-        "Name,Latitude,Longitude\n"
-        "Station A,51.5,-0.1\n"
+        "Name,Latitude,Longitude\nStation A,51.5,-0.1\n"
     )
 
     result = get_station_data("test-bucket")
@@ -164,6 +129,3 @@ def test_get_simulation_folders_returns_folder_metadata(fake_s3):
             "Folder": "run-2",
         },
     ]
-
-
-
