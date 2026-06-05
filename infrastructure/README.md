@@ -363,9 +363,9 @@ AWS S3 access is provided via the ECS task role (no explicit AWS credentials nee
 terraform destroy
 
 # Remove local Docker images
-docker rmi c23-travel_simulator_networkx_pipeline
-docker rmi c23-travel_simulator_simulation
-docker rmi c23-travel_simulator_choropleth_pipeline
+docker rmi c23-travel-simulator-networkx-pipeline
+docker rmi c23-travel-simulator-simulation
+docker rmi c23-travel-simulator-choropleth-pipeline
 docker rmi c23_travel_simulator_dashboard_ecr
 ```
 
