@@ -11,11 +11,38 @@ sys.path.insert(0, str(DASHBOARD_DIR))
 from coverage_context import create_coverage_context  # noqa: E402
 
 
-def test_create_coverage_context_returns_expected_keys(
-    sample_stations_df_with_unique_id,
-):
+@pytest.fixture
+def sample_stations_df():
+    return pd.DataFrame(
+        [
+            {
+                "UniqueId": "station_1",
+                "Name": "Near Station",
+                "Latitude": 51.5075,
+                "Longitude": -0.1279,
+                "Line_id": "bakerloo",
+            },
+            {
+                "UniqueId": "station_2",
+                "Name": "Second Near Station",
+                "Latitude": 51.5080,
+                "Longitude": -0.1285,
+                "Line_id": "northern",
+            },
+            {
+                "UniqueId": "station_3",
+                "Name": "Far Station",
+                "Latitude": 51.6000,
+                "Longitude": -0.2000,
+                "Line_id": "central",
+            },
+        ]
+    )
+
+
+def test_create_coverage_context_returns_expected_keys(sample_stations_df):
     result = create_coverage_context(
-        stations_df=sample_stations_df_with_unique_id,
+        stations_df=sample_stations_df,
         proposed_lat=51.5074,
         proposed_lon=-0.1278,
         radius_m=800,
@@ -30,11 +57,9 @@ def test_create_coverage_context_returns_expected_keys(
     }
 
 
-def test_create_coverage_context_counts_stations_inside_catchment(
-    sample_stations_df_with_unique_id,
-):
+def test_create_coverage_context_counts_stations_inside_catchment(sample_stations_df):
     result = create_coverage_context(
-        stations_df=sample_stations_df_with_unique_id,
+        stations_df=sample_stations_df,
         proposed_lat=51.5074,
         proposed_lon=-0.1278,
         radius_m=800,
@@ -44,11 +69,9 @@ def test_create_coverage_context_counts_stations_inside_catchment(
     assert result["coverage_level"] == "Medium"
 
 
-def test_create_coverage_context_finds_nearest_station(
-    sample_stations_df_with_unique_id,
-):
+def test_create_coverage_context_finds_nearest_station(sample_stations_df):
     result = create_coverage_context(
-        stations_df=sample_stations_df_with_unique_id,
+        stations_df=sample_stations_df,
         proposed_lat=51.5074,
         proposed_lon=-0.1278,
         radius_m=800,
@@ -58,11 +81,9 @@ def test_create_coverage_context_finds_nearest_station(
     assert result["nearest_station_distance_m"] >= 0
 
 
-def test_create_coverage_context_returns_affected_lines(
-    sample_stations_df_with_unique_id,
-):
+def test_create_coverage_context_returns_affected_lines(sample_stations_df):
     result = create_coverage_context(
-        stations_df=sample_stations_df_with_unique_id,
+        stations_df=sample_stations_df,
         proposed_lat=51.5074,
         proposed_lon=-0.1278,
         radius_m=800,
@@ -80,13 +101,13 @@ def test_create_coverage_context_returns_affected_lines(
     ],
 )
 def test_create_coverage_context_coverage_levels(
-    sample_stations_df_with_unique_id,
+    sample_stations_df,
     radius_m,
     expected_count,
     expected_level,
 ):
     result = create_coverage_context(
-        stations_df=sample_stations_df_with_unique_id,
+        stations_df=sample_stations_df,
         proposed_lat=51.5074,
         proposed_lon=-0.1278,
         radius_m=radius_m,

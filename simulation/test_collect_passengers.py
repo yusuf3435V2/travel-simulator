@@ -11,6 +11,7 @@ from collect_passengers import (
     create_agents_from_passenger_data,
     TravelModel,
     PassengerAgent,
+    load_graphml,
     get_station_name_from_id,
     get_station_distance,
     add_station_to_network,
@@ -27,6 +28,43 @@ import boto3
 import pytest
 import pandas as pd
 import networkx as nx
+
+
+@pytest.fixture
+def sample_data() -> pd.DataFrame:
+    """Fixture for sample passenger data."""
+    return pd.read_csv("simulation/test_data/sample_passengers.csv")
+
+
+@pytest.fixture
+def sample_stations() -> nx.Graph:
+    """Fixture for sample station graph (5 stations). With duration weight on each edge."""
+    graph = nx.Graph()
+    graph.add_edge("StationA", "StationB", duration=5, line="piccadilly")
+    graph.add_edge("StationB", "StationC", duration=10, line="piccadilly")
+    graph.add_edge("StationC", "StationD", duration=15, line="piccadilly")
+    graph.add_edge("StationD", "StationE", duration=20, line="piccadilly")
+    graph.add_edge("StationA", "StationC", duration=7, line="district")
+    return graph
+
+
+@pytest.fixture
+def sample_graph_for_tube() -> nx.Graph:
+    """Fixture for loading the actual tube network graph."""
+    return load_graphml("simulation/test_data/tube_network.graphml")
+
+
+@pytest.fixture
+def sample_station_data() -> pd.DataFrame:
+    """Fixture for sample station data."""
+    data = pd.read_csv("simulation/test_data/Stations.csv")
+    return data
+
+
+@pytest.fixture
+def sample_station_graph() -> nx.Graph:
+    """Fixture for loading the actual tube network graph."""
+    return load_graphml("simulation/test_data/tube_network.graphml")
 
 
 def test_get_station_latlong(sample_station_data):
@@ -228,6 +266,20 @@ def test_load_graphml(sample_station_graph):
     assert isinstance(graph, nx.Graph), "Expected NetworkX Graph object"
     assert len(graph.nodes()) > 0, "Expected graph to contain nodes"
     assert len(graph.edges()) > 0, "Expected graph to contain edges"
+
+
+@pytest.fixture
+def sample_passenger_data_with_ids(sample_data) -> pd.DataFrame:
+    """Fixture for sample passenger data with route IDs."""
+    return assign_unique_id_to_routes(sample_data)
+
+
+@pytest.fixture
+def model_with_sample_graph(sample_stations, sample_station_data) -> TravelModel:
+    """Fixture for creating a TravelModel with sample graph."""
+    model = TravelModel(sample_stations, sample_station_data)
+
+    return model
 
 
 def test_create_agents_from_passenger_data(
