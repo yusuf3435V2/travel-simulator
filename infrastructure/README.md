@@ -256,6 +256,12 @@ terraform apply -target aws_ecr_repository.c23_travel_simulator_choropleth_pipel
 # Step 3: Deploy Lambda function
 terraform apply
 ```
+### Invoke Lambda
+
+```bash
+aws lambda invoke --function-name c23-travel-simulator-choropleth-pipeline response.json
+aws logs tail /aws/lambda/c23-travel-simulator-choropleth-pipeline --follow
+```
 
 The `deploy_choropleth.sh` script:
 - Logs into ECR
