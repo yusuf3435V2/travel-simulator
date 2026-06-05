@@ -4,7 +4,7 @@ import pytest
 import geopandas as gpd
 import pandas as pd
 
-# Add parent directory to path to import modules from tfl_data_and_network
+# Add the choropleth module directory to sys.path so tests can import local modules
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
