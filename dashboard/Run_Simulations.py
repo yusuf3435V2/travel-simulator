@@ -48,108 +48,13 @@ def check_s3_for_completion(bucket, key):
 st.set_page_config(
     page_title="London Station Simulation",
     page_icon="🚆",
-    layout="centered",
+    layout="wide",
 )
 
-st.markdown(
-    """
-    <style>
-    .main {
-        background-color: #f5f8fc;
-    }
-
-    .lss-hero {
-        background: linear-gradient(135deg, #003b8f 0%, #0057c2 100%);
-        padding: 28px 32px;
-        border-radius: 18px;
-        margin-bottom: 24px;
-        color: white;
-    }
-
-    .lss-hero h1 {
-        margin-bottom: 4px;
-        font-size: 2.4rem;
-        font-weight: 800;
-    }
-
-    .lss-hero p {
-        font-size: 1.05rem;
-        opacity: 0.95;
-    }
-
-    .step-card {
-        background-color: white;
-        padding: 20px;
-        border-radius: 14px;
-        border: 1px solid #d9e4f5;
-        margin-bottom: 18px;
-        box-shadow: 0 2px 8px rgba(0, 59, 143, 0.08);
-    }
-
-    .section-title {
-        color: #003b8f;
-        font-weight: 700;
-        margin-bottom: 8px;
-    }
-
-    div.stButton > button:first-child {
-        background-color: #003b8f;
-        color: white;
-        border-radius: 10px;
-        border: none;
-        padding: 0.6rem 1.2rem;
-        font-weight: 700;
-    }
-
-    div.stButton > button:first-child:hover {
-        background-color: #0057c2;
-        color: white;
-    }
-
-    div[data-testid="stMetric"] {
-        background-color: white;
-        border: 1px solid #d9e4f5;
-        padding: 16px;
-        border-radius: 14px;
-    }
-
-    .block-container {
-        max-width: 1100px;
-        margin: auto;
-        padding-top: 2rem;
-
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-
-col1, col2, col3 = st.columns([1, 2, 1])
-
-with col2:
-    st.image("dashboard/lss_logo.png", width=700)
-
-st.markdown(
-    """
-    <div style="
-        width: 80%;
-        height: 4px;
-        margin: 10px auto 30px auto;
-        background: linear-gradient(
-            90deg,
-            transparent 0%,
-            #003b8f 15%,
-            #0057c2 50%,
-            #003b8f 85%,
-            transparent 100%
-        );
-        border-radius: 10px;
-    ">
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+# Construct logo path relative to this script's location
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logo_path = os.path.join(script_dir, "lss_logo.png")
+st.logo(logo_path, size="large")
 
 dotenv.load_dotenv()
 
@@ -215,7 +120,6 @@ if "kmz_bytes" not in st.session_state:
 INPUT_DISABLED = st.session_state.simulation_running
 
 
-
 if "input_method" not in st.session_state:
     st.session_state.input_method = "Type latitude/longitude"
 
@@ -227,138 +131,129 @@ def set_input_method(method):
     st.session_state.kmz_bytes = None
 
 
-unused_left, centre, unused_right = st.columns([3, 4, 2])
-with centre:
-    st.markdown(
-        '<h3 class="section-title">1. Choose proposed station location</h3>',
-        unsafe_allow_html=True,
+st.sidebar.image(logo_path, width=500)
+
+st.sidebar.divider()
+
+st.sidebar.markdown("## Controls")
+
+st.sidebar.markdown("### 1. Choose proposed station location")
+
+method_col1, method_col2 = st.sidebar.columns(2)
+
+with method_col1:
+    st.sidebar.button(
+        "Type lat/lon",
+        disabled=INPUT_DISABLED,
+        width='stretch',
+        on_click=set_input_method,
+        args=("Type latitude/longitude",),
     )
 
-unused_left, centre, unused_right = st.columns([3, 4, 2])
-with centre:
+with method_col2:
+    st.sidebar.button(
+        "Click map",
+        disabled=INPUT_DISABLED,
+        width='stretch',
+        on_click=set_input_method,
+        args=("Click on map",),
+    )
 
-    method_col1, method_col2 = st.columns(2)
-
-    with method_col1:
-        st.button(
-            "Type latitude/longitude",
-            disabled=INPUT_DISABLED,
-            use_container_width=True,
-            on_click=set_input_method,
-            args=("Type latitude/longitude",),
-        )
-
-    with method_col2:
-        st.button(
-            "Click on map",
-            disabled=INPUT_DISABLED,
-            use_container_width=True,
-            on_click=set_input_method,
-            args=("Click on map",),
-        )
-
-
+st.markdown('### Borough-based Station Density Map with Train Stations and Lines')
 if st.session_state.input_method == "Type latitude/longitude":
-    col1, col2 = st.columns([5, 5])
-
-    with col1:
-        typed_lat = st.number_input(
-            "Latitude",
-            value=51.5072,
-            format="%.6f",
-            disabled=INPUT_DISABLED,
-            key="typed_lat",
-        )
-
-    with col2:
-        typed_lon = st.number_input(
-            "Longitude",
-            value=-0.1276,
-            format="%.6f",
-            disabled=INPUT_DISABLED,
-            key="typed_lon",
-        )
-
-    left, centre, right = st.columns([5, 4, 2])
-
-    with centre:
-        if st.button("Use typed coordinates", disabled=INPUT_DISABLED):
-            st.session_state.proposed_lat = typed_lat
-            st.session_state.proposed_lon = typed_lon
-            st.session_state.simulation_finished = False
-            st.session_state.pdf_bytes = None
-            st.session_state.kmz_bytes = None
-            st.rerun()
-
-elif st.session_state.input_method == "Click on map":
-    unused_left, centre, unused_right = st.columns([3, 4, 2])
-
-    with centre:
-
-        with st.spinner("Loading map..."):
-            m = create_choropleth()
-
-        if m is None:
-            st.error("Could not load choropleth map.")
-            st.stop()
-
-        if st.session_state.proposed_lat is not None:
-            proposed_location = [
-                st.session_state.proposed_lat,
-                st.session_state.proposed_lon,
-            ]
-
-            folium.Marker(
-                proposed_location,
-                popup="Proposed Station",
-                icon=folium.Icon(color="green", icon="star"),
-            ).add_to(m)
-
-            folium.Circle(
-                location=proposed_location,
-                radius=800,
-                popup="800m walking catchment",
-                color="green",
-                fill=True,
-                fill_color="green",
-                fill_opacity=0.15,
-                weight=2,
-            ).add_to(m)
-
-    left, centre, right = st.columns([1, 20, 1])
-
-    
-    map_data = st_folium(
-        m,
-        height=600,
-        use_container_width=True,
-        key="location_picker_map",
-        returned_objects=["last_clicked"],
+    typed_lat = st.sidebar.number_input(
+        "Latitude",
+        value=51.5072,
+        format="%.6f",
+        disabled=INPUT_DISABLED,
+        key="typed_lat",
     )
 
-    if not INPUT_DISABLED and map_data and map_data.get("last_clicked"):
-        st.session_state.proposed_lat = map_data["last_clicked"]["lat"]
-        st.session_state.proposed_lon = map_data["last_clicked"]["lng"]
+    typed_lon = st.sidebar.number_input(
+        "Longitude",
+        value=-0.1276,
+        format="%.6f",
+        disabled=INPUT_DISABLED,
+        key="typed_lon",
+    )
+
+    if st.sidebar.button("Use coordinates", disabled=INPUT_DISABLED):
+        st.session_state.proposed_lat = typed_lat
+        st.session_state.proposed_lon = typed_lon
         st.session_state.simulation_finished = False
         st.session_state.pdf_bytes = None
         st.session_state.kmz_bytes = None
         st.rerun()
 
+elif st.session_state.input_method == "Click on map":
+
+    st.sidebar.markdown("Select location on map to the right →")
+
+
+# Main content area - Interactive station selection map
+    st.markdown('#### Click to Select Your Proposed Station')
+
+with st.spinner("Loading map..."):
+    m = create_choropleth()
+
+if m is None:
+    st.error("Could not load choropleth map.")
+    st.stop()
+
+if st.session_state.proposed_lat is not None:
+    proposed_location = [
+        st.session_state.proposed_lat,
+        st.session_state.proposed_lon,
+    ]
+
+    folium.Marker(
+        proposed_location,
+        popup="Proposed Station",
+        icon=folium.Icon(color="green", icon="star"),
+    ).add_to(m)
+
+    folium.Circle(
+        location=proposed_location,
+        radius=800,
+        popup="800m walking catchment",
+        color="green",
+        fill=True,
+        fill_color="green",
+        fill_opacity=0.15,
+        weight=2,
+    ).add_to(m)
+
+left, centre, right = st.columns([1, 20, 1])
+
+with centre:
+    map_data = st_folium(
+        m,
+        height=600,
+        width='stretch',
+        key="location_picker_map",
+        returned_objects=["last_clicked"],
+    )
+
+if not INPUT_DISABLED and map_data and map_data.get("last_clicked"):
+    st.session_state.proposed_lat = map_data["last_clicked"]["lat"]
+    st.session_state.proposed_lon = map_data["last_clicked"]["lng"]
+    st.session_state.simulation_finished = False
+    st.session_state.pdf_bytes = None
+    st.session_state.kmz_bytes = None
+    st.rerun()
+
     # Click handling is performed above; avoid duplicated state updates/reruns.
 
 
-unused_left, centre, unused_right = st.columns([3, 4, 2])
+st.sidebar.markdown("### 2. Choose proposed train line")
 
-with centre:
-    st.markdown('<h3 class="section-title">2. Choose proposed train line</h3>',
-                unsafe_allow_html=True)
-
-    selected_line = st.selectbox(
-        "Which line would the proposed station be on?",
-        TUBE_AND_RAIL_LINES,
-        index=TUBE_AND_RAIL_LINES.index(st.session_state.selected_line),
-        disabled=INPUT_DISABLED,
-    )
+selected_line = st.sidebar.selectbox(
+    "Which line would the proposed station be on?",
+    TUBE_AND_RAIL_LINES,
+    index=TUBE_AND_RAIL_LINES.index(st.session_state.selected_line),
+    disabled=INPUT_DISABLED,
+    label_visibility="collapsed",
+)
 # Debug logging removed (Streamlit reruns frequently).
 
 if not INPUT_DISABLED and selected_line != st.session_state.selected_line:
@@ -368,36 +263,26 @@ if not INPUT_DISABLED and selected_line != st.session_state.selected_line:
     st.session_state.pdf_bytes = None
     st.session_state.kmz_bytes = None
 
-left, centre, right = st.columns([3, 4, 2])
-
-with centre:
-    st.markdown('<h3 class="section-title">3. Confirm and run simulation</h3>',
-                unsafe_allow_html=True)
+st.sidebar.markdown("### 3. Confirm and run")
 
 if st.session_state.proposed_lat is None or st.session_state.proposed_lon is None:
-    with centre:
-        st.warning("Please choose a proposed station location first.")
+    st.sidebar.warning("Choose a location first")
 else:
-    st.info(
-        f"Selected location: "
-        f"{st.session_state.proposed_lat:.6f}, "
-        f"{st.session_state.proposed_lon:.6f}"
+    st.sidebar.info(
+        f"📍 {st.session_state.proposed_lat:.4f}, {st.session_state.proposed_lon:.4f}"
     )
-
-    st.info(f"Selected line: {st.session_state.selected_line}")
+    st.sidebar.info(f"🚆 {st.session_state.selected_line}")
 
     # Render Active or Disabled button based on execution locker
     if not st.session_state.simulation_running:
-        unused_left, centre, unused_right = st.columns([4.3, 4, 2])
-        with centre:
-            if st.button("Confirm and run simulation", type="primary"):
-                st.session_state.simulation_running = True
-                st.session_state.simulation_finished = False
-                st.session_state.pdf_bytes = None
-                st.rerun()  # Instantly refreshes UI to gray out input components and lock button
+        if st.sidebar.button("Run simulation", type="primary", width='stretch'):
+            st.session_state.simulation_running = True
+            st.session_state.simulation_finished = False
+            st.session_state.pdf_bytes = None
+            st.rerun()  # Instantly refreshes UI to gray out input components and lock button
     else:
-        left, centre, right = st.columns([3, 4, 2])
-        st.button("Simulation Processing in AWS...", disabled=True)
+        st.sidebar.button("Processing in AWS...",
+                          disabled=True, width='stretch')
 
     # Passive Background Polling Engine Execution Block
     if st.session_state.simulation_running and not st.session_state.simulation_finished:
@@ -433,28 +318,35 @@ else:
             st.toast("Lambda successfully triggered!")
 
         # Visual elements tracking progress loop
-        status_message = st.empty()
-        progress_bar = st.progress(0)
+        start_time = time.time()
+        status_placeholder = st.empty()
 
-        max_retries = 60  # 5 Minutes Max (60 attempts * 5 seconds sleep)
-        simulation_success = False
+        with st.spinner("Simulation running..."):
+            max_retries = 60  # 5 Minutes Max (60 attempts * 5 seconds sleep)
+            simulation_success = False
 
-        for attempt in range(max_retries):
-            status_message.text(
-                f"⏳ Checking S3 for outputs (Attempt {attempt + 1}/{max_retries})"
-            )
-            progress_bar.progress(min((attempt + 1) / max_retries, 0.95))
+            for attempt in range(max_retries):
+                elapsed = int(time.time() - start_time)
+                minutes = elapsed // 60
+                seconds = elapsed % 60
+                status_placeholder.text(
+                    f"⏱️ Running for {minutes}m {seconds}s")
 
-            if check_s3_for_completion(BUCKET_NAME, st.session_state.target_key):
-                simulation_success = True
-                break
+                if check_s3_for_completion(BUCKET_NAME, st.session_state.target_key):
+                    simulation_success = True
+                    break
 
-            time.sleep(5)
+                time.sleep(5)
 
-        status_message.empty()
-        progress_bar.empty()
+        status_placeholder.success(
+            f"✓ Simulation complete! Total time: {minutes}m {seconds}s")
 
-        if simulation_success:
+        if not simulation_success:
+            st.error(
+                "❌ Simulation timed out or failed to write results back to S3.")
+            st.session_state.simulation_running = False
+            st.rerun()
+        else:
             # Code block for compiling the final localized PDF report on completion
             st.session_state.pdf_bytes = generate_recommendation_pdf(
                 proposed_lat=st.session_state.proposed_lat,
@@ -472,11 +364,6 @@ else:
             st.success("Simulation finished successfully!")
             st.balloons()
             st.rerun()
-        else:
-            st.error(
-                "❌ Simulation timed out or failed to write results back to S3.")
-            st.session_state.simulation_running = False
-            st.rerun()
 
 
 if st.session_state.simulation_finished:
@@ -485,15 +372,13 @@ if st.session_state.simulation_finished:
 
         st.subheader("Simulation Results")
 
-        st.write("Results parsed directly from complete run metrics:")
-
-        st.write(
-            {
-                "proposed_lat": st.session_state.proposed_lat,
-                "proposed_lon": st.session_state.proposed_lon,
-                "selected_line": st.session_state.selected_line,
-            }
-        )
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.write(f"**Latitude**  \n{st.session_state.proposed_lat:.10f}")
+        with col2:
+            st.write(f"**Longitude**  \n{st.session_state.proposed_lon:.10f}")
+        with col3:
+            st.write(f"**Line**  \n{st.session_state.selected_line}")
 
         if st.session_state.target_key is None:
             st.error("Target key not found. Please run the simulation again.")
@@ -506,7 +391,8 @@ if st.session_state.simulation_finished:
             "Name": "User Proposed Station",
             "number_of_passengers": 32000,  # Placeholder, replace with actual metadata
         }
-        comparison_df = get_comparison_csv(BUCKET_NAME, st.session_state.target_key)
+        comparison_df = get_comparison_csv(
+            BUCKET_NAME, st.session_state.target_key)
 
         if st.session_state.pdf_bytes:
             st.download_button(
@@ -537,29 +423,29 @@ if st.session_state.simulation_finished:
 
         st.altair_chart(
             create_top_affected_routes_chart(comparison_df),
-            use_container_width=True,
+            width='stretch',
         )
 
         st.altair_chart(
             create_top_time_saving_routes_chart(comparison_df),
-            use_container_width=True,
+            width='stretch',
         )
 
         st.altair_chart(
             create_station_demand_impact_chart(comparison_df),
-            use_container_width=True,
+            width='stretch',
         )
 
     st.subheader("Affected Routes Summary")
     if not comparison_df.empty:
         affected_routes_summary = get_affected_routes(comparison_df)
-        st.dataframe(affected_routes_summary)
+        st.dataframe(affected_routes_summary, width='stretch')
     else:
         st.warning("No comparison data available to summarize affected routes.")
     st.subheader("Estimated Demand Impact Ranges")
     if not comparison_df.empty:
         demand_impact_ranges = get_demand_impact_ranges(comparison_df)
-        st.dataframe(demand_impact_ranges)
+        st.dataframe(demand_impact_ranges, width='stretch')
     else:
         st.warning(
             "No comparison data available to calculate demand impact ranges.")
@@ -571,7 +457,7 @@ if st.session_state.simulation_finished:
         if not station_data.empty:
             folium_map = create_folium_map(station_data, comparison_df)
             folium_map = plot_original_station_point(metadata, folium_map)
-            
+
             map_col, legend_col = st.columns([3, 1])
 
             with map_col:
