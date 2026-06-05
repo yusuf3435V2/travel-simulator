@@ -315,10 +315,6 @@ aws logs tail /aws/lambda/c23-travel-simulator-choropleth-pipeline --follow
 
 Streamlit dashboard running on ECS Fargate. Accessible on port 8501.
 
-## Dashboard ECS Deployment
-
-Streamlit dashboard running on ECS Fargate. Accessible on port 8501.
-
 ### Deployment
 
 ```bash
