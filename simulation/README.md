@@ -67,8 +67,8 @@ The simulation follows a baseline + comparison approach:
 - **Objective**: Minimize total travel time, not distance
 
 ### Transportation Modes
-- **Walking** (≤1.6 km): 5 km/h
-- **Public Transit** (>1.6 km): 30 km/h
+- **Walking** (<1.6 km): 5 km/h
+- **Public Transit** (≥1.6 km): 30 km/h
 - Mode choice based on distance from origin to nearest station and destination station to destination
 
 ### Station Connection
