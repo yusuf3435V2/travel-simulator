@@ -2,211 +2,634 @@
 
 ## Introduction
 
-Travel Simulator is a comprehensive system for simulating passenger movement and analyzing coverage across the London Underground network with the insertion of proposed stations. The project combines real TFL data with discrete event simulation to model passenger flows, visualize network coverage, and provide actionable insights through interactive dashboards and analysis tools.
+Travel Simulator is a system for testing proposed London transport stations and estimating their effect on coverage, passenger journeys, and route-level travel times.
 
-This system is designed to help transport planners and analysts understand network utilisation patterns, identify coverage gaps, and optimise service delivery across the tube network.
+The project combines:
+- TfL station and network data
+- AWS infrastructure
+- an AWS Lambda simulation engine
+- S3 storage for processed data and simulation outputs
+- a Streamlit dashboard for client-facing analysis
+- Google Earth Engine land-use analysis
+- OpenAI-assisted report generation
+- KML/KMZ exports for Google Earth Pro
 
-## Quick Start - Running the Dashboard
+The dashboard allows a user to select a proposed station location, choose a rail line, run the simulation, view affected routes and charts, download a recommendation PDF, and export a Google Earth-compatible KMZ file.
 
-The fastest way to explore simulations is via the interactive dashboard:
+---
 
-```bash
-# From repository root
-streamlit run dashboard/Run_Simulations.py
+## Repository Structure
+
+```text
+travel-simulator/
+├── choropleth/
+├── dashboard/
+├── infrastructure/
+├── simulation/
+├── tfl_data_and_network/
+└── README.md
 ```
 
-The dashboard will launch at `http://localhost:8501` and provides:
-- **Interactive Map**: Click on the borough-based station density map to select proposed station locations
-- **Simulation Execution**: Run simulations via AWS Lambda with real-time elapsed time display
-- **Results Visualization**: View impact charts, affected routes, and metrics
-- **Historical Archive**: Browse previous simulations in the "Previous Simulations" page
+### `dashboard/`
 
-### Requirements
-- Python 3.8+
-- Installed dependencies: `pip install -r dashboard/requirements.txt`
+Streamlit dashboard used by the end user.
+
+Key files:
+- `dashboard.py` - main Streamlit dashboard
+- `analysis.py` - land-use analysis and report generation
+- `coverage_context.py` - coverage calculation around a proposed station
+- `df_analysis.py` - simulation metrics, affected routes, and Altair charts
+- `folium_functions.py` - post-simulation Folium map functions
+- `kml_export.py` - KML/KMZ export logic
+- `s3_utils.py` - reads simulation outputs and station data from S3
+- `stations_choropleth.py` - borough choropleth and transport network map
+
+### `simulation/`
+
+AWS Lambda simulation engine.
+
+Key files:
+- `run_sim_and_save.py` - main simulation runner
+- `collect_passengers.py` - passenger collection logic
+- `distance_maths.py` - distance and route calculations
+- `result_analysis.py` - simulation result processing
+- `s3_utils_sim.py` - S3 utilities used by the simulation
+
+### `tfl_data_and_network/`
+
+TfL data extraction and network graph creation.
+
+Key files:
+- `api_utils.py`
+- `get_lines.py`
+- `get_sequenced_stops.py`
+- `get_travel_times.py`
+- `create_stations_network.py`
+- `connect_nearby_stations.py`
+
+### `infrastructure/`
+
+Terraform and deployment scripts for AWS.
+
+This folder creates and manages:
+- S3 bucket
+- ECR repositories
+- Lambda functions
+- ECS dashboard service
+- IAM roles and policies
+- API Gateway, if enabled
+- required environment variables for deployed services
+
+---
+
+## Prerequisites
+
+Install the following locally:
+
+```bash
+python --version
+terraform --version
+aws --version
+docker --version
+```
+
+Recommended versions:
+- Python 3.11+
+- Terraform 1.0+
+- Docker Desktop
+- AWS CLI v2
+
+You also need:
 - AWS credentials configured locally
-- Environment variables: `S3_BUCKET_NAME`, `SIMULATION_LAMBDA_ARN`
+- access to the AWS account used by the project
+- a Google Cloud project with Earth Engine enabled
+- an OpenAI API key if using AI-generated report wording
 
-## Folder Descriptions
+---
 
-### `/choropleth`
-Contains data visualisation functionality for generating choropleth maps and heatmaps. Includes utilities for processing geographic data and creating visual representations of coverage areas and station metrics.
+## 1. Clone the Repository
 
-**Key Files:**
-- `data_functions.py`: Data processing utilities
-- `endmap.py`: Final map generation
-- `requirements.txt`: Python dependencies
-
-### `/dashboard`
-Streamlit-based interactive multi-page dashboard for simulation execution, visualization, and analysis. Provides real-time interaction with the simulation engine via AWS Lambda, interactive mapping interfaces, and comprehensive results visualization.
-
-**Key Files:**
-- `Run_Simulations.py`: Main dashboard entry point - interactive station selection and simulation execution
-- `pages/2_previous_simulations.py`: Historical simulation archive and comparison view
-- `df_analysis.py`: Chart generation and metric calculations
-- `folium_functions.py`: Interactive map utilities
-- `stations_choropleth.py`: Borough-based station density maps
-- `s3_utils.py`: AWS S3 integration for results and data access
-
-**Running the Dashboard:**
 ```bash
-streamlit run dashboard/Run_Simulations.py
+git clone <repo-url>
+cd travel-simulator
 ```
 
-### `/infrastructure`
-Terraform configuration for AWS infrastructure deployment, including an ECS Service for the dashboard, Lambda functions for simulation and S3 for centralised station and simulation result storage.
+---
 
-This also contains shell scripts for deploying Docker images to the ECR in the infrastructure.
+## 2. Create a Python Virtual Environment
 
-### `/simulation`
-Core simulation engine that executes discrete event simulation of passenger movement through the network. Handles passenger collection, distance calculations, and result aggregation.
+From the repository root:
 
-**Key Files:**
-- `run_sim_and_save.py`: Main simulation runner
-- `collect_passengers.py`: Passenger data collection
-- `distance_maths.py`: Distance and routing calculations
-- `result_analysis.py`: Post-simulation analysis
-- `s3_utils_sim.py`: AWS S3 utilities for simulation
-- `test_collect_passengers.py`: Simulation tests
-- `requirements.txt`: Python dependencies
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
-### `/tfl_data_and_network`
-Utilities for fetching real TFL API data, constructing the network graph, and managing station sequences. Handles API communication, data transformation, and network topology creation.
+Install dashboard dependencies:
 
-**Key Files:**
-- `api_utils.py`: TFL API communication
-- `get_lines.py`: Retrieve tube line data
-- `get_sequenced_stops.py`: Get ordered station sequences
-- `get_travel_times.py`: Fetch travel times from API
-- `create_stations_network.py`: Build network graph
-- `connect_nearby_stations.py`: Add cross-network connections
-- `plot_networkx.py`: Network visualization
-- `tests/`: Comprehensive test suite for network operations
+```bash
+pip install -r dashboard/requirements.txt
+```
 
-## Deploying
+If there is a root-level requirements file, also run:
 
-### Prerequisites
+```bash
+pip install -r requirements.txt
+```
 
-1. **Terraform** installed (v1.0+)
-2. **AWS CLI** configured with credentials
-3. **Docker** image built locally
-4. **S3 bucket** will be created by Terraform: `c23-travel-simulation-bucket`
-### What Gets Created
+---
 
-- **ECR Repository**: Docker image registry
-- **Lambda Function**: Runs your pipeline with 15-minute timeout and 3GB memory
-- **IAM Role**: Permissions for Lambda to write logs and S3
-- **EventBridge Rule**: Optional monthly schedule trigger (2 AM UTC on the 1st)
-- **CloudWatch Log Group**: 7-day retention logs
+## 3. Configure AWS Locally
 
-### Deployment Steps
+The local machine needs AWS credentials so Terraform can create infrastructure and the dashboard can read S3 / invoke Lambda during local testing.
 
-#### 1. Create ECR Repository First
+Check your identity:
+
+```bash
+aws sts get-caller-identity
+```
+
+If this fails, configure credentials:
+
+```bash
+aws configure
+```
+
+Use region:
+
+```text
+eu-west-2
+```
+
+---
+
+## 4. Create the Local `.env` File
+
+Create a `.env` file in the repository root:
+
+```bash
+touch .env
+```
+
+### Required `.env` values
+
+| Variable | Required locally? | Required in ECS? | Purpose |
+|---|---:|---:|---|
+| `S3_BUCKET_NAME` | Yes | Yes | S3 bucket containing processed station data and simulation outputs |
+| `SIMULATION_LAMBDA_ARN` | Yes, if invoking Lambda locally | Yes | Lambda ARN for the simulation engine |
+| `GOOGLE_CLOUD_PROJECT` | Yes | Yes | Google Cloud project used for Earth Engine |
+| `OPENAI_API_KEY` | Yes, if generating AI reports | Yes, if generating AI reports | Used by `analysis.py` for client-ready report wording |
+| `GOOGLE_APPLICATION_CREDENTIALS_JSON` | No for local dev if using `earthengine authenticate` | Yes | Full Google service account JSON for Earth Engine in ECS |
+
+### Local Google Earth Engine authentication
+
+For local development, the easiest setup is:
+
+```bash
+earthengine authenticate
+```
+
+Then keep this in `.env`:
+
+```env
+GOOGLE_CLOUD_PROJECT=travel-simulation-497813
+```
+
+Do **not** put `GOOGLE_APPLICATION_CREDENTIALS_JSON` in your local `.env` unless you are testing service-account authentication locally.
+
+### ECS Google Earth Engine authentication
+
+In ECS, `earthengine authenticate` cannot be used because the container cannot open a browser or use `gcloud`.
+
+For ECS, set:
+
+```env
+S3_BUCKET_NAME=s3-bucket-name
+GOOGLE_CLOUD_PROJECT=google-cloud-project-id
+OPENAI_API_KEY=your_openai_api_key_here
+SIMULATION_LAMBDA_ARN=arn:aws:lambda:eu-west-2:<aws-account-id>:function:simulation-lambda-name
+GOOGLE_APPLICATION_CREDENTIALS_JSON={full service account json}
+```
+
+Prefer storing this value in AWS Secrets Manager and injecting it into the ECS task definition as a secret.
+
+Do not commit `.env`, service account JSON files, API keys, or Terraform variable files containing secrets.
+
+---
+
+## 5. Terraform Setup from Scratch
+
+Go to the infrastructure folder:
 
 ```bash
 cd infrastructure
+```
+
+Initialise Terraform:
+
+```bash
 terraform init
-terraform apply -target aws_ecr_repository.c23_travel_simulator_networkx_pipeline
 ```
 
-This creates the ECR repository where the Docker image will be stored.
-
-#### 2. Build and Push Docker Image
+Check what Terraform will create:
 
 ```bash
-./deploy_networkx.sh
+terraform plan
 ```
 
-This script handles:
-- ECR login
-- Docker build with platform=linux/amd64
-- Image tagging
-- Push to ECR
-
-#### 3. Deploy Remaining Infrastructure
+Apply the infrastructure:
 
 ```bash
+terraform apply -target=module.networkx_lambda
+terraform apply -target aws_ecr_repository.c23_travel_simulator_simulation
+terraform apply -target aws_ecr_repository.c23_travel_simulator_choropleth_pipeline
+terraform apply -target aws_ecr_repository.c23_travel_simulator_dashboard_ecr
+```
+
+This step is required locally before the deployment scripts can work because the scripts use Terraform outputs such as ECR repository URLs.
+
+After apply, inspect outputs:
+
+```bash
+terraform output
+```
+
+Expected outputs may include:
+- ECR repository URL for the dashboard
+- ECR repository URL for the simulation Lambda
+- Lambda ARN
+- ECS service information
+- S3 bucket name
+
+---
+
+## 5.5. Setup Initial Data Pipelines
+
+Before building and deploying services, the TfL network graph and choropleth boundary data must be prepared. These are prerequisites for the dashboard.
+
+### Choropleth Boundary Setup (Local)
+
+The choropleth pipeline generates borough-level station density maps. It requires borough boundary data:
+
+From the repository root, go to the choropleth folder:
+
+```bash
+cd choropleth
+pip install -r requirements.txt
+bash download_boundaries.sh
+```
+
+---
+
+## 6. Build and Push Docker Images
+
+All deployment scripts should be run from inside the `infrastructure/` folder unless stated otherwise.
+
+```bash
+cd infrastructure
+```
+
+### Deploy the NetworkX pipeline image
+
+```bash
+bash deploy_networkx.sh
+```
+
+This builds and pushes the NetworkX image.
+
+### Deploy the choropleth Lambda image
+
+```bash
+bash deploy_choropleth.sh
+```
+
+This builds and pushes the choropleth image.
+
+### Deploy the simulation Lambda image
+
+```bash
+bash deploy_simulation.sh
+```
+
+This builds and pushes the simulation image.
+
+### Deploy the dashboard image
+
+```bash
+bash dashboard.sh
+```
+
+The dashboard script:
+1. gets the ECR dashboard repository URL from Terraform outputs
+2. logs in to ECR
+3. builds the dashboard Docker image
+4. tags the image as `latest`
+5. pushes it to ECR
+6. forces an ECS service redeployment
+
+If the script is not executable, run:
+
+```bash
+chmod +x dashboard.sh
+./dashboard.sh
+```
+
+## 7. Apply Terraform Again After Image Pushes
+
+After the first image push, run:
+
+```bash
+terraform plan
 terraform apply
 ```
 
-This creates the Lambda function, IAM roles, EventBridge schedule, and CloudWatch logs.
+This ensures the Lambda functions, ECS task definitions, environment variables, and IAM policies point to the correct deployed resources.
 
-### Configuration
+---
 
-Edit `terraform.tfvars` to customize:
-- `aws_region`: AWS region (default: eu-west-2)
-- `aws_access_key_id`: AWS access key ID for Terraform authentication
-- `aws_secret_access_key`: AWS secret access key for Terraform authentication
+---
 
-### Cleanup
+### Invoke Lambda
 
 ```bash
-# Destroy all AWS resources
-terraform destroy
+aws lambda invoke --function-name c23-travel-simulator-simulation response.json
+aws logs tail /aws/lambda/c23-travel-simulator-simulation --follow
 
-# Remove local Docker image
-docker rmi c23-travel-simulator-networkx-pipeline
+aws lambda invoke --function-name c23-travel-simulator-choropleth-pipeline response.json
+aws logs tail /aws/lambda/c23-travel-simulator-choropleth-pipeline --follow
 ```
 
-### Outputs
 
-After deployment, Terraform will display:
-- ECR repository URL
-- Lambda function name and ARN
+## 9. ECS Environment Variables
 
-Use these to:
-- Push new Docker images: `docker push <ECR_URL>:latest`
-- Invoke Lambda: `aws lambda invoke --function-name <LAMBDA_NAME>`
+The dashboard ECS task needs these environment variables:
 
-### Dashboard Access
+```env
+S3_BUCKET_NAME=c23-travel-simulation-bucket
+SIMULATION_LAMBDA_ARN=arn:aws:lambda:eu-west-2:<aws-account-id>:function:c23-travel-simulator-simulation
+GOOGLE_CLOUD_PROJECT=travel-simulation-497813
+OPENAI_API_KEY=your_openai_api_key_here
+```
 
-Once deployed, the Streamlit dashboard will be accessible on port 8501 from the ECS service public IP. Check the AWS ECS console to find the running service and its public IP address.
+The dashboard ECS task also needs this secret:
 
-### Environment Variables
+```env
+GOOGLE_APPLICATION_CREDENTIALS_JSON={full Google service account JSON}
+```
 
-The dashboard requires these environment variables:
-- `GOOGLE_CLOUD_PROJECT`: Google Cloud project ID for Earth Engine
-- `OPENAI_API_KEY`: OpenAI API key (used for report generation)
-AWS access to S3 should be provided via the ECS task role (no `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` env vars needed).
+Recommended setup:
+- Store `GOOGLE_APPLICATION_CREDENTIALS_JSON` in AWS Secrets Manager
+- Inject it into the ECS task definition as a secret
+- Do not put it directly in GitHub or Dockerfiles
 
+---
 
-## Testing
+## 9. IAM Permissions Required
 
-### Running Tests
+The ECS dashboard task role needs permission to:
+- read from S3
+- write/read relevant dashboard outputs if required
+- invoke the simulation Lambda
 
-Tests are organized by module. Run all tests from the project root:
+The dashboard task role must include:
+
+```json
+{
+  "Effect": "Allow",
+  "Action": [
+    "lambda:InvokeFunction"
+  ],
+  "Resource": "arn:aws:lambda:eu-west-2:<aws-account-id>:function:c23-travel-simulator-simulation"
+}
+```
+
+The simulation Lambda role needs permission to:
+- read processed data from S3
+- write simulation outputs back to S3
+- write CloudWatch logs
+
+---
+
+## 10. Run the Dashboard Locally
+
+From the repository root:
 
 ```bash
-# Run all tests
+streamlit run dashboard/dashboard.py
+```
+
+The dashboard opens at:
+
+```text
+http://localhost:8501
+```
+
+Local dashboard requirements:
+- `.env` exists in the repository root
+- AWS credentials are configured
+- Terraform has been applied at least once
+- `SIMULATION_LAMBDA_ARN` is set if running the real Lambda
+- `S3_BUCKET_NAME` is set
+- Earth Engine has been authenticated locally
+
+---
+
+## 11. Access the Deployed Dashboard
+
+After ECS deployment, find the dashboard URL.
+
+If there is a load balancer:
+
+```bash
+aws elbv2 describe-load-balancers --region eu-west-2
+```
+
+Use the DNS name shown.
+
+If running ECS Fargate without a load balancer:
+
+```bash
+aws ecs list-clusters --region eu-west-2
+aws ecs list-services --cluster c23-ecs-cluster --region eu-west-2
+aws ecs list-tasks --cluster c23-ecs-cluster --region eu-west-2
+```
+
+Then inspect the running task/network interface in the AWS Console to find the public IP.
+
+The dashboard runs on:
+
+```text
+port 8501
+```
+
+---
+
+## 12. Updating the Dashboard After Code Changes
+
+If you only changed dashboard code:
+
+```bash
+cd infrastructure
+bash dashboard.sh
+```
+
+This rebuilds the dashboard image, pushes it to ECR, and starts a new ECS deployment.
+
+If ECS does not pick up the latest image, force deployment manually:
+
+```bash
+aws ecs update-service \
+  --cluster c23-ecs-cluster \
+  --service c23_travel_simulator_dashboard_service \
+  --force-new-deployment \
+  --region eu-west-2
+```
+
+---
+
+## 13. Updating Terraform
+
+If you changed infrastructure code:
+
+```bash
+cd infrastructure
+terraform plan
+terraform apply
+```
+
+If the change affects ECS task definitions or environment variables, update the ECS service after applying:
+
+```bash
+bash dashboard.sh
+```
+
+---
+
+## 14. Testing
+
+Run all tests from the repository root:
+
+```bash
 pytest
-
-# Run specific module tests
-pytest tfl_data_and_network/tests/
-pytest dashboard/tests/
-pytest simulation/test_collect_passengers.py
-
-# Run with coverage
-pytest --cov
 ```
 
-### Test Structure
+Run dashboard tests:
 
-- **`tfl_data_and_network/tests/`**: Tests for API utilities, network creation, and data fetching
-- **`dashboard/tests/`**: Tests for dashboard analysis and coverage functions
-- **`simulation/`**: Simulation-specific test files
+```bash
+pytest dashboard/tests/
+```
 
-### Key Test Files
+Run simulation tests:
 
-- `tfl_data_and_network/tests/test_api_utils.py`: API communication tests
-- `tfl_data_and_network/tests/test_create_stations_network.py`: Network graph creation tests
-- `dashboard/tests/test_coverage_context.py`: Coverage analysis tests
-- `dashboard/tests/test_analysis.py`: Analysis function tests
-- `simulation/test_collect_passengers.py`: Passenger collection tests
+```bash
+pytest simulation/
+```
 
-### Writing Tests
+Run TfL/network tests:
 
-When adding new functionality, ensure:
-- Each module has corresponding tests
-- Tests include both unit and integration scenarios
-- Test files follow naming convention: `test_*.py`
-- Functions include docstrings describing test purpose
+```bash
+pytest tfl_data_and_network/tests/
+```
+
+---
+
+## 15. Common Issues
+
+### `gcloud command not found`
+
+This happens when `ee.Authenticate()` is called inside ECS.
+
+Fix:
+- use `GOOGLE_APPLICATION_CREDENTIALS_JSON` in ECS
+- initialise Earth Engine with service account credentials
+- do not call `ee.Authenticate()` in deployed containers
+
+### `AccessDeniedException` when invoking Lambda
+
+The ECS task role does not have `lambda:InvokeFunction`.
+
+Fix:
+- add a policy allowing the dashboard ECS task role to invoke the simulation Lambda
+
+### Dashboard shows old code after deployment
+
+The image was pushed to ECR, but ECS has not started a new task.
+
+Fix:
+
+```bash
+cd infrastructure
+bash dashboard.sh
+```
+
+or:
+
+```bash
+aws ecs update-service \
+  --cluster c23-ecs-cluster \
+  --service c23_travel_simulator_dashboard_service \
+  --force-new-deployment \
+  --region eu-west-2
+```
+
+### `JSONDecodeError` for Google credentials
+
+The value in `GOOGLE_APPLICATION_CREDENTIALS_JSON` is not valid JSON.
+
+Fix:
+- in ECS, use Secrets Manager
+- locally, remove `GOOGLE_APPLICATION_CREDENTIALS_JSON` and use `earthengine authenticate`
+- if using `.env`, the JSON must be one valid JSON string
+
+### `No module named ...`
+
+Run commands from the repository root unless the README says otherwise.
+
+---
+
+## 16. Cleanup
+
+Destroy AWS infrastructure:
+
+```bash
+cd infrastructure
+terraform destroy
+```
+
+Remove local Docker images if needed:
+
+```bash
+docker image ls
+docker rmi <image-name>
+```
+
+---
+
+## Security Notes
+
+Never commit:
+- `.env`
+- `terraform.tfvars`
+- Google service account JSON files
+- OpenAI API keys
+- AWS access keys
+- private Terraform state files
+- `.terraform/`
+
+Recommended `.gitignore` entries:
+
+```gitignore
+.env
+*.tfvars
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+*.pem
+*.json
+```
+
+Only commit non-secret example files such as:
+
+```text
+.env.example
+```
