@@ -114,8 +114,8 @@ KML file generation for external GIS applications. Provides:
 - Support for custom styling and icons in KML output
 - Integration with external mapping tools (Google Earth, ArcGIS, etc.)
 
-### **coverage_context.py** (Legacy)
-Station coverage and accessibility analysis utilities (currently not used in main dashboard)
+### **coverage_context.py**
+Station coverage and accessibility analysis utilities. Provides catchment area analysis, nearest station identification, and coverage statistics used in report generation and KML export
 
 ## File Structure
 
