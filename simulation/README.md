@@ -73,7 +73,7 @@ The simulation follows a baseline + comparison approach:
 
 ### Station Connection
 When adding a new station, it automatically connects to:
-- The 2 nearest existing consecutive stations on the same line
+- The geographically closest existing station and one of that station’s current neighbors (the original edge between them is removed)
 - Connections assume train speed of 45 km/h for distance-to-time conversion
 
 ### Travel Time Components
