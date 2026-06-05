@@ -12,10 +12,11 @@ COPY stations_choropleth.py .
 COPY folium_functions.py .
 COPY s3_utils.py .
 COPY df_analysis.py .
-COPY dashboard.py .
+COPY lss_logo.png .
+COPY Run_Simulations.py .
 
 
-CMD ["streamlit", "run", "dashboard.py"]
+CMD ["streamlit", "run", "Run_Simulations.py"]
 
 
 # docker buildx build -t c23-travel_simulation_dashboard . 
