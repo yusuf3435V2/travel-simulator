@@ -16,44 +16,6 @@ from s3_utils_sim import (
     save_json_to_s3,
 )
 
-
-# Fixtures
-
-
-@pytest.fixture()
-def mock_graph_xml() -> str:
-    """Provides a sample GraphML content for testing."""
-    return """<?xml version='1.0' encoding='utf-8'?>
-<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
-  <key id="d1" for="edge" attr.name="duration" attr.type="long" />
-  <key id="d0" for="edge" attr.name="line_id" attr.type="string" />
-  <graph edgedefault="undirected">
-    <node id="station1" />
-    <node id="station2" />
-    <edge source="station1" target="station2">
-      <data key="d0">metropolitan</data>
-      <data key="d1">2</data>
-    </edge>
-  </graph>
-</graphml>"""
-
-
-@pytest.fixture()
-def csv_content() -> str:
-    """Provides a sample CSV content for testing."""
-    return "col1,col2\n1,a\n2,b\n3,c\n"
-
-
-@pytest.fixture()
-def aws_credentials(monkeypatch):
-    """Mock AWS credentials."""
-    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "testing")
-    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "testing")
-    monkeypatch.setenv("AWS_SECURITY_TOKEN", "testing")
-    monkeypatch.setenv("AWS_SESSION_TOKEN", "testing")
-    monkeypatch.setenv("AWS_DEFAULT_REGION", "us-east-1")
-
-
 # Tests for load_env_variables function
 
 

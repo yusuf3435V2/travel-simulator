@@ -17,52 +17,6 @@ from folium_functions import (  # noqa: E402
 )
 
 
-@pytest.fixture
-def comparison_df():
-    return pd.DataFrame(
-        [
-            {
-                "nearest_station_baseline": "Station A",
-                "alighting_station_altered": "Station B",
-                "time_spent_diff": -5.0,
-            },
-            {
-                "nearest_station_baseline": "Station B",
-                "alighting_station_altered": "Station C",
-                "time_spent_diff": 2.0,
-            },
-            {
-                "nearest_station_baseline": "Station A",
-                "alighting_station_altered": "Station C",
-                "time_spent_diff": -3.0,
-            },
-        ]
-    )
-
-
-@pytest.fixture
-def station_data():
-    return pd.DataFrame(
-        [
-            {
-                "Name": "Station A",
-                "Latitude": 51.500,
-                "Longitude": -0.100,
-            },
-            {
-                "Name": "Station B",
-                "Latitude": 51.510,
-                "Longitude": -0.110,
-            },
-            {
-                "Name": "Station C",
-                "Latitude": 51.520,
-                "Longitude": -0.120,
-            },
-        ]
-    )
-
-
 def test_find_station_demand_changes_returns_empty_for_empty_dataframe():
     result = find_station_demand_changes(pd.DataFrame())
 
