@@ -365,7 +365,7 @@ def poll_simulation_completion(target_key: str, max_retries: int = 60) -> bool:
     status_placeholder = st.empty()
 
     with st.spinner("Simulation running..."):
-        for attempt in range(max_retries):
+        for _ in range(max_retries):
             elapsed = int(time.time() - start_time)
             minutes = elapsed // 60
             seconds = elapsed % 60
