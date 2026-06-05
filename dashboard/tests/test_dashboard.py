@@ -1,11 +1,11 @@
-"""Simple tests for dashboard/dashboard.py without running Streamlit UI."""
+"""Simple tests for dashboard/Run_Simulations.py without running Streamlit UI."""
 
 from pathlib import Path
-DASHBOARD_FILE = Path(__file__).resolve().parents[1] / "dashboard.py"
+DASHBOARD_FILE = Path(__file__).resolve().parents[1] / "Run_Simulations.py"
 
 
 def read_dashboard_code() -> str:
-    """Read dashboard.py as text."""
+    """Read Run_Simulations.py as text."""
     return DASHBOARD_FILE.read_text(encoding="utf-8")
 
 

@@ -6,6 +6,27 @@ Travel Simulator is a comprehensive system for simulating passenger movement and
 
 This system is designed to help transport planners and analysts understand network utilisation patterns, identify coverage gaps, and optimise service delivery across the tube network.
 
+## Quick Start - Running the Dashboard
+
+The fastest way to explore simulations is via the interactive dashboard:
+
+```bash
+# From repository root
+streamlit run dashboard/Run_Simulations.py
+```
+
+The dashboard will launch at `http://localhost:8501` and provides:
+- **Interactive Map**: Click on the borough-based station density map to select proposed station locations
+- **Simulation Execution**: Run simulations via AWS Lambda with real-time elapsed time display
+- **Results Visualization**: View impact charts, affected routes, and metrics
+- **Historical Archive**: Browse previous simulations in the "Previous Simulations" page
+
+### Requirements
+- Python 3.8+
+- Installed dependencies: `pip install -r dashboard/requirements.txt`
+- AWS credentials configured locally
+- Environment variables: `S3_BUCKET_NAME`, `SIMULATION_LAMBDA_ARN`
+
 ## Folder Descriptions
 
 ### `/choropleth`
@@ -17,13 +38,20 @@ Contains data visualisation functionality for generating choropleth maps and hea
 - `requirements.txt`: Python dependencies
 
 ### `/dashboard`
-Streamlit-based interactive dashboard for visualisation and analysis. Provides real-time exploration of simulation results, station coverage analysis, and historical simulation comparisons.
+Streamlit-based interactive multi-page dashboard for simulation execution, visualization, and analysis. Provides real-time interaction with the simulation engine via AWS Lambda, interactive mapping interfaces, and comprehensive results visualization.
 
-**Key Folders:**
-- `dashboard/`: Main dashboard application
-- `infrastructure`: Cloud infrastructure
-- `simulation`: Simulating passenger switching as a result of a new proposed station
-- `tfl_data_and_network`: TFL data extraction and processing for accurate context
+**Key Files:**
+- `Run_Simulations.py`: Main dashboard entry point - interactive station selection and simulation execution
+- `pages/2_previous_simulations.py`: Historical simulation archive and comparison view
+- `df_analysis.py`: Chart generation and metric calculations
+- `folium_functions.py`: Interactive map utilities
+- `stations_choropleth.py`: Borough-based station density maps
+- `s3_utils.py`: AWS S3 integration for results and data access
+
+**Running the Dashboard:**
+```bash
+streamlit run dashboard/Run_Simulations.py
+```
 
 ### `/infrastructure`
 Terraform configuration for AWS infrastructure deployment, including an ECS Service for the dashboard, Lambda functions for simulation and S3 for centralised station and simulation result storage.
@@ -86,7 +114,7 @@ This creates the ECR repository where the Docker image will be stored.
 #### 2. Build and Push Docker Image
 
 ```bash
-./deploy.sh
+./deploy_networkx.sh
 ```
 
 This script handles:
