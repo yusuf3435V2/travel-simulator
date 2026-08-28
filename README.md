@@ -384,7 +384,7 @@ Recommended setup:
 
 ---
 
-## 9. IAM Permissions Required
+## 10. IAM Permissions Required
 
 The ECS dashboard task role needs permission to:
 - read from S3
@@ -410,7 +410,7 @@ The simulation Lambda role needs permission to:
 
 ---
 
-## 10. Run the Dashboard Locally
+## 11. Run the Dashboard Locally
 
 From the repository root:
 
@@ -434,7 +434,7 @@ Local dashboard requirements:
 
 ---
 
-## 11. Access the Deployed Dashboard
+## 12. Access the Deployed Dashboard
 
 After ECS deployment, find the dashboard URL.
 
@@ -464,7 +464,7 @@ port 8501
 
 ---
 
-## 12. Updating the Dashboard After Code Changes
+## 13. Updating the Dashboard After Code Changes
 
 If you only changed dashboard code:
 
@@ -487,7 +487,7 @@ aws ecs update-service \
 
 ---
 
-## 13. Updating Terraform
+## 14. Updating Terraform
 
 If you changed infrastructure code:
 
@@ -505,7 +505,7 @@ bash dashboard.sh
 
 ---
 
-## 14. Testing
+## 15. Testing
 
 Run all tests from the repository root:
 
@@ -533,7 +533,7 @@ pytest tfl_data_and_network/tests/
 
 ---
 
-## 15. Common Issues
+## 16. Common Issues
 
 ### `gcloud command not found`
 
@@ -587,7 +587,7 @@ Run commands from the repository root unless the README says otherwise.
 
 ---
 
-## 16. Cleanup
+## 17. Cleanup
 
 Destroy AWS infrastructure:
 
